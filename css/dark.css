@@ -1,0 +1,41 @@
+/* =====================
+   DARK MODE OVERRIDES
+======================== */
+body.dark {
+  /* Backgrounds */
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d23;
+  --bg-tertiary: #22262f;
+
+  /* Text */
+  --text-primary: #e8eaf0;
+  --text-secondary: #9aa0b0;
+  --text-muted: #5a6072;
+
+  /* Accent stays the same */
+  --accent: #4f7ef8;
+  --accent-hover: #6b92fa;
+  --accent-light: #1a2340;
+
+  /* Status Colors (slightly muted for dark) */
+  --success: #4ade80;
+  --success-light: #14532d;
+  --warning: #fbbf24;
+  --warning-light: #451a03;
+  --danger: #f87171;
+  --danger-light: #450a0a;
+
+  /* Borders */
+  --border: #2e3340;
+  --border-focus: #4f7ef8;
+
+  /* Shadows (more subtle on dark) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  /* Sidebar (slightly lighter on dark) */
+  --sidebar-bg: #13171f;
+  --sidebar-text: #7a8599;
+  --sidebar-text-active: #ffffff;
+}
