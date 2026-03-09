@@ -1,33 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Expense Tracker — Manage your finances" />
-  <title>Dashboard — Expense Tracker</title>
+  <title>Dashboard — Finova</title>
 
   <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Merriweather -->
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
 
-  <!-- Your Stylesheets -->
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/dark.css" />
+<!-- JetBrains Mono -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dark.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
 </head>
 <body>
 
-  <h1>Dashboard</h1>
-  <!-- You will build this properly on Day 3 -->
+  <!-- ── Mobile Sidebar Overlay ── -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <script type="module" src="js/auth.js"></script>
+  <div class="app-shell">
 
-  <!-- At the bottom of <body>, before your other scripts -->
-    <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/auth.js"></script>
-    <script type="module" src="js/app.js"></script>
-</body>
-</html>
+    <!-- ════════════════════════════
+         SIDEBAR
+    ════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Brand -->
+      <a class="sidebar-brand" href="#dashboard">
+        <div class="sidebar-brand-icon">💰</div>
+        <div class="sidebar-brand-text">
+          <span class="sidebar-brand-name">Finova</span>
+          <span class="sidebar-brand-tagline">Expense Tracker</span>
+        </div>
+      </a>
+
+      <!-- Navigation -->
+      <nav class="sidebar-nav" id="sidebarNav">
+
+        <div class="sidebar-section-label">Main</div>
+
+        <a class="sidebar-item active" data-page="dashboard" href="#dashboard" data-tooltip="Dashboard">
+          <div class="sidebar-icon"><i class="fa-solid fa-gauge-high"></i></div>
+          <span class="sidebar-label">Dashboard</span>
+        </a>
+
+        <a class="sidebar-item" data-page="expenses" href="#expenses" data-tooltip="Expenses">
+          <div class="sidebar-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+          <span class="sidebar-label">Expenses</span>
+          <span class="sidebar-badge" id="badgeExpenses" style="display:none;">0</span>
+        </a>
+
+        <a class="sidebar-item" data-page="income" href="#income" data-tooltip="Income">
+          <div class="sidebar-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+          <span class="sidebar-label">Income</span>
+        </a>
+
+        <a class="sidebar-item" data-page="calendar" href="#calendar" data-tooltip="Calendar">
+          <div class="sidebar-icon"><i class="fa-solid fa-calendar-days"></i></div>
+          <span class="sidebar-label">Calendar</span>
+        </a>
+
+        <div class="sidebar-section-label">Planning</div>
+
+        <a class="sidebar-item" data-page="budgets" href="#budgets" data-tooltip="Budgets">
+          <div class="sidebar-icon"><i class="fa-solid fa-chart-pie"></i></div>
+          <span class="sidebar-label">Budgets</span>
+        </a>
+
+        <a class="sidebar-item" data-page="savings" href="#savings" data-tooltip="Savings">
+          <div class="sidebar-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+          <span class="sidebar-label">Savings Goals</span>
+        </a>
+
+        <a class="sidebar-item" data-page="recurring" href="#recurring" data-tooltip="Recurring">
+          <div class="sidebar-icon"><i class="fa-solid fa-repeat"></i></div>
+          <span class="sidebar-label">Recurring</span>
+        </a>
+
+        <div class="sidebar-section-label">Reports</div>
+
+        <a class="sidebar-item" data-page="analytics" href="#analytics" data-tooltip="Analytics">
+          <div class="sidebar-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <span class="sidebar-label">Analytics</span>
+        </a>
+
+        <a class="sidebar-item" data-page="export" href="#export" data-tooltip="Export">
+          <div class="sidebar-icon"><i class="fa-solid fa-file-export"></i></div>
+          <span class="sidebar-label">Export</span>
+        </a>
+
+        <div class="sidebar-section-label">Account</div>
+
+        <a class="sidebar-item" data-page="settings" href="#settings" data-tooltip="Settings">
+          <div class="sidebar-icon"><i class="fa-solid fa-gear"></i></div>
+          <span class="sidebar-label">Settings</span>
+        </a>
+
+      </nav>
+
+      <!-- User profile footer -->
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebarUser">
+          <div class="sidebar-avatar" id="sidebarAvatar">?</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebarUserName">Loading…</div>
+            <div class="sidebar-user-email" id="sidebarUserEmail"></div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ════════════════════════════
+         MAIN CONTENT
+    ════════════════════════════ -->
+    <div class="app-main" id="appMain">
+
+      <!-- ── NAVBAR ── -->
+      <nav class="navbar" id="navbar">
+
+        <button class="navbar-toggle" id="navbarToggle">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="navbar-breadcrumb">
+          <span>Finova</span>
+          <span class="separator">
+            <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i>
+          </span>
+          <span class="current" id="navbarPageTitle">Dashboard</span>
+        </div>
+
+        <div class="navbar-spacer"></div>
+
+        <!-- Search -->
+        <div class="navbar-search">
+          <i class="fa-solid fa-magnifying-glass navbar-search-icon"></i>
+          <input
+            class="navbar-search-input"
+            type="text"
+            id="navbarSearch"
+            placeholder="Search transactions…"
+          />
+        </div>
+
+        <!-- Actions -->
+        <div class="navbar-actions">
+
+          <!-- Add expense shortcut -->
+          <button class="btn btn-primary btn-sm" id="btnQuickAdd">
+            <i class="fa-solid fa-plus"></i>
+            <span class="hide-sm">Add Expense</span>
+          </button>
+
+          <!-- Theme toggle -->
+          <button class="navbar-icon-btn" id="btnTheme" title="Toggle dark mode">
+            <i class="fa-solid fa-moon" id="themeIcon"></i>
+          </button>
+
+          <!-- Notifications -->
+          <button class="navbar-icon-btn" id="btnNotifications">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notif-dot" id="notifDot" style="display:none;"></span>
+          </button>
+
+          <div class="navbar-divider"></div>
+
+          <!-- User avatar -->
+          <div class="navbar-avatar" id="navbarAvatar" title="Account">?</div>
+
+        </div>
+      </nav>
+
+      <!-- ── PAGE VIEWS ── -->
+      <!-- Each section is a "page" — only one is visible at a time -->
+      <main class="page-content" id="pageContent">
+
+        <!-- Dashboard -->
+        <section class="page-view active" id="page-dashboard">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Dashboard</h1>
+              <p class="page-subtitle">Welcome back! Here's your financial overview.</p>
+            </div>
+          </div>
+          <div class="placeholder-content">
+            <i class="fa-solid fa-gauge-high"></i>
+            <p>Dashboard content coming on Day 7</p>
+          </div>
+        </section>
+
+        <!-- Expenses -->
+        <section class="page-view" id="page-expenses">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Expenses</h1>
+              <p class="page-subtitle">Track and manage your spending.</p>
+            </div>
+            <button class="btn btn-primary" id="btnAddExpense">
+              <i class="fa-solid fa-plus"></i> Add Expense
+            </button>
+          </div>
+          <div class="placeholder-content">
+            <i class="fa-solid fa-arrow-trend-down"></i>
+            <p>Expenses list coming on Day 10</p>
+          </div>
+        </section>
+
+        <!-- Income -->
+        <section class="page-view" id="page-income">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Income</h1>
+              <p class="page-subtitle">Track all your income sources.</p>
+            </div>
+            <button class="btn btn-primary" id="btnAddIncome">
+              <i class="fa-solid fa-plus"></i> Add Income
+            </button>
+          </div>
+          <div class="placeholder-content">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+            <p>Income tracking coming on Day 12</p>
+          </div>
+        </section>
+
+        <!-- Calendar -->
+        <section class="page-view" id="page-calendar">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Calendar</h1>
+              <p class="page-subtitle">Your spending heat map.</p>
+            </div>
+          </div>
+          <div class="placeholder-content">
+            <i class="fa-solid fa-calendar-days"></i>
+            <p>Calendar view coming on Day 22</p>
+          </div>
+        </section>
+
+        <!-- Budgets -->
+        <section class="page-view" id="page-budgets">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Budgets</h1>
+              <p class="page-subtitle">Set and manage your spending limits.</p>
+            </div>
+            <button class="btn btn-primary">
+              <i class="fa-solid fa-plus"></i> Add Budget
+            </button>
+          </div>
+          <div class="placeholder-content">
+            <i class="fa-solid fa-chart-pie"></i>
+            <p>Budget management coming on Day 15</p>
+          </div>
+        </section>
+
+        <!-- Savings -->
+        <section class="page-view" id="page-savings">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Savings Goals</h1>
+              <p class="page-subtitle">Set targets and track your progress.</p>
+            </div>
+            <button class="btn btn-primary">
+              <i class="fa-solid fa-plus"></i> New Goal
+            </button>
+          </div>
+          <div class="placeholder-content">
+            <i class="fa-solid fa-piggy-bank"></i>
+            <p>Savings goals coming on Day 17</p>
+          </div>
+        </section>
+
+        <!-- Recurring -->
+        <section class="page-view" id="page-recurring">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Recurring</h1>
+              <p class="page-subtitle">Manage your subscriptions and bills.</p>
+            </div>
+          </div>
+          <div class="placeholder-content">
+            <i class="fa-solid fa-repeat"></i>
+            <p>Recurring expenses coming on Day 18</p>
+          </div>
+        </section>
+
+        <!-- Analytics -->
+        <section class="page-view" id="page-analytics">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Analytics</h1>
+              <p class="page-subtitle">Charts and spending insights.</p>
+            </div>
+          </div>
+          <div class="placeholder-content">

@@ -1,30 +1,287 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Expense Tracker — Manage your finances" />
-  <title>Sign Up — Expense Tracker</title>
+  <meta name="description" content="Create your SpendWise account — Free expense tracker"/>
+  <title>Sign Up — Finova</title>
 
   <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-  <!-- Your Stylesheets -->
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/dark.css" />
+  <!-- Merriweather -->
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
+<!-- JetBrains Mono -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dark.css"/>
+  <link rel="stylesheet" href="css/auth.css"/>
 </head>
 <body>
 
-<h1>Sign Up Page</h1>
-  <!-- You will build this properly on Day 3 -->
+  <div class="auth-shell">
 
-    <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/auth.js"></script>
-    <script type="module" src="js/app.js"></script>
+    <!-- ── LEFT PANEL — Branding ── -->
+    <div class="auth-panel-left">
+      <div class="auth-brand">
+        <div class="auth-brand-img">
+          <img src="assets/fivano.png" alt="Finova logo "/>
+        </div>
+        <div>
+          <span class="auth-brand-name">Finova</span>
+        </div>
+      </div>
+
+      <div class="auth-hero">
+        <h1 class="auth-hero-title">Your financial journey starts here.</h1>
+        <p class="auth-hero-sub">Join thousands of people who track smarter, spend better, and save more with Finova.</p>
+      </div>
+
+      <!-- Feature list -->
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+          <div class="auth-feature-text">
+            <span class="auth-feature-title">Smart Budgeting</span>
+            <span class="auth-feature-desc">Set limits per category and get alerted before you overspend</span>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <i class="fa-solid fa-calendar-days"></i>
+          </div>
+          <div class="auth-feature-text">
+            <span class="auth-feature-title">Calendar View</span>
+            <span class="auth-feature-desc">See your spending as a heat map — spot heavy days at a glance</span>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <i class="fa-solid fa-piggy-bank"></i>
+          </div>
+          <div class="auth-feature-text">
+            <span class="auth-feature-title">Savings Goals</span>
+            <span class="auth-feature-desc">Set targets, track progress, and celebrate every milestone</span>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <i class="fa-solid fa-globe"></i>
+          </div>
+          <div class="auth-feature-text">
+            <span class="auth-feature-title">Multi-Currency</span>
+            <span class="auth-feature-desc">Track expenses in any currency with live exchange rates</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL — Sign Up Form ── -->
+    <div class="auth-panel-right">
+      <div class="auth-form-wrap">
+
+        <!-- Header -->
+        <div class="auth-form-header">
+          <h2 class="auth-form-title">Create your account</h2>
+          <p class="auth-form-sub">It's free — no credit card required</p>
+        </div>
+
+        <!-- Social sign-up buttons -->
+        <div class="auth-social">
+          <button class="btn-social" id="btnGoogle" type="button">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18"/>
+            Sign up with Google
+          </button>
+
+        </div>
+
+        <!-- Divider -->
+        <div class="auth-divider">
+          <span class="auth-divider-line"></span>
+          <span class="auth-divider-text">or sign up with email</span>
+          <span class="auth-divider-line"></span>
+        </div>
+
+        <!-- Registration form -->
+        <div class="auth-form" id="formSignup">
+
+          <!-- Name row -->
+          <div class="form-row" style="gap: 12px;">
+            <div class="form-group">
+              <label class="form-label" for="inputFirstName">
+                First Name <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">
+                  <i class="fa-solid fa-user"></i>
+                </span>
+                <input
+                  class="form-input has-prefix"
+                  type="text"
+                  id="inputFirstName"
+                  placeholder="Juan"
+                  autocomplete="given-name"
+                  required
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inputLastName">
+                Last Name <span class="required">*</span>
+              </label>
+              <input
+                class="form-input"
+                type="text"
+                id="inputLastName"
+                placeholder="dela Cruz"
+                autocomplete="family-name"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="inputEmail">
+              Email Address <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-envelope"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="email"
+                id="inputEmail"
+                placeholder="juan@email.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+            <span class="form-help" id="emailHelp"></span>
+          </div>
+
+          <!-- Base currency -->
+          <div class="form-group">
+            <label class="form-label" for="inputCurrency">
+              Base Currency <span class="required">*</span>
+            </label>
+            <select class="form-select" id="inputCurrency">
+              <option value="PHP" selected>🇵🇭 PHP — Philippine Peso</option>
+              <option value="USD">🇺🇸 USD — US Dollar</option>
+              <option value="EUR">🇪🇺 EUR — Euro</option>
+              <option value="GBP">🇬🇧 GBP — British Pound</option>
+              <option value="JPY">🇯🇵 JPY — Japanese Yen</option>
+              <option value="SGD">🇸🇬 SGD — Singapore Dollar</option>
+              <option value="AUD">🇦🇺 AUD — Australian Dollar</option>
+              <option value="CAD">🇨🇦 CAD — Canadian Dollar</option>
+            </select>
+            <span class="form-help">You can change this later in Settings</span>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="inputPassword">
+              Password <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="password"
+                id="inputPassword"
+                placeholder="Create a strong password"
+                autocomplete="new-password"
+                required
+              />
+              <button class="input-action" id="togglePassword" type="button" tabindex="-1">
+                <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+              </button>
+            </div>
+            <!-- Password strength bar -->
+            <div class="password-strength" id="passwordStrength" style="display:none;">
+              <div class="strength-bar">
+                <div class="strength-fill" id="strengthFill"></div>
+              </div>
+              <span class="strength-label" id="strengthLabel"></span>
+            </div>
+          </div>
+
+          <!-- Confirm password -->
+          <div class="form-group">
+            <label class="form-label" for="inputConfirmPassword">
+              Confirm Password <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="password"
+                id="inputConfirmPassword"
+                placeholder="Repeat your password"
+                autocomplete="new-password"
+                required
+              />
+              <button class="input-action" id="toggleConfirmPassword" type="button" tabindex="-1">
+                <i class="fa-solid fa-eye" id="toggleConfirmIcon"></i>
+              </button>
+            </div>
+            <span class="form-help" id="confirmHelp"></span>
+          </div>
+
+          <!-- Terms checkbox -->
+          <div class="form-group">
+            <label class="form-check">
+              <input class="form-check-input" type="checkbox" id="checkTerms"/>
+              <span class="form-check-label">
+                I agree to the
+                <a href="#" class="auth-link">Terms of Service</a>
+                and
+                <a href="#" class="auth-link">Privacy Policy</a>
+              </span>
+            </label>
+          </div>
+
+          <!-- Error message -->
+          <div class="auth-error" id="authError" style="display:none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="authErrorText">Something went wrong.</span>
+          </div>
+
+          <!-- Submit -->
+          <button class="btn btn-primary btn-block auth-submit" id="btnSignup" type="button">
+            <span class="btn-label">Create Account</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+        </div>
+
+        <!-- Login link -->
+        <p class="auth-switch">
+          Already have an account?
+          <a href="login.html" class="auth-link">Log in</a>
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase -->
+  <script type="module" src="js/firebase-config.js"></script>
+  <script type="module" src="js/signup.js"></script>
+  <script type="module" src="js/app.js"></script>
+
 </body>
 </html>

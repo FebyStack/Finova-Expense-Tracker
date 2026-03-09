@@ -6,29 +6,215 @@
   <meta name="description" content="Expense Tracker — Manage your finances" />
   <title>Login — Expense Tracker</title>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+ <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
 
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<!-- Merriweather -->
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
 
-  <!-- Your Stylesheets -->
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/dark.css" />
+<!-- JetBrains Mono -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dark.css"/>
+  <link rel="stylesheet" href="css/auth.css"/>
 </head>
 <body>
 
-  <h1>Login Page</h1>
-  <!-- You will build this properly on Day 3 -->
+  <div class="auth-shell">
 
-  <script type="module" src="js/auth.js">  
-  </script>
+    <!-- ── LEFT PANEL — Branding ── -->
+    <div class="auth-panel-left">
+      <div class="auth-brands">
+        
+            <img src="assets/fivano.png" alt="Finova logo "/>
+      </div>
 
-  <!-- At the bottom of <body>, before your other scripts -->
-<script type="module" src="js/firebase-config.js"></script>
-<script type="module" src="js/auth.js"></script>
-<script type="module" src="js/app.js"></script>
+      <div class="auth-hero">
+        <h1 class="auth-hero-title">Take control of your finances.</h1>
+        <p class="auth-hero-sub">Track expenses, set budgets, and reach your savings goals — all in one place.</p>
+      </div>
+
+      <div class="auth-stats">
+        <div class="auth-stat">
+          <span class="auth-stat-value">₱0</span>
+          <span class="auth-stat-label">Hidden fees</span>
+        </div>
+        <div class="auth-stat-divider"></div>
+        <div class="auth-stat">
+          <span class="auth-stat-value">100%</span>
+          <span class="auth-stat-label">Protection of your data</span>
+        </div>
+        <div class="auth-stat-divider"></div>
+        <div class="auth-stat">
+          <span class="auth-stat-value">24/7</span>
+          <span class="auth-stat-label">Access</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL — Login Form ── -->
+    <div class="auth-panel-right">
+      <div class="auth-form-wrap">
+
+        <!-- Header -->
+        <div class="auth-form-header">
+          <h2 class="auth-form-title">Welcome back</h2>
+          <p class="auth-form-sub">Sign in to your Finova account</p>
+        </div>
+
+        <!-- Social sign-in buttons -->
+        <div class="auth-social">
+          <button class="btn-social" id="btnGoogle" type="button">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18"/>
+            Continue with Google
+          </button>
+        </div>
+
+        <!-- Divider -->
+        <div class="auth-divider">
+          <span class="auth-divider-line"></span>
+          <span class="auth-divider-text">or sign in with email</span>
+          <span class="auth-divider-line"></span>
+        </div>
+
+        <!-- Email / Password form -->
+        <div class="auth-form" id="formEmail">
+
+          <div class="form-group">
+            <label class="form-label" for="inputEmail">
+              Email address <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-envelope"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="email"
+                id="inputEmail"
+                placeholder="you@email.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputPassword">
+              Password <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="password"
+                id="inputPassword"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              />
+              <button class="input-action" id="togglePassword" type="button" tabindex="-1">
+                <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Forgot password -->
+          <div class="auth-forgot">
+            <a href="#" class="auth-link" id="linkForgot">Forgot password?</a>
+          </div>
+
+          <!-- Error message (hidden by default) -->
+          <div class="auth-error" id="authError" style="display:none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="authErrorText">Invalid email or password.</span>
+          </div>
+
+          <!-- Submit button -->
+          <button class="btn btn-primary btn-block auth-submit" id="btnEmailLogin" type="button">
+            <span class="btn-label">Sign In</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+        </div>
+
+        <!-- Divider -->
+        <div class="auth-divider" style="margin: 20px 0 16px;">
+          <span class="auth-divider-line"></span>
+          <span class="auth-divider-text">or use phone number</span>
+          <span class="auth-divider-line"></span>
+        </div>
+
+        <!-- Phone sign-in -->
+        <div class="auth-form" id="formPhone">
+
+          <div class="form-group" id="phoneInputGroup">
+            <label class="form-label" for="inputPhone">Phone Number</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-phone"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="tel"
+                id="inputPhone"
+                placeholder="+63 912 345 6789"
+                autocomplete="tel"
+              />
+            </div>
+            <span class="form-help">Include your country code, e.g. +63 for Philippines</span>
+          </div>
+
+          <!-- OTP input (hidden until SMS is sent) -->
+          <div class="form-group" id="otpGroup" style="display:none;">
+            <label class="form-label" for="inputOTP">Verification Code</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-shield-halved"></i>
+              </span>
+              <input
+                class="form-input has-prefix form-input-otp"
+                type="text"
+                id="inputOTP"
+                placeholder="Enter 6-digit code"
+                maxlength="6"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+              />
+            </div>
+          </div>
+
+          <!-- reCAPTCHA container (Firebase will render here) -->
+          <div id="recaptcha-container"></div>
+
+          <button class="btn btn-outline btn-block" id="btnPhone" type="button">
+            <i class="fa-solid fa-mobile-screen"></i>
+            <span class="btn-label" id="btnPhoneLabel">Send Verification Code</span>
+          </button>
+
+        </div>
+
+        <!-- Sign up link -->
+        <p class="auth-switch">
+          Don't have an account?
+          <a href="signup.html" class="auth-link">Create one free</a>
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase -->
+  <script type="module" src="js/firebase-config.js"></script>
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/app.js"></script>
+
 </body>
 </html>
