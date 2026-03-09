@@ -12,7 +12,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   signOut
-} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
 
 // ── Providers ──────────────────────────────────────────────

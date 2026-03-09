@@ -281,7 +281,11 @@
   <!-- Firebase -->
   <script type="module" src="js/firebase-config.js"></script>
   <script type="module" src="js/signup.js"></script>
-  <script type="module" src="js/app.js"></script>
-
+  <!-- Instant theme load — prevents flash of wrong theme -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark');
+    }
+  </script>
 </body>
 </html>
