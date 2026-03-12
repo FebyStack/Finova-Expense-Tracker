@@ -8,7 +8,6 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-
 // ── Category definitions ───────────────────────────────────
 const CATEGORIES = [
   { name: 'Food',          icon: 'fa-solid fa-utensils',       bg: '#fff3e0', color: '#f59e0b' },
@@ -25,23 +24,19 @@ const CATEGORIES = [
   { name: 'Other',         icon: 'fa-solid fa-circle-dot',     bg: '#f5f5f5', color: '#9aa0b0' },
 ];
 
-// Currency symbol map
 const CURRENCY_SYMBOLS = {
   PHP: '₱', USD: '$', EUR: '€',
   GBP: '£', JPY: '¥', SGD: 'S$', AUD: 'A$'
 };
 
-
 // ── State ──────────────────────────────────────────────────
 let selectedCategory = null;
 let isSaving         = false;
-
 
 // ── Build category grid ────────────────────────────────────
 function buildCategoryGrid() {
   const grid = document.getElementById('expCategoryGrid');
   if (!grid) return;
-
   grid.innerHTML = CATEGORIES.map(cat => `
     <button
       type="button"
@@ -49,8 +44,7 @@ function buildCategoryGrid() {
       data-category="${cat.name}"
       onclick="selectCategory('${cat.name}')"
     >
-      <div class="category-btn-icon"
-           style="background:${cat.bg}; color:${cat.color};">
+      <div class="category-btn-icon" style="background:${cat.bg}; color:${cat.color};">
         <i class="${cat.icon}"></i>
       </div>
       <span class="category-btn-label">${cat.name}</span>
@@ -58,46 +52,45 @@ function buildCategoryGrid() {
   `).join('');
 }
 
-
 // ── Select a category ──────────────────────────────────────
 window.selectCategory = function(name) {
   selectedCategory = name;
   document.getElementById('expCategory').value = name;
-
-  // Update visual selection
   document.querySelectorAll('.category-btn').forEach(btn => {
     btn.classList.toggle('selected', btn.dataset.category === name);
   });
-
   hideExpenseError();
 };
 
-
 // ── Open modal ─────────────────────────────────────────────
-export function openExpenseModal() {
+export function openExpenseModal(prefill = {}) {
   const modal = document.getElementById('modalAddExpense');
   if (!modal) return;
 
-  // Reset form
   resetExpenseForm();
 
-  // Set today's date as default
+  // Default to today
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('expDate').value = today;
+  document.getElementById('expDate').value = prefill.date || today;
 
-  // Set user's base currency
-  const user = auth.currentUser;
-  // Currency will be set by app.js after profile loads
+  // Prefill from receipt scan if provided
+  if (prefill.amount) {
+    document.getElementById('expAmount').value = prefill.amount;
+  }
+  if (prefill.note) {
+    document.getElementById('expNote').value = prefill.note;
+  }
+  if (prefill.category) {
+    window.selectCategory(prefill.category);
+  }
 
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
 
-  // Focus amount input
   setTimeout(() => {
     document.getElementById('expAmount')?.focus();
   }, 200);
 }
-
 
 // ── Close modal ────────────────────────────────────────────
 export function closeExpenseModal() {
@@ -107,38 +100,31 @@ export function closeExpenseModal() {
   document.body.style.overflow = '';
 }
 
-
 // ── Reset form ─────────────────────────────────────────────
 function resetExpenseForm() {
-  document.getElementById('expAmount').value       = '';
-  document.getElementById('expNote').value         = '';
-  document.getElementById('expCategory').value     = '';
-  document.getElementById('expRecurring').checked  = false;
+  document.getElementById('expAmount').value      = '';
+  document.getElementById('expNote').value        = '';
+  document.getElementById('expCategory').value    = '';
+  document.getElementById('expRecurring').checked = false;
   document.getElementById('expRecurringGroup').style.display = 'none';
   selectedCategory = null;
-
-  // Clear category selection
-  document.querySelectorAll('.category-btn')
-    .forEach(btn => btn.classList.remove('selected'));
-
+  document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected'));
   hideExpenseError();
 }
-
 
 // ── Error handling ─────────────────────────────────────────
 function showExpenseError(message) {
   const box  = document.getElementById('expError');
   const text = document.getElementById('expErrorText');
   if (!box || !text) return;
-  text.textContent   = message;
-  box.style.display  = 'flex';
+  text.textContent  = message;
+  box.style.display = 'flex';
 }
 
 function hideExpenseError() {
   const box = document.getElementById('expError');
   if (box) box.style.display = 'none';
 }
-
 
 // ── Validate form ──────────────────────────────────────────
 function validateExpenseForm() {
@@ -149,20 +135,16 @@ function validateExpenseForm() {
     showExpenseError('Please enter a valid amount greater than 0.');
     return false;
   }
-
   if (!selectedCategory) {
     showExpenseError('Please select a category.');
     return false;
   }
-
   if (!date) {
     showExpenseError('Please select a date.');
     return false;
   }
-
   return true;
 }
-
 
 // ── Save expense to Firestore ──────────────────────────────
 async function saveExpense() {
@@ -188,27 +170,25 @@ async function saveExpense() {
     const dateObj = new Date(date);
     const month   = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
 
-    console.log('📦 db:', db);
-    console.log('👤 user:', user.uid);
-    console.log('💰 amount:', amount);
-
     const docRef = await addDoc(
       collection(db, 'users', user.uid, 'expenses'),
       {
         amount,
         currency,
-        category:  selectedCategory,
+        category:    selectedCategory,
         date,
         month,
-        note:      note || '',
+        note:        note || '',
         recurring,
-        frequency: recurring ? frequency : null,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        frequency:   recurring ? frequency : null,
+        receiptPath: window._pendingReceiptPath || null,
+        createdAt:   serverTimestamp(),
+        updatedAt:   serverTimestamp(),
       }
     );
 
     console.log('✅ Saved! Doc ID:', docRef.id);
+    window._pendingReceiptPath = null;
 
     closeExpenseModal();
     showToast('Expense saved successfully!', 'success');
@@ -219,34 +199,21 @@ async function saveExpense() {
     }
 
   } catch (error) {
-    console.error('❌ Save expense error code:', error.code);
-    console.error('❌ Save expense error message:', error.message);
+    console.error('❌ Save expense error:', error.code, error.message);
     showExpenseError('Failed to save expense. Please try again.');
   } finally {
-    isSaving = false;
+    isSaving      = false;
     btn.disabled  = false;
     btn.innerHTML = `<i class="fa-solid fa-plus"></i> Save Expense`;
   }
 }
-    // Close modal
-    closeExpenseModal();
-
-    // Show success toast
-    showToast('Expense saved successfully!', 'success');
-
-    // Refresh dashboard if on dashboard page
-    const currentPage = window.location.hash.replace('#', '') || 'dashboard';
-    if (currentPage === 'dashboard' && window.refreshDashboard) {
-      window.refreshDashboard();
-    }
 
 // ── Toast notification ─────────────────────────────────────
-function showToast(message, type = 'success') {
-  // Remove existing toast
+export function showToast(message, type = 'success') {
   document.getElementById('appToast')?.remove();
 
-  const toast = document.createElement('div');
-  toast.id    = 'appToast';
+  const toast     = document.createElement('div');
+  toast.id        = 'appToast';
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
     <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
@@ -254,16 +221,12 @@ function showToast(message, type = 'success') {
   `;
   document.body.appendChild(toast);
 
-  // Animate in
   requestAnimationFrame(() => toast.classList.add('visible'));
-
-  // Auto remove after 3 seconds
   setTimeout(() => {
     toast.classList.remove('visible');
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
-
 
 // ── Currency symbol update ─────────────────────────────────
 document.getElementById('expCurrency')
@@ -272,7 +235,6 @@ document.getElementById('expCurrency')
     document.getElementById('expCurrencySymbol').textContent = symbol;
   });
 
-
 // ── Recurring toggle ───────────────────────────────────────
 document.getElementById('expRecurring')
   ?.addEventListener('change', (e) => {
@@ -280,34 +242,18 @@ document.getElementById('expRecurring')
       e.target.checked ? 'block' : 'none';
   });
 
-
 // ── Modal close handlers ───────────────────────────────────
-document.getElementById('btnCloseExpenseModal')
-  ?.addEventListener('click', closeExpenseModal);
-
-document.getElementById('btnCancelExpense')
-  ?.addEventListener('click', closeExpenseModal);
-
-// Close on overlay click
-document.getElementById('modalAddExpense')
-  ?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeExpenseModal();
-  });
-
-// Close on Escape key
+document.getElementById('btnCloseExpenseModal')?.addEventListener('click', closeExpenseModal);
+document.getElementById('btnCancelExpense')?.addEventListener('click', closeExpenseModal);
+document.getElementById('modalAddExpense')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeExpenseModal();
+});
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeExpenseModal();
 });
 
-
 // ── Save button ────────────────────────────────────────────
-document.getElementById('btnSaveExpense')
-  ?.addEventListener('click', saveExpense);
-
+document.getElementById('btnSaveExpense')?.addEventListener('click', saveExpense);
 
 // ── Initialize ─────────────────────────────────────────────
 buildCategoryGrid();
-
-
-// ── Export toast for use in other modules ─────────────────
-export { showToast };

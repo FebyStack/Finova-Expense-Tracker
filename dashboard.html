@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/dark.css"/>
   <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/upload.css"/>
+  <link rel="stylesheet" href="css/receipt-modal.css"/>
 </head>
 <body>
 
@@ -32,7 +33,6 @@
     ════════════════════════════ -->
     <aside class="sidebar" id="sidebar">
 
-      <!-- Brand -->
       <a class="sidebar-brand" href="#dashboard">
         <div class="sidebar-brand-icon">
           <img src="assets/fivano.png" alt="Finova logo"/>
@@ -43,7 +43,6 @@
         </div>
       </a>
 
-      <!-- Navigation -->
       <nav class="sidebar-nav" id="sidebarNav">
 
         <div class="sidebar-section-label">Main</div>
@@ -52,18 +51,15 @@
           <div class="sidebar-icon"><i class="fa-solid fa-gauge-high"></i></div>
           <span class="sidebar-label">Dashboard</span>
         </a>
-
         <a class="sidebar-item" data-page="expenses" href="#expenses" data-tooltip="Expenses">
           <div class="sidebar-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
           <span class="sidebar-label">Expenses</span>
           <span class="sidebar-badge" id="badgeExpenses" style="display:none;">0</span>
         </a>
-
         <a class="sidebar-item" data-page="income" href="#income" data-tooltip="Income">
           <div class="sidebar-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
           <span class="sidebar-label">Income</span>
         </a>
-
         <a class="sidebar-item" data-page="calendar" href="#calendar" data-tooltip="Calendar">
           <div class="sidebar-icon"><i class="fa-solid fa-calendar-days"></i></div>
           <span class="sidebar-label">Calendar</span>
@@ -75,12 +71,10 @@
           <div class="sidebar-icon"><i class="fa-solid fa-chart-pie"></i></div>
           <span class="sidebar-label">Budgets</span>
         </a>
-
         <a class="sidebar-item" data-page="savings" href="#savings" data-tooltip="Savings">
           <div class="sidebar-icon"><i class="fa-solid fa-piggy-bank"></i></div>
           <span class="sidebar-label">Savings Goals</span>
         </a>
-
         <a class="sidebar-item" data-page="recurring" href="#recurring" data-tooltip="Recurring">
           <div class="sidebar-icon"><i class="fa-solid fa-repeat"></i></div>
           <span class="sidebar-label">Recurring</span>
@@ -92,7 +86,6 @@
           <div class="sidebar-icon"><i class="fa-solid fa-chart-line"></i></div>
           <span class="sidebar-label">Analytics</span>
         </a>
-
         <a class="sidebar-item" data-page="export" href="#export" data-tooltip="Export">
           <div class="sidebar-icon"><i class="fa-solid fa-file-export"></i></div>
           <span class="sidebar-label">Export</span>
@@ -107,7 +100,6 @@
 
       </nav>
 
-      <!-- User profile footer -->
       <div class="sidebar-footer">
         <div class="sidebar-user" id="sidebarUser">
           <div class="sidebar-avatar" id="sidebarAvatar">?</div>
@@ -128,7 +120,10 @@
     ════════════════════════════ -->
     <div class="app-main" id="appMain">
 
-      <!-- ── NAVBAR ── -->
+      <!-- ══════════════════════════════════════════════════
+           NAVBAR
+           ⚠ RULE: Only buttons go here. NO modals inside navbar.
+      ══════════════════════════════════════════════════ -->
       <nav class="navbar" id="navbar">
 
         <button class="navbar-toggle" id="navbarToggle">
@@ -145,7 +140,6 @@
 
         <div class="navbar-spacer"></div>
 
-        <!-- Search -->
         <div class="navbar-search">
           <i class="fa-solid fa-magnifying-glass navbar-search-icon"></i>
           <input
@@ -156,17 +150,16 @@
           />
         </div>
 
-        <!-- Actions -->
         <div class="navbar-actions">
 
           <button class="btn btn-outline btn-sm" onclick="openReceiptModal()">
             <i class="fa-solid fa-receipt"></i>
-            <span>Upload Receipt</span>
+            Upload Receipt
           </button>
 
           <button class="btn btn-primary btn-sm" id="btnQuickAdd">
             <i class="fa-solid fa-plus"></i>
-            <span class="hide-sm">Add Expense</span>
+            Add Expense
           </button>
 
           <button class="navbar-icon-btn" id="btnTheme" title="Toggle dark mode">
@@ -190,91 +183,59 @@
       <!-- ── PAGE VIEWS ── -->
       <main class="page-content" id="pageContent">
 
-        <!-- ── Dashboard ── -->
+        <!-- Dashboard -->
         <section class="page-view active" id="page-dashboard">
-
           <div class="page-header">
             <div>
               <h1 class="page-title" id="dashGreeting">Good morning!</h1>
-              <p class="page-subtitle">Here's your financial overview for
-                <span id="dashMonth">this month</span>.
-              </p>
+              <p class="page-subtitle">Here's your financial overview for <span id="dashMonth">this month</span>.</p>
             </div>
             <button class="btn btn-primary" id="btnDashAddExpense">
               <i class="fa-solid fa-plus"></i> Add Expense
             </button>
           </div>
 
-          <!-- ── Summary Cards ── -->
           <div class="summary-grid">
-
             <div class="summary-card income">
               <div class="summary-card-header">
                 <span class="summary-card-label">Total Income</span>
-                <div class="summary-card-icon">
-                  <i class="fa-solid fa-arrow-trend-up"></i>
-                </div>
+                <div class="summary-card-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
               </div>
               <div class="summary-card-amount" id="cardIncome">₱0.00</div>
-              <div class="summary-card-delta neutral" id="cardIncomeDelta">
-                <i class="fa-solid fa-minus"></i> No data yet
-              </div>
+              <div class="summary-card-delta neutral" id="cardIncomeDelta"><i class="fa-solid fa-minus"></i> No data yet</div>
             </div>
-
             <div class="summary-card expense">
               <div class="summary-card-header">
                 <span class="summary-card-label">Total Expenses</span>
-                <div class="summary-card-icon">
-                  <i class="fa-solid fa-arrow-trend-down"></i>
-                </div>
+                <div class="summary-card-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
               </div>
               <div class="summary-card-amount" id="cardExpenses">₱0.00</div>
-              <div class="summary-card-delta neutral" id="cardExpensesDelta">
-                <i class="fa-solid fa-minus"></i> No data yet
-              </div>
+              <div class="summary-card-delta neutral" id="cardExpensesDelta"><i class="fa-solid fa-minus"></i> No data yet</div>
             </div>
-
             <div class="summary-card balance">
               <div class="summary-card-header">
                 <span class="summary-card-label">Net Balance</span>
-                <div class="summary-card-icon">
-                  <i class="fa-solid fa-scale-balanced"></i>
-                </div>
+                <div class="summary-card-icon"><i class="fa-solid fa-scale-balanced"></i></div>
               </div>
               <div class="summary-card-amount" id="cardBalance">₱0.00</div>
-              <div class="summary-card-delta neutral" id="cardBalanceDelta">
-                <i class="fa-solid fa-minus"></i> No transactions yet
-              </div>
+              <div class="summary-card-delta neutral" id="cardBalanceDelta"><i class="fa-solid fa-minus"></i> No transactions yet</div>
             </div>
-
             <div class="summary-card savings">
               <div class="summary-card-header">
                 <span class="summary-card-label">Savings Rate</span>
-                <div class="summary-card-icon">
-                  <i class="fa-solid fa-piggy-bank"></i>
-                </div>
+                <div class="summary-card-icon"><i class="fa-solid fa-piggy-bank"></i></div>
               </div>
               <div class="summary-card-amount" id="cardSavingsRate">0%</div>
-              <div class="summary-card-delta neutral" id="cardSavingsDelta">
-                <i class="fa-solid fa-minus"></i> No data yet
-              </div>
+              <div class="summary-card-delta neutral" id="cardSavingsDelta"><i class="fa-solid fa-minus"></i> No data yet</div>
             </div>
-
           </div>
 
-          <!-- ── Dashboard Grid ── -->
           <div class="dashboard-grid">
-
-            <!-- Left column -->
             <div style="display:flex; flex-direction:column; gap:var(--space-6);">
-
-              <!-- Monthly Overview -->
               <div class="dash-card">
                 <div class="dash-card-header">
                   <span class="dash-card-title">Monthly Overview</span>
-                  <button class="dash-card-action" onclick="navigateTo('analytics')">
-                    View All →
-                  </button>
+                  <button class="dash-card-action" onclick="navigateTo('analytics')">View All →</button>
                 </div>
                 <div class="dash-card-body">
                   <div class="chart-placeholder" id="chartMonthly">
@@ -283,193 +244,97 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Recent Transactions -->
               <div class="dash-card">
                 <div class="dash-card-header">
                   <span class="dash-card-title">Recent Transactions</span>
-                  <button class="dash-card-action" onclick="navigateTo('expenses')">
-                    View All →
-                  </button>
+                  <button class="dash-card-action" onclick="navigateTo('expenses')">View All →</button>
                 </div>
-                <div id="recentTransactions">
-                  <!-- Loaded by JS -->
-                </div>
+                <div id="recentTransactions"></div>
               </div>
-
             </div>
-
-            <!-- Right column -->
             <div style="display:flex; flex-direction:column; gap:var(--space-6);">
-
-              <!-- Budget Overview -->
               <div class="dash-card">
                 <div class="dash-card-header">
                   <span class="dash-card-title">Budget Overview</span>
-                  <button class="dash-card-action" onclick="navigateTo('budgets')">
-                    Manage →
-                  </button>
+                  <button class="dash-card-action" onclick="navigateTo('budgets')">Manage →</button>
                 </div>
-                <div class="budget-list" id="dashBudgetList">
-                  <!-- Loaded by JS -->
-                </div>
+                <div class="budget-list" id="dashBudgetList"></div>
               </div>
-
-              <!-- Savings Goals -->
               <div class="dash-card">
                 <div class="dash-card-header">
                   <span class="dash-card-title">Savings Goals</span>
-                  <button class="dash-card-action" onclick="navigateTo('savings')">
-                    View All →
-                  </button>
+                  <button class="dash-card-action" onclick="navigateTo('savings')">View All →</button>
                 </div>
-                <div class="budget-list" id="dashSavingsList">
-                  <!-- Loaded by JS -->
-                </div>
+                <div class="budget-list" id="dashSavingsList"></div>
               </div>
-
             </div>
-
           </div>
-
         </section>
 
-        <!-- ── Expenses ── -->
+        <!-- Expenses -->
         <section class="page-view" id="page-expenses">
           <div class="page-header">
-            <div>
-              <h1 class="page-title">Expenses</h1>
-              <p class="page-subtitle">Track and manage your spending.</p>
-            </div>
-            <button class="btn btn-primary" id="btnAddExpense">
-              <i class="fa-solid fa-plus"></i> Add Expense
-            </button>
+            <div><h1 class="page-title">Expenses</h1><p class="page-subtitle">Track and manage your spending.</p></div>
+            <button class="btn btn-primary" id="btnAddExpense"><i class="fa-solid fa-plus"></i> Add Expense</button>
           </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-arrow-trend-down"></i>
-            <p>Expenses list coming on Day 10</p>
-          </div>
+          <div class="placeholder-content"><i class="fa-solid fa-arrow-trend-down"></i><p>Expenses list coming on Day 10</p></div>
         </section>
 
-        <!-- ── Income ── -->
+        <!-- Income -->
         <section class="page-view" id="page-income">
           <div class="page-header">
-            <div>
-              <h1 class="page-title">Income</h1>
-              <p class="page-subtitle">Track all your income sources.</p>
-            </div>
-            <button class="btn btn-primary" id="btnAddIncome">
-              <i class="fa-solid fa-plus"></i> Add Income
-            </button>
+            <div><h1 class="page-title">Income</h1><p class="page-subtitle">Track all your income sources.</p></div>
+            <button class="btn btn-primary" id="btnAddIncome"><i class="fa-solid fa-plus"></i> Add Income</button>
           </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-arrow-trend-up"></i>
-            <p>Income tracking coming on Day 12</p>
-          </div>
+          <div class="placeholder-content"><i class="fa-solid fa-arrow-trend-up"></i><p>Income tracking coming on Day 12</p></div>
         </section>
 
-        <!-- ── Calendar ── -->
+        <!-- Calendar -->
         <section class="page-view" id="page-calendar">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Calendar</h1>
-              <p class="page-subtitle">Your spending heat map.</p>
-            </div>
-          </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-calendar-days"></i>
-            <p>Calendar view coming on Day 22</p>
-          </div>
+          <div class="page-header"><div><h1 class="page-title">Calendar</h1><p class="page-subtitle">Your spending heat map.</p></div></div>
+          <div class="placeholder-content"><i class="fa-solid fa-calendar-days"></i><p>Calendar view coming on Day 22</p></div>
         </section>
 
-        <!-- ── Budgets ── -->
+        <!-- Budgets -->
         <section class="page-view" id="page-budgets">
           <div class="page-header">
-            <div>
-              <h1 class="page-title">Budgets</h1>
-              <p class="page-subtitle">Set and manage your spending limits.</p>
-            </div>
-            <button class="btn btn-primary">
-              <i class="fa-solid fa-plus"></i> Add Budget
-            </button>
+            <div><h1 class="page-title">Budgets</h1><p class="page-subtitle">Set and manage your spending limits.</p></div>
+            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Budget</button>
           </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-chart-pie"></i>
-            <p>Budget management coming on Day 15</p>
-          </div>
+          <div class="placeholder-content"><i class="fa-solid fa-chart-pie"></i><p>Budget management coming on Day 15</p></div>
         </section>
 
-        <!-- ── Savings ── -->
+        <!-- Savings -->
         <section class="page-view" id="page-savings">
           <div class="page-header">
-            <div>
-              <h1 class="page-title">Savings Goals</h1>
-              <p class="page-subtitle">Set targets and track your progress.</p>
-            </div>
-            <button class="btn btn-primary">
-              <i class="fa-solid fa-plus"></i> New Goal
-            </button>
+            <div><h1 class="page-title">Savings Goals</h1><p class="page-subtitle">Set targets and track your progress.</p></div>
+            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Goal</button>
           </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-piggy-bank"></i>
-            <p>Savings goals coming on Day 17</p>
-          </div>
+          <div class="placeholder-content"><i class="fa-solid fa-piggy-bank"></i><p>Savings goals coming on Day 17</p></div>
         </section>
 
-        <!-- ── Recurring ── -->
+        <!-- Recurring -->
         <section class="page-view" id="page-recurring">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Recurring</h1>
-              <p class="page-subtitle">Manage your subscriptions and bills.</p>
-            </div>
-          </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-repeat"></i>
-            <p>Recurring expenses coming on Day 18</p>
-          </div>
+          <div class="page-header"><div><h1 class="page-title">Recurring</h1><p class="page-subtitle">Manage your subscriptions and bills.</p></div></div>
+          <div class="placeholder-content"><i class="fa-solid fa-repeat"></i><p>Recurring expenses coming on Day 18</p></div>
         </section>
 
-        <!-- ── Analytics ── -->
+        <!-- Analytics -->
         <section class="page-view" id="page-analytics">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Analytics</h1>
-              <p class="page-subtitle">Charts and spending insights.</p>
-            </div>
-          </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-chart-line"></i>
-            <p>Analytics and charts coming on Day 19</p>
-          </div>
+          <div class="page-header"><div><h1 class="page-title">Analytics</h1><p class="page-subtitle">Charts and spending insights.</p></div></div>
+          <div class="placeholder-content"><i class="fa-solid fa-chart-line"></i><p>Analytics and charts coming on Day 19</p></div>
         </section>
 
-        <!-- ── Export ── -->
+        <!-- Export -->
         <section class="page-view" id="page-export">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Export</h1>
-              <p class="page-subtitle">Download your financial data.</p>
-            </div>
-          </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-file-export"></i>
-            <p>Export feature coming on Day 21</p>
-          </div>
+          <div class="page-header"><div><h1 class="page-title">Export</h1><p class="page-subtitle">Download your financial data.</p></div></div>
+          <div class="placeholder-content"><i class="fa-solid fa-file-export"></i><p>Export feature coming on Day 21</p></div>
         </section>
 
-        <!-- ── Settings ── -->
+        <!-- Settings -->
         <section class="page-view" id="page-settings">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Settings</h1>
-              <p class="page-subtitle">Manage your account and preferences.</p>
-            </div>
-          </div>
-          <div class="placeholder-content">
-            <i class="fa-solid fa-gear"></i>
-            <p>Settings page coming soon</p>
-          </div>
+          <div class="page-header"><div><h1 class="page-title">Settings</h1><p class="page-subtitle">Manage your account and preferences.</p></div></div>
+          <div class="placeholder-content"><i class="fa-solid fa-gear"></i><p>Settings page coming soon</p></div>
           <div style="margin-top:24px;">
             <button class="btn btn-danger" id="btnLogout">
               <i class="fa-solid fa-right-from-bracket"></i> Log Out
@@ -479,38 +344,38 @@
 
       </main>
 
-      <!-- ── MOBILE BOTTOM NAV ── -->
+      <!-- Mobile Bottom Nav -->
       <nav class="bottom-nav" id="bottomNav">
         <a class="bottom-nav-item active" data-page="dashboard" href="#dashboard">
-          <i class="fa-solid fa-gauge-high"></i>
-          <span>Home</span>
+          <i class="fa-solid fa-gauge-high"></i><span>Home</span>
         </a>
         <a class="bottom-nav-item" data-page="expenses" href="#expenses">
-          <i class="fa-solid fa-arrow-trend-down"></i>
-          <span>Expenses</span>
+          <i class="fa-solid fa-arrow-trend-down"></i><span>Expenses</span>
         </a>
         <a class="bottom-nav-item bottom-nav-add" id="bottomNavAdd" href="#">
           <i class="fa-solid fa-plus"></i>
         </a>
         <a class="bottom-nav-item" data-page="budgets" href="#budgets">
-          <i class="fa-solid fa-chart-pie"></i>
-          <span>Budgets</span>
+          <i class="fa-solid fa-chart-pie"></i><span>Budgets</span>
         </a>
         <a class="bottom-nav-item" data-page="settings" href="#settings">
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
+          <i class="fa-solid fa-gear"></i><span>Settings</span>
         </a>
       </nav>
 
     </div>
-    <!-- ── END app-main ── -->
+    <!-- END app-main -->
 
   </div>
-  <!-- ── END app-shell ── -->
+  <!-- END app-shell -->
 
-  <!-- ════════════════════════════
-       ADD EXPENSE MODAL
-  ════════════════════════════ -->
+
+  <!-- ══════════════════════════════════════════════════════
+       MODALS — always at the very bottom, outside app-shell
+       ⚠ NEVER place modals inside navbar, sidebar, or main
+  ══════════════════════════════════════════════════════ -->
+
+  <!-- ── ADD EXPENSE MODAL ── -->
   <div class="modal-overlay" id="modalAddExpense">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalExpenseTitle">
 
@@ -526,21 +391,14 @@
 
       <div class="modal-body">
 
-        <!-- Amount -->
         <div class="form-group">
-          <label class="form-label" for="expAmount">
-            Amount <span class="required">*</span>
-          </label>
+          <label class="form-label" for="expAmount">Amount <span class="required">*</span></label>
           <div class="input-wrapper">
             <span class="input-prefix currency" id="expCurrencySymbol">₱</span>
             <input
               class="form-input form-input-amount has-prefix"
-              type="number"
-              id="expAmount"
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-              required
+              type="number" id="expAmount"
+              placeholder="0.00" min="0" step="0.01" required
             />
             <select class="input-action-select" id="expCurrency">
               <option value="PHP">PHP</option>
@@ -554,38 +412,23 @@
           </div>
         </div>
 
-        <!-- Category -->
         <div class="form-group">
-          <label class="form-label">
-            Category <span class="required">*</span>
-          </label>
+          <label class="form-label">Category <span class="required">*</span></label>
           <div class="category-grid" id="expCategoryGrid"></div>
           <input type="hidden" id="expCategory" required/>
         </div>
 
-        <!-- Date + Note -->
         <div class="form-row" style="gap:12px;">
           <div class="form-group">
-            <label class="form-label" for="expDate">
-              Date <span class="required">*</span>
-            </label>
+            <label class="form-label" for="expDate">Date <span class="required">*</span></label>
             <input class="form-input" type="date" id="expDate" required/>
           </div>
           <div class="form-group">
-            <label class="form-label" for="expNote">
-              Note <span class="optional">(optional)</span>
-            </label>
-            <input
-              class="form-input"
-              type="text"
-              id="expNote"
-              placeholder="What was this for?"
-              maxlength="120"
-            />
+            <label class="form-label" for="expNote">Note <span class="optional">(optional)</span></label>
+            <input class="form-input" type="text" id="expNote" placeholder="What was this for?" maxlength="120"/>
           </div>
         </div>
 
-        <!-- Recurring toggle -->
         <div class="form-group">
           <label class="form-toggle">
             <div class="form-toggle-track">
@@ -596,7 +439,6 @@
           </label>
         </div>
 
-        <!-- Recurring frequency -->
         <div class="form-group" id="expRecurringGroup" style="display:none;">
           <label class="form-label" for="expFrequency">Frequency</label>
           <select class="form-select" id="expFrequency">
@@ -607,7 +449,6 @@
           </select>
         </div>
 
-        <!-- Error -->
         <div class="form-error-banner" id="expError" style="display:none;">
           <i class="fa-solid fa-circle-exclamation"></i>
           <span id="expErrorText"></span>
@@ -618,19 +459,16 @@
       <div class="modal-footer">
         <button class="btn btn-ghost" id="btnCancelExpense">Cancel</button>
         <button class="btn btn-danger" id="btnSaveExpense">
-          <i class="fa-solid fa-plus"></i>
-          <span>Save Expense</span>
+          <i class="fa-solid fa-plus"></i> <span>Save Expense</span>
         </button>
       </div>
 
     </div>
   </div>
 
-  <!-- ════════════════════════════
-       UPLOAD RECEIPT MODAL
-  ════════════════════════════ -->
+  <!-- ── UPLOAD RECEIPT MODAL (3-step AI flow) ── -->
   <div class="modal-overlay" id="receiptModalBackdrop" style="display:none;">
-    <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal modal-receipt" role="dialog" aria-modal="true">
 
       <div class="modal-header">
         <h2 class="modal-title">
@@ -644,63 +482,129 @@
 
       <div class="modal-body">
 
-        <!-- Link to expense -->
-        <div class="form-group">
-          <label class="form-label">
-            <i class="fa-solid fa-link"></i> Link to Expense
-            <span class="optional">(optional)</span>
-          </label>
-          <select class="form-select" id="receiptExpenseLink">
-            <option value="">— Select an expense —</option>
-          </select>
-          <span class="form-help">Link this receipt to an existing expense</span>
+        <!-- STEP 1: Upload -->
+        <div id="stepUpload" style="display:flex; flex-direction:column; gap:var(--space-4);">
+          <div class="receipt-ai-badge">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>AI-powered — automatically extracts date &amp; amount</span>
+          </div>
+          <div class="file-upload-zone" id="receiptDropZone">
+            <input type="file" id="receiptFileInput"
+              accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+              style="display:none;"/>
+            <div class="file-upload-idle">
+              <div class="file-upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+              <div class="file-upload-text">
+                <span class="file-upload-title">Drop your receipt here</span>
+                <span class="file-upload-sub">or
+                  <button class="file-upload-browse" type="button" id="btnBrowseReceipt">browse files</button>
+                </span>
+                <span class="file-upload-hint">JPG, PNG, PDF · max 5MB</span>
+              </div>
+            </div>
+          </div>
+          <div class="receipt-preview" id="receiptPreview" style="display:none;">
+            <img id="receiptPreviewImg" src="" alt="Receipt preview" style="display:none;"/>
+            <div class="receipt-preview-info">
+              <i class="fa-solid fa-file-image" style="color:var(--accent); font-size:20px;"></i>
+              <div>
+                <div class="receipt-preview-name" id="receiptPreviewName"></div>
+                <div class="receipt-preview-size" id="receiptPreviewSize"></div>
+              </div>
+              <button class="file-upload-remove" type="button" id="btnRemoveReceipt">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-error-banner" id="receiptError" style="display:none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="receiptErrorMsg"></span>
+          </div>
         </div>
 
-        <!-- Note -->
-        <div class="form-group">
-          <label class="form-label" for="receiptNote">
-            Note <span class="optional">(optional)</span>
-          </label>
-          <input
-            class="form-input"
-            type="text"
-            id="receiptNote"
-            placeholder="e.g. Grocery receipt, March 2026"
-            maxlength="100"
-          />
+        <!-- STEP 2: Scanning -->
+        <div id="stepScanning" style="display:none; flex-direction:column; align-items:center; gap:var(--space-5); padding:var(--space-8) 0;">
+          <div class="receipt-scan-animation">
+            <div class="receipt-scan-icon"><i class="fa-solid fa-receipt"></i></div>
+            <div class="receipt-scan-beam"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:var(--text-base); font-weight:var(--weight-semibold); color:var(--text-primary); margin-bottom:6px;">
+              Scanning your receipt…
+            </div>
+            <div style="font-size:var(--text-sm); color:var(--text-muted);">
+              AI is extracting date, amount, and merchant
+            </div>
+          </div>
+          <div class="receipt-scan-steps">
+            <div class="scan-step active" id="scanStep1"><i class="fa-solid fa-check-circle"></i> Reading image</div>
+            <div class="scan-step" id="scanStep2"><i class="fa-solid fa-spinner fa-spin"></i> Extracting data</div>
+            <div class="scan-step" id="scanStep3"><i class="fa-regular fa-circle"></i> Preparing results</div>
+          </div>
         </div>
 
-        <!-- Upload widget -->
-        <div class="form-group">
-          <label class="form-label">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Receipt File
-          </label>
-          <div id="receiptUploaderContainer"></div>
-        </div>
-
-        <!-- Error -->
-        <div class="form-error-banner" id="receiptError" style="display:none;">
-          <i class="fa-solid fa-circle-exclamation"></i>
-          <span id="receiptErrorMsg"></span>
+        <!-- STEP 3: Review -->
+        <div id="stepReview" style="display:none; flex-direction:column; gap:var(--space-4);">
+          <div class="review-card">
+            <div class="review-card-header">
+              <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent);"></i>
+              <span>Extracted from receipt</span>
+              <span class="review-confidence" id="reviewConfidence">High confidence</span>
+            </div>
+            <div class="review-fields">
+              <div class="review-field">
+                <span class="review-field-label"><i class="fa-solid fa-store"></i> Merchant</span>
+                <span class="review-field-value" id="reviewMerchant">—</span>
+              </div>
+              <div class="review-field highlight">
+                <span class="review-field-label"><i class="fa-solid fa-peso-sign"></i> Total Amount</span>
+                <span class="review-field-value review-amount" id="reviewAmount">—</span>
+              </div>
+              <div class="review-field">
+                <span class="review-field-label"><i class="fa-solid fa-calendar"></i> Date</span>
+                <span class="review-field-value" id="reviewDate">—</span>
+              </div>
+              <div class="review-field">
+                <span class="review-field-label"><i class="fa-solid fa-coins"></i> Currency</span>
+                <span class="review-field-value" id="reviewCurrency">—</span>
+              </div>
+              <div class="review-field">
+                <span class="review-field-label"><i class="fa-solid fa-tag"></i> Category</span>
+                <span class="review-field-value" id="reviewCategory">—</span>
+              </div>
+            </div>
+            <div class="review-items-section">
+              <div class="review-field-label" style="margin-bottom:8px;">
+                <i class="fa-solid fa-list"></i> Items detected
+              </div>
+              <div class="review-items" id="reviewItems"></div>
+            </div>
+          </div>
+          <div class="receipt-info-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>These details will pre-fill the expense form. You can edit them before saving.</span>
+          </div>
         </div>
 
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeReceiptModal()">Cancel</button>
-        <button class="btn btn-primary" id="btnSaveReceipt" onclick="saveReceipt()">
-          <i class="fa-solid fa-cloud-arrow-up"></i>
-          Save Receipt
+        <button class="btn btn-ghost" id="btnCancelReceipt" onclick="closeReceiptModal()">Cancel</button>
+        <button class="btn btn-primary" id="btnScanReceipt" onclick="scanReceipt()" disabled>
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Scan Receipt
+        </button>
+        <button class="btn btn-primary" id="btnConfirmReceipt" onclick="confirmReceiptAndAddExpense()" style="display:none;">
+          <i class="fa-solid fa-check"></i> Looks good — Add Expense
         </button>
       </div>
 
     </div>
   </div>
 
-  <!-- Firebase -->
+  <!-- Scripts -->
   <script type="module" src="js/firebase-config.js"></script>
   <script type="module" src="js/expenses.js"></script>
-  <script type="module" src="js/receipts.js"></script>
+  <script type="module" src="js/receipt.js"></script>
   <script type="module" src="js/app.js"></script>
 
 </body>

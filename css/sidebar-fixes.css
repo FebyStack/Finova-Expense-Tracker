@@ -1,0 +1,161 @@
+/* ============================================================
+   sidebar-label-fix.css
+   PURPOSE: Fix sidebar labels being invisible when expanded.
+   
+   HOW TO USE:
+   Add this LAST in dashboard.html <head>, after all other CSS:
+   <link rel="stylesheet" href="css/sidebar-label-fix.css"/>
+   ============================================================ */
+
+/* ── Force all text elements VISIBLE in expanded sidebar ──── */
+
+.sidebar:not(.collapsed) .sidebar-label,
+.sidebar:not(.collapsed) .sidebar-brand-text,
+.sidebar:not(.collapsed) .sidebar-brand-name,
+.sidebar:not(.collapsed) .sidebar-brand-tagline,
+.sidebar:not(.collapsed) .sidebar-section-label,
+.sidebar:not(.collapsed) .sidebar-user-info,
+.sidebar:not(.collapsed) .sidebar-user-name,
+.sidebar:not(.collapsed) .sidebar-user-email {
+  opacity: 1 !important;
+  max-width: 200px !important;
+  width: auto !important;
+  overflow: visible !important;
+  visibility: visible !important;
+  display: block !important;
+  pointer-events: auto !important;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, max-width 0.25s ease !important;
+}
+
+/* sidebar-label is a span inside a flex row — needs inline-block not block */
+.sidebar:not(.collapsed) .sidebar-label {
+  display: inline-block !important;
+  flex: 1;
+}
+
+/* sidebar-badge (expense count dot) also needs to show */
+.sidebar:not(.collapsed) .sidebar-badge {
+  opacity: 1 !important;
+  max-width: 40px !important;
+}
+
+/* ── Collapsed state — hide text ────────────────────────── */
+
+.sidebar.collapsed .sidebar-label,
+.sidebar.collapsed .sidebar-brand-text,
+.sidebar.collapsed .sidebar-brand-name,
+.sidebar.collapsed .sidebar-brand-tagline,
+.sidebar.collapsed .sidebar-section-label,
+.sidebar.collapsed .sidebar-user-info,
+.sidebar.collapsed .sidebar-user-name,
+.sidebar.collapsed .sidebar-user-email,
+.sidebar.collapsed .sidebar-badge {
+  opacity: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  transition: opacity 0.2s ease, max-width 0.25s ease !important;
+}
+
+/* ── Sidebar width ─────────────────────────────────────── */
+
+.sidebar {
+  width: 240px !important;
+  min-width: 240px !important;
+  transition: width 0.25s ease, min-width 0.25s ease !important;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 68px !important;
+  min-width: 68px !important;
+}
+
+/* ── Sidebar items stay flex row ─────────────────────── */
+
+.sidebar-item {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar-brand {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar-footer {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.sidebar-user {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE SIDEBAR DRAWER
+   ══════════════════════════════════════════════════════════ */
+
+/* On mobile the sidebar is a fixed drawer, hidden off-screen by default */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 300;
+    width: 240px !important;
+    min-width: 240px !important;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+    /* Override the width transition — use transform instead */
+  }
+
+  /* Drawer open */
+  .sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  /* Main content fills full width on mobile */
+  .app-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Never apply desktop collapsed on mobile */
+  .sidebar.collapsed {
+    width: 240px !important;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.collapsed.mobile-open {
+    transform: translateX(0) !important;
+  }
+}
+
+/* ── Sidebar overlay (shared) ─────────────────────────── */
+#sidebarOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 299; /* just below sidebar */
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
