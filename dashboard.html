@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <!-- Theme color for mobile browsers -->
   <meta name="theme-color" content="#ffffff" id="themeColorMeta"/>
   <title>Dashboard — Finova</title>
 
@@ -12,12 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
-<!-- Merriweather -->
-<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
-
-<!-- JetBrains Mono -->
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet"/>
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/style.css"/>
@@ -113,7 +108,6 @@
       </nav>
 
       <!-- User profile footer -->
-      <!-- User profile footer -->
       <div class="sidebar-footer">
         <div class="sidebar-user" id="sidebarUser">
           <div class="sidebar-avatar" id="sidebarAvatar">?</div>
@@ -122,7 +116,6 @@
             <div class="sidebar-user-email" id="sidebarUserEmail"></div>
           </div>
         </div>
-        <!-- Mini theme toggle in sidebar -->
         <button class="sidebar-theme-btn" id="sidebarThemeBtn" title="Toggle theme">
           <i class="fa-solid fa-moon" id="sidebarThemeIcon"></i>
         </button>
@@ -137,19 +130,6 @@
 
       <!-- ── NAVBAR ── -->
       <nav class="navbar" id="navbar">
-
-
-        <div style="max-width:480px; margin:40px auto; padding:24px;">
-
-          <h2 style="margin-bottom:24px;">Upload Receipt</h2>
-
-          <!-- Drop-in upload component -->
-          <div id="receiptUploader"></div>
-
-          <!-- Shows result after upload -->
-          <div id="uploadResult" style="display:none; margin-top:16px;"></div>
-
-        </div>
 
         <button class="navbar-toggle" id="navbarToggle">
           <i class="fa-solid fa-bars"></i>
@@ -179,18 +159,20 @@
         <!-- Actions -->
         <div class="navbar-actions">
 
-          <!-- Add expense shortcut -->
+          <button class="btn btn-outline btn-sm" onclick="openReceiptModal()">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Upload Receipt</span>
+          </button>
+
           <button class="btn btn-primary btn-sm" id="btnQuickAdd">
             <i class="fa-solid fa-plus"></i>
             <span class="hide-sm">Add Expense</span>
           </button>
 
-          <!-- Theme toggle -->
           <button class="navbar-icon-btn" id="btnTheme" title="Toggle dark mode">
             <i class="fa-solid fa-moon" id="themeIcon"></i>
           </button>
 
-          <!-- Notifications -->
           <button class="navbar-icon-btn" id="btnNotifications">
             <i class="fa-solid fa-bell"></i>
             <span class="notif-dot" id="notifDot" style="display:none;"></span>
@@ -198,160 +180,161 @@
 
           <div class="navbar-divider"></div>
 
-          <!-- User avatar -->
           <div class="navbar-avatar" id="navbarAvatar" title="Account">?</div>
 
         </div>
+
       </nav>
+      <!-- ── END NAVBAR ── -->
 
       <!-- ── PAGE VIEWS ── -->
-      <!-- Each section is a "page" — only one is visible at a time -->
       <main class="page-content" id="pageContent">
 
-        <!-- Dashboard -->
-        <!-- Dashboard -->
-      <section class="page-view active" id="page-dashboard">
+        <!-- ── Dashboard ── -->
+        <section class="page-view active" id="page-dashboard">
 
-        <div class="page-header">
-          <div>
-            <h1 class="page-title" id="dashGreeting">Good morning!</h1>
-            <p class="page-subtitle">Here's your financial overview for <span id="dashMonth">this month</span>.</p>
-          </div>
-          <button class="btn btn-primary" id="btnDashAddExpense">
-            <i class="fa-solid fa-plus"></i> Add Expense
-          </button>
-        </div>
-
-        <!-- ── Summary Cards ── -->
-        <div class="summary-grid">
-
-          <div class="summary-card income">
-            <div class="summary-card-header">
-              <span class="summary-card-label">Total Income</span>
-              <div class="summary-card-icon">
-                <i class="fa-solid fa-arrow-trend-up"></i>
-              </div>
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="dashGreeting">Good morning!</h1>
+              <p class="page-subtitle">Here's your financial overview for
+                <span id="dashMonth">this month</span>.
+              </p>
             </div>
-            <div class="summary-card-amount" id="cardIncome">₱0.00</div>
-            <div class="summary-card-delta neutral" id="cardIncomeDelta">
-              <i class="fa-solid fa-minus"></i> No data yet
-            </div>
+            <button class="btn btn-primary" id="btnDashAddExpense">
+              <i class="fa-solid fa-plus"></i> Add Expense
+            </button>
           </div>
 
-          <div class="summary-card expense">
-            <div class="summary-card-header">
-              <span class="summary-card-label">Total Expenses</span>
-              <div class="summary-card-icon">
-                <i class="fa-solid fa-arrow-trend-down"></i>
-              </div>
-            </div>
-            <div class="summary-card-amount" id="cardExpenses">₱0.00</div>
-            <div class="summary-card-delta neutral" id="cardExpensesDelta">
-              <i class="fa-solid fa-minus"></i> No data yet
-            </div>
-          </div>
+          <!-- ── Summary Cards ── -->
+          <div class="summary-grid">
 
-          <div class="summary-card balance">
-            <div class="summary-card-header">
-              <span class="summary-card-label">Net Balance</span>
-              <div class="summary-card-icon">
-                <i class="fa-solid fa-scale-balanced"></i>
-              </div>
-            </div>
-            <div class="summary-card-amount" id="cardBalance">₱0.00</div>
-            <div class="summary-card-delta neutral" id="cardBalanceDelta">
-              <i class="fa-solid fa-minus"></i> No transactions yet
-            </div>
-          </div>
-
-          <div class="summary-card savings">
-            <div class="summary-card-header">
-              <span class="summary-card-label">Savings Rate</span>
-              <div class="summary-card-icon">
-                <i class="fa-solid fa-piggy-bank"></i>
-              </div>
-            </div>
-            <div class="summary-card-amount" id="cardSavingsRate">0%</div>
-            <div class="summary-card-delta neutral" id="cardSavingsDelta">
-              <i class="fa-solid fa-minus"></i> No data yet
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ── Dashboard Grid — Chart + Recent Transactions ── -->
-        <div class="dashboard-grid">
-
-          <!-- Left column -->
-          <div style="display: flex; flex-direction: column; gap: var(--space-6);">
-
-            <!-- Monthly Overview Chart -->
-            <div class="dash-card">
-              <div class="dash-card-header">
-                <span class="dash-card-title">Monthly Overview</span>
-                <button class="dash-card-action" onclick="navigateTo('analytics')">
-                  View All →
-                </button>
-              </div>
-              <div class="dash-card-body">
-                <div class="chart-placeholder" id="chartMonthly">
-                  <i class="fa-solid fa-chart-bar"></i>
-                  <p>Charts coming on Day 19</p>
+            <div class="summary-card income">
+              <div class="summary-card-header">
+                <span class="summary-card-label">Total Income</span>
+                <div class="summary-card-icon">
+                  <i class="fa-solid fa-arrow-trend-up"></i>
                 </div>
               </div>
+              <div class="summary-card-amount" id="cardIncome">₱0.00</div>
+              <div class="summary-card-delta neutral" id="cardIncomeDelta">
+                <i class="fa-solid fa-minus"></i> No data yet
+              </div>
             </div>
 
-            <!-- Recent Transactions -->
-            <div class="dash-card">
-              <div class="dash-card-header">
-                <span class="dash-card-title">Recent Transactions</span>
-                <button class="dash-card-action" onclick="navigateTo('expenses')">
-                  View All →
-                </button>
+            <div class="summary-card expense">
+              <div class="summary-card-header">
+                <span class="summary-card-label">Total Expenses</span>
+                <div class="summary-card-icon">
+                  <i class="fa-solid fa-arrow-trend-down"></i>
+                </div>
               </div>
-              <div id="recentTransactions">
-                <!-- Loaded by JS -->
+              <div class="summary-card-amount" id="cardExpenses">₱0.00</div>
+              <div class="summary-card-delta neutral" id="cardExpensesDelta">
+                <i class="fa-solid fa-minus"></i> No data yet
+              </div>
+            </div>
+
+            <div class="summary-card balance">
+              <div class="summary-card-header">
+                <span class="summary-card-label">Net Balance</span>
+                <div class="summary-card-icon">
+                  <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+              </div>
+              <div class="summary-card-amount" id="cardBalance">₱0.00</div>
+              <div class="summary-card-delta neutral" id="cardBalanceDelta">
+                <i class="fa-solid fa-minus"></i> No transactions yet
+              </div>
+            </div>
+
+            <div class="summary-card savings">
+              <div class="summary-card-header">
+                <span class="summary-card-label">Savings Rate</span>
+                <div class="summary-card-icon">
+                  <i class="fa-solid fa-piggy-bank"></i>
+                </div>
+              </div>
+              <div class="summary-card-amount" id="cardSavingsRate">0%</div>
+              <div class="summary-card-delta neutral" id="cardSavingsDelta">
+                <i class="fa-solid fa-minus"></i> No data yet
               </div>
             </div>
 
           </div>
 
-          <!-- Right column -->
-          <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+          <!-- ── Dashboard Grid ── -->
+          <div class="dashboard-grid">
 
-            <!-- Budget Overview -->
-            <div class="dash-card">
-              <div class="dash-card-header">
-                <span class="dash-card-title">Budget Overview</span>
-                <button class="dash-card-action" onclick="navigateTo('budgets')">
-                  Manage →
-                </button>
+            <!-- Left column -->
+            <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+
+              <!-- Monthly Overview -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title">Monthly Overview</span>
+                  <button class="dash-card-action" onclick="navigateTo('analytics')">
+                    View All →
+                  </button>
+                </div>
+                <div class="dash-card-body">
+                  <div class="chart-placeholder" id="chartMonthly">
+                    <i class="fa-solid fa-chart-bar"></i>
+                    <p>Charts coming on Day 19</p>
+                  </div>
+                </div>
               </div>
-              <div class="budget-list" id="dashBudgetList">
-                <!-- Loaded by JS -->
+
+              <!-- Recent Transactions -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title">Recent Transactions</span>
+                  <button class="dash-card-action" onclick="navigateTo('expenses')">
+                    View All →
+                  </button>
+                </div>
+                <div id="recentTransactions">
+                  <!-- Loaded by JS -->
+                </div>
               </div>
+
             </div>
 
-            <!-- Savings Goals -->
-            <div class="dash-card">
-              <div class="dash-card-header">
-                <span class="dash-card-title">Savings Goals</span>
-                <button class="dash-card-action" onclick="navigateTo('savings')">
-                  View All →
-                </button>
+            <!-- Right column -->
+            <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+
+              <!-- Budget Overview -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title">Budget Overview</span>
+                  <button class="dash-card-action" onclick="navigateTo('budgets')">
+                    Manage →
+                  </button>
+                </div>
+                <div class="budget-list" id="dashBudgetList">
+                  <!-- Loaded by JS -->
+                </div>
               </div>
-              <div class="budget-list" id="dashSavingsList">
-                <!-- Loaded by JS -->
+
+              <!-- Savings Goals -->
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title">Savings Goals</span>
+                  <button class="dash-card-action" onclick="navigateTo('savings')">
+                    View All →
+                  </button>
+                </div>
+                <div class="budget-list" id="dashSavingsList">
+                  <!-- Loaded by JS -->
+                </div>
               </div>
+
             </div>
 
           </div>
 
-        </div>
+        </section>
 
-      </section>
-
-        <!-- Expenses -->
+        <!-- ── Expenses ── -->
         <section class="page-view" id="page-expenses">
           <div class="page-header">
             <div>
@@ -368,7 +351,7 @@
           </div>
         </section>
 
-        <!-- Income -->
+        <!-- ── Income ── -->
         <section class="page-view" id="page-income">
           <div class="page-header">
             <div>
@@ -385,7 +368,7 @@
           </div>
         </section>
 
-        <!-- Calendar -->
+        <!-- ── Calendar ── -->
         <section class="page-view" id="page-calendar">
           <div class="page-header">
             <div>
@@ -399,7 +382,7 @@
           </div>
         </section>
 
-        <!-- Budgets -->
+        <!-- ── Budgets ── -->
         <section class="page-view" id="page-budgets">
           <div class="page-header">
             <div>
@@ -416,7 +399,7 @@
           </div>
         </section>
 
-        <!-- Savings -->
+        <!-- ── Savings ── -->
         <section class="page-view" id="page-savings">
           <div class="page-header">
             <div>
@@ -433,7 +416,7 @@
           </div>
         </section>
 
-        <!-- Recurring -->
+        <!-- ── Recurring ── -->
         <section class="page-view" id="page-recurring">
           <div class="page-header">
             <div>
@@ -447,7 +430,7 @@
           </div>
         </section>
 
-        <!-- Analytics -->
+        <!-- ── Analytics ── -->
         <section class="page-view" id="page-analytics">
           <div class="page-header">
             <div>
@@ -461,7 +444,7 @@
           </div>
         </section>
 
-        <!-- Export -->
+        <!-- ── Export ── -->
         <section class="page-view" id="page-export">
           <div class="page-header">
             <div>
@@ -475,7 +458,7 @@
           </div>
         </section>
 
-        <!-- Settings -->
+        <!-- ── Settings ── -->
         <section class="page-view" id="page-settings">
           <div class="page-header">
             <div>
@@ -487,8 +470,7 @@
             <i class="fa-solid fa-gear"></i>
             <p>Settings page coming soon</p>
           </div>
-          <!-- Logout button -->
-          <div style="margin-top: 24px;">
+          <div style="margin-top:24px;">
             <button class="btn btn-danger" id="btnLogout">
               <i class="fa-solid fa-right-from-bracket"></i> Log Out
             </button>
@@ -521,143 +503,205 @@
       </nav>
 
     </div>
+    <!-- ── END app-main ── -->
 
-    <!-- ════════════════════════════
-     ADD EXPENSE MODAL
-════════════════════════════ -->
-<div class="modal-overlay" id="modalAddExpense">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalExpenseTitle">
+  </div>
+  <!-- ── END app-shell ── -->
 
-    <!-- Modal header -->
-    <div class="modal-header">
-      <h2 class="modal-title" id="modalExpenseTitle">
-        <i class="fa-solid fa-arrow-trend-down" style="color:var(--danger);"></i>
-        Add Expense
-      </h2>
-      <button class="modal-close" id="btnCloseExpenseModal">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
+  <!-- ════════════════════════════
+       ADD EXPENSE MODAL
+  ════════════════════════════ -->
+  <div class="modal-overlay" id="modalAddExpense">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalExpenseTitle">
 
-    <!-- Modal body -->
-    <div class="modal-body">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalExpenseTitle">
+          <i class="fa-solid fa-arrow-trend-down" style="color:var(--danger);"></i>
+          Add Expense
+        </h2>
+        <button class="modal-close" id="btnCloseExpenseModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
 
-      <!-- Amount row -->
-      <div class="form-group">
-        <label class="form-label" for="expAmount">
-          Amount <span class="required">*</span>
-        </label>
-        <div class="input-wrapper">
-          <span class="input-prefix currency" id="expCurrencySymbol">₱</span>
-          <input
-            class="form-input form-input-amount has-prefix"
-            type="number"
-            id="expAmount"
-            placeholder="0.00"
-            min="0"
-            step="0.01"
-            required
-          />
-          <select class="input-action-select" id="expCurrency">
-            <option value="PHP">PHP</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
-            <option value="JPY">JPY</option>
-            <option value="SGD">SGD</option>
-            <option value="AUD">AUD</option>
+      <div class="modal-body">
+
+        <!-- Amount -->
+        <div class="form-group">
+          <label class="form-label" for="expAmount">
+            Amount <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="input-prefix currency" id="expCurrencySymbol">₱</span>
+            <input
+              class="form-input form-input-amount has-prefix"
+              type="number"
+              id="expAmount"
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              required
+            />
+            <select class="input-action-select" id="expCurrency">
+              <option value="PHP">PHP</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="JPY">JPY</option>
+              <option value="SGD">SGD</option>
+              <option value="AUD">AUD</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label">
+            Category <span class="required">*</span>
+          </label>
+          <div class="category-grid" id="expCategoryGrid"></div>
+          <input type="hidden" id="expCategory" required/>
+        </div>
+
+        <!-- Date + Note -->
+        <div class="form-row" style="gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="expDate">
+              Date <span class="required">*</span>
+            </label>
+            <input class="form-input" type="date" id="expDate" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="expNote">
+              Note <span class="optional">(optional)</span>
+            </label>
+            <input
+              class="form-input"
+              type="text"
+              id="expNote"
+              placeholder="What was this for?"
+              maxlength="120"
+            />
+          </div>
+        </div>
+
+        <!-- Recurring toggle -->
+        <div class="form-group">
+          <label class="form-toggle">
+            <div class="form-toggle-track">
+              <input class="form-toggle-input" type="checkbox" id="expRecurring"/>
+              <div class="form-toggle-thumb"></div>
+            </div>
+            <span class="form-toggle-label">Recurring expense</span>
+          </label>
+        </div>
+
+        <!-- Recurring frequency -->
+        <div class="form-group" id="expRecurringGroup" style="display:none;">
+          <label class="form-label" for="expFrequency">Frequency</label>
+          <select class="form-select" id="expFrequency">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="yearly">Yearly</option>
           </select>
         </div>
-      </div>
 
-      <!-- Category -->
-      <div class="form-group">
-        <label class="form-label">
-          Category <span class="required">*</span>
-        </label>
-        <div class="category-grid" id="expCategoryGrid">
-          <!-- Generated by JS -->
+        <!-- Error -->
+        <div class="form-error-banner" id="expError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="expErrorText"></span>
         </div>
-        <input type="hidden" id="expCategory" required/>
+
       </div>
 
-      <!-- Date -->
-      <div class="form-row" style="gap:12px;">
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelExpense">Cancel</button>
+        <button class="btn btn-danger" id="btnSaveExpense">
+          <i class="fa-solid fa-plus"></i>
+          <span>Save Expense</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       UPLOAD RECEIPT MODAL
+  ════════════════════════════ -->
+  <div class="modal-overlay" id="receiptModalBackdrop" style="display:none;">
+    <div class="modal" role="dialog" aria-modal="true">
+
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fa-solid fa-receipt" style="color:var(--accent);"></i>
+          Upload Receipt
+        </h2>
+        <button class="modal-close" onclick="closeReceiptModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Link to expense -->
         <div class="form-group">
-          <label class="form-label" for="expDate">
-            Date <span class="required">*</span>
+          <label class="form-label">
+            <i class="fa-solid fa-link"></i> Link to Expense
+            <span class="optional">(optional)</span>
           </label>
-          <input
-            class="form-input"
-            type="date"
-            id="expDate"
-            required
-          />
+          <select class="form-select" id="receiptExpenseLink">
+            <option value="">— Select an expense —</option>
+          </select>
+          <span class="form-help">Link this receipt to an existing expense</span>
         </div>
 
         <!-- Note -->
         <div class="form-group">
-          <label class="form-label" for="expNote">
+          <label class="form-label" for="receiptNote">
             Note <span class="optional">(optional)</span>
           </label>
           <input
             class="form-input"
             type="text"
-            id="expNote"
-            placeholder="What was this for?"
-            maxlength="120"
+            id="receiptNote"
+            placeholder="e.g. Grocery receipt, March 2026"
+            maxlength="100"
           />
         </div>
+
+        <!-- Upload widget -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Receipt File
+          </label>
+          <div id="receiptUploaderContainer"></div>
+        </div>
+
+        <!-- Error -->
+        <div class="form-error-banner" id="receiptError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="receiptErrorMsg"></span>
+        </div>
+
       </div>
 
-      <!-- Recurring toggle -->
-      <div class="form-group">
-        <label class="form-toggle">
-          <div class="form-toggle-track">
-            <input class="form-toggle-input" type="checkbox" id="expRecurring"/>
-            <div class="form-toggle-thumb"></div>
-          </div>
-          <span class="form-toggle-label">Recurring expense</span>
-        </label>
-      </div>
-
-      <!-- Recurring frequency (hidden until toggle is on) -->
-      <div class="form-group" id="expRecurringGroup" style="display:none;">
-        <label class="form-label" for="expFrequency">Frequency</label>
-        <select class="form-select" id="expFrequency">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly" selected>Monthly</option>
-          <option value="yearly">Yearly</option>
-        </select>
-      </div>
-
-      <!-- Error message -->
-      <div class="form-error-banner" id="expError" style="display:none;">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span id="expErrorText"></span>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeReceiptModal()">Cancel</button>
+        <button class="btn btn-primary" id="btnSaveReceipt" onclick="saveReceipt()">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          Save Receipt
+        </button>
       </div>
 
     </div>
-
-    <!-- Modal footer -->
-    <div class="modal-footer">
-      <button class="btn btn-ghost" id="btnCancelExpense">
-        Cancel
-      </button>
-      <button class="btn btn-danger" id="btnSaveExpense">
-        <i class="fa-solid fa-plus"></i>
-        <span>Save Expense</span>
-      </button>
-    </div>
-
-  </div>
-</div>
   </div>
 
   <!-- Firebase -->
   <script type="module" src="js/firebase-config.js"></script>
   <script type="module" src="js/expenses.js"></script>
+  <script type="module" src="js/receipts.js"></script>
   <script type="module" src="js/app.js"></script>
+
 </body>
 </html>
