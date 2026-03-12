@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="stylesheet" href="css/dark.css"/>
   <link rel="stylesheet" href="css/dashboard.css"/>
+  <link rel="stylesheet" href="css/upload.css"/>
 </head>
 <body>
 
@@ -136,6 +137,19 @@
 
       <!-- ── NAVBAR ── -->
       <nav class="navbar" id="navbar">
+
+
+        <div style="max-width:480px; margin:40px auto; padding:24px;">
+
+          <h2 style="margin-bottom:24px;">Upload Receipt</h2>
+
+          <!-- Drop-in upload component -->
+          <div id="receiptUploader"></div>
+
+          <!-- Shows result after upload -->
+          <div id="uploadResult" style="display:none; margin-top:16px;"></div>
+
+        </div>
 
         <button class="navbar-toggle" id="navbarToggle">
           <i class="fa-solid fa-bars"></i>

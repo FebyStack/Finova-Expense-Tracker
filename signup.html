@@ -24,6 +24,7 @@
 </head>
 <body>
 
+  <canvas id="canvas"></canvas>
   <div class="auth-shell">
 
     <!-- ── LEFT PANEL — Branding ── -->
@@ -261,7 +262,7 @@
 
           <!-- Submit -->
           <button class="btn btn-primary btn-block auth-submit" id="btnSignup" type="button">
-            <span class="btn-label">Create Account</span>
+            <span class="btn-label " data-text="SIGN UP">Create Account</span>
             <i class="fa-solid fa-arrow-right"></i>
           </button>
 
@@ -281,6 +282,7 @@
   <!-- Firebase -->
   <script type="module" src="js/firebase-config.js"></script>
   <script type="module" src="js/signup.js"></script>
+  <script src="js/animation.js"></script>
   <!-- Instant theme load — prevents flash of wrong theme -->
   <script>
     if (localStorage.getItem('theme') === 'dark') {

@@ -25,6 +25,8 @@
   box-sizing: border-box;
 }
 
+
+
 html {
   font-size: 16px;
   scroll-behavior: smooth;
@@ -39,9 +41,12 @@ body {
   font-size: var(--text-base);
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
   overflow-x: hidden;
+}
+
+html, body {
+  min-height: 100%;
 }
 
 a        { text-decoration: none; color: inherit; }
@@ -56,6 +61,13 @@ input, textarea, select { font-family: var(--font-body); outline: none; border: 
    ============================================================ */
 :root {
 
+#canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+}
   /* ── Font Families ───────────────────────────────────────── */
   --font-heading: 'Merriweather', Georgia, serif;
   --font-body:    'Inter', system-ui, -apple-system, sans-serif;

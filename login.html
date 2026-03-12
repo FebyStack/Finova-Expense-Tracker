@@ -24,7 +24,11 @@
 </head>
 <body>
 
+  <canvas id="canvas"></canvas>
+
   <div class="auth-shell">
+
+
 
     <!-- ── LEFT PANEL — Branding ── -->
     <div class="auth-panel-left">
@@ -138,67 +142,13 @@
 
           <!-- Submit button -->
           <button class="btn btn-primary btn-block auth-submit" id="btnEmailLogin" type="button">
-            <span class="btn-label">Sign In</span>
+            <span class="btn-label" data-type="SIGN IN">Sign In</span>
             <i class="fa-solid fa-arrow-right"></i>
           </button>
 
         </div>
 
-        <!-- Divider -->
-        <div class="auth-divider" style="margin: 20px 0 16px;">
-          <span class="auth-divider-line"></span>
-          <span class="auth-divider-text">or use phone number</span>
-          <span class="auth-divider-line"></span>
-        </div>
-
-        <!-- Phone sign-in -->
-        <div class="auth-form" id="formPhone">
-
-          <div class="form-group" id="phoneInputGroup">
-            <label class="form-label" for="inputPhone">Phone Number</label>
-            <div class="input-wrapper">
-              <span class="input-prefix">
-                <i class="fa-solid fa-phone"></i>
-              </span>
-              <input
-                class="form-input has-prefix"
-                type="tel"
-                id="inputPhone"
-                placeholder="+63 912 345 6789"
-                autocomplete="tel"
-              />
-            </div>
-            <span class="form-help">Include your country code, e.g. +63 for Philippines</span>
-          </div>
-
-          <!-- OTP input (hidden until SMS is sent) -->
-          <div class="form-group" id="otpGroup" style="display:none;">
-            <label class="form-label" for="inputOTP">Verification Code</label>
-            <div class="input-wrapper">
-              <span class="input-prefix">
-                <i class="fa-solid fa-shield-halved"></i>
-              </span>
-              <input
-                class="form-input has-prefix form-input-otp"
-                type="text"
-                id="inputOTP"
-                placeholder="Enter 6-digit code"
-                maxlength="6"
-                inputmode="numeric"
-                autocomplete="one-time-code"
-              />
-            </div>
-          </div>
-
-          <!-- reCAPTCHA container (Firebase will render here) -->
-          <div id="recaptcha-container"></div>
-
-          <button class="btn btn-outline btn-block" id="btnPhone" type="button">
-            <i class="fa-solid fa-mobile-screen"></i>
-            <span class="btn-label" id="btnPhoneLabel">Send Verification Code</span>
-          </button>
-
-        </div>
+      
 
         <!-- Sign up link -->
         <p class="auth-switch">
@@ -214,7 +164,7 @@
   <!-- Firebase -->
   <script type="module" src="js/firebase-config.js"></script>
   <script type="module" src="js/auth.js"></script>
-  <script type="module" src="js/login.js"></script>
+  <script src="js/animation.js"></script>
   <!-- Instant theme load — prevents flash of wrong theme -->
   <script>
     if (localStorage.getItem('theme') === 'dark') {

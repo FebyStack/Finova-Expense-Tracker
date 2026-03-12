@@ -5,10 +5,8 @@ import { auth } from './firebase-config.js';
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
-  signInWithPhoneNumber,
   GoogleAuthProvider,
   OAuthProvider,
-  RecaptchaVerifier,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signOut
@@ -171,80 +169,6 @@ document.getElementById('linkForgot')
   });
 
 
-// ── Phone Sign-In ──────────────────────────────────────────
-let confirmationResult = null;
-let otpSent            = false;
-
-// Set up reCAPTCHA — must run before signInWithPhoneNumber
-function setupRecaptcha() {
-  if (!window.recaptchaVerifier) {
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      auth,
-      'recaptcha-container',
-      {
-        size: 'invisible',   // invisible reCAPTCHA — no checkbox shown
-        callback: () => {}   // called when reCAPTCHA is solved
-      }
-    );
-  }
-}
-
-const btnPhone      = document.getElementById('btnPhone');
-const btnPhoneLabel = document.getElementById('btnPhoneLabel');
-const phoneGroup    = document.getElementById('phoneInputGroup');
-const otpGroup      = document.getElementById('otpGroup');
-
-btnPhone?.addEventListener('click', async () => {
-
-  // ── Step 1: Send OTP ──────────────────────────────────
-  if (!otpSent) {
-    const phone = document.getElementById('inputPhone').value.trim();
-    if (!phone) {
-      showError('Please enter a valid phone number with country code.');
-      return;
-    }
-
-    setLoading('btnPhone', true, `<i class="fa-solid fa-mobile-screen"></i> <span id="btnPhoneLabel">Send Verification Code</span>`);
-
-    try {
-      setupRecaptcha();
-      confirmationResult = await signInWithPhoneNumber(
-        auth,
-        phone,
-        window.recaptchaVerifier
-      );
-      // Show OTP field
-      phoneGroup.style.display = 'none';
-      otpGroup.style.display   = 'block';
-      otpSent                  = true;
-      setLoading('btnPhone', false, `<i class="fa-solid fa-shield-halved"></i> <span id="btnPhoneLabel">Verify Code</span>`);
-    } catch (error) {
-      showError(friendlyError(error.code));
-      setLoading('btnPhone', false, `<i class="fa-solid fa-mobile-screen"></i> <span id="btnPhoneLabel">Send Verification Code</span>`);
-      // Reset reCAPTCHA on error
-      window.recaptchaVerifier?.clear();
-      window.recaptchaVerifier = null;
-    }
-
-  // ── Step 2: Verify OTP ────────────────────────────────
-  } else {
-    const otp = document.getElementById('inputOTP').value.trim();
-    if (otp.length !== 6) {
-      showError('Please enter the 6-digit code sent to your phone.');
-      return;
-    }
-
-    setLoading('btnPhone', true, `<i class="fa-solid fa-shield-halved"></i> <span id="btnPhoneLabel">Verify Code</span>`);
-
-    try {
-      await confirmationResult.confirm(otp);
-      // onAuthStateChanged handles redirect
-    } catch (error) {
-      showError(friendlyError(error.code));
-      setLoading('btnPhone', false, `<i class="fa-solid fa-shield-halved"></i> <span id="btnPhoneLabel">Verify Code</span>`);
-    }
-  }
-});
 
 
 // ── Auth State Listener & Route Guard ─────────────────────

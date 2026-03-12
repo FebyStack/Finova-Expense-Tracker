@@ -208,14 +208,16 @@ appleProvider.addScope('name');
 let isSigningUp = false;    
 
 function friendlyError(code) {
-  const errors = {
-    'auth/email-already-in-use': 'An account with this email already exists. Try signing in instead.',
-    'auth/weak-password':        'Password is too weak. Use at least 8 characters.',
-    'auth/invalid-email':        'That email address is not valid.',
-    'auth/network-request-failed': 'Network error. Check your internet connection.',
-    'auth/popup-closed-by-user': 'Sign-up popup was closed. Please try again.',
-  };
-  return errors[code] || 'Something went wrong. Please try again.';
+  switch (code) {
+    case 'auth/email-already-in-use':   return 'An account with this email already exists.';
+    case 'auth/invalid-email':          return 'Please enter a valid email address.';
+    case 'auth/weak-password':          return 'Password must be at least 6 characters.';
+    case 'auth/network-request-failed': return 'Network error. Check your connection.';
+    case 'auth/popup-blocked':          return 'Popup was blocked. Please allow popups and try again.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with this email using a different sign-in method.';
+    default: return 'Something went wrong. Please try again.';
+  }
 }
 
 function setLoading(btnId, isLoading) {
@@ -291,18 +293,36 @@ document.getElementById('btnSignup')
   });
 
 // Google sign-up
-document.getElementById('btnGoogle')
-  ?.addEventListener('click', async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      await saveUserProfile(result.user, { baseCurrency: 'PHP' });
-      isSigningUp = false;
-      window.location.href = 'dashboard.html';
-    } catch (error) {
-        isSigningUp = false;
-      showError(friendlyError(error.code));
+btnGoogle?.addEventListener('click', async () => {
+  try {
+    isSigningUp = true;
+    const result = await signInWithPopup(auth, googleProvider);
+    const user   = result.user;
+
+    // Only save profile if it's a brand new user
+    const isNewUser = result._tokenResponse?.isNewUser;
+    if (isNewUser) {
+      await saveUserProfile(user, {
+        name:  user.displayName || '',
+        email: user.email || '',
+      });
     }
-  });
+
+    window.location.href = 'dashboard.html';
+
+  } catch (error) {
+    isSigningUp = false;
+
+    // Ignore popup closed by user — not a real error
+    if (error.code === 'auth/popup-closed-by-user' ||
+        error.code === 'auth/cancelled-popup-request') {
+      return;
+    }
+
+    console.error('Google sign-in error:', error.code, error.message);
+    showError(friendlyError(error.code));
+  }
+});
 
 
 // Route guard — redirect logged-in users away from signup
