@@ -41,7 +41,7 @@ const API_BASE = window.location.origin + '/Expense_Tracker/api';
       const res  = await fetch(`${API_BASE}${path}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'API error');
-      return data;
+      return data.data;
     }
 
     // ── Greeting ───────────────────────────────────────────────

@@ -1,143 +1,185 @@
 <?php
-// api/income.php
-// GET    /api/income.php?uid=xxx[&month=2026-03]
-// GET    /api/income.php?id=3&uid=xxx
-// POST   /api/income.php
-// PUT    /api/income.php?id=3
-// DELETE /api/income.php?id=3&uid=xxx
+// api/income.php — standalone
 
-require_once __DIR__ . '/../services/BaseApi.php';
+ini_set('display_errors', 0);
+error_reporting(0);
 
-class IncomeApi extends BaseApi {
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Firebase-UID');
+header('Content-Type: application/json; charset=UTF-8');
 
-    protected function index(): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
-        $sql    = 'SELECT * FROM finova.income WHERE user_id = $1';
-        $params = [$userId];
+function ok(mixed $data, int $code = 200): void {
+    http_response_code($code);
+    echo json_encode(['success' => true, 'data' => $data]);
+    exit;
+}
 
-        if (!empty($_GET['month'])) {
-            $params[] = $_GET['month'];
-            $sql     .= ' AND month = $' . count($params);
+function fail(string $msg, int $code = 400): void {
+    http_response_code($code);
+    echo json_encode(['success' => false, 'error' => $msg]);
+    exit;
+}
+
+function getDb(): PDO {
+    static $pdo = null;
+    if ($pdo === null) {
+        $pdo = new PDO(
+            'pgsql:host=localhost;port=5432;dbname=finova_db',
+            'postgres',
+            'bingbong321',
+            [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
+        $pdo->exec("SET search_path TO finova, public");
+    }
+    return $pdo;
+}
+
+function getUserId(PDO $db, string $uid): int {
+    $stmt = $db->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
+    $stmt->execute([':uid' => $uid]);
+    $row = $stmt->fetch();
+    if (!$row) fail('User not found', 404);
+    return (int) $row['id'];
+}
+
+$method = $_SERVER['REQUEST_METHOD'];
+$id     = isset($_GET['id']) ? (int) $_GET['id'] : null;
+
+try {
+    $db = getDb();
+
+    // GET — list or single
+    if ($method === 'GET') {
+        $uid = $_GET['uid'] ?? null;
+        if (!$uid) fail('uid is required', 400);
+        $userId = getUserId($db, $uid);
+
+        if ($id) {
+            $stmt = $db->prepare("SELECT * FROM finova.income WHERE id = :id AND user_id = :userId");
+            $stmt->execute([':id' => $id, ':userId' => $userId]);
+            $row = $stmt->fetch();
+            if (!$row) fail('Income record not found', 404);
+            ok($row);
         }
 
-        $sql .= ' ORDER BY date DESC';
-        $stmt = $this->db->prepare($sql);
+        $sql    = "SELECT * FROM finova.income WHERE user_id = :userId";
+        $params = [':userId' => $userId];
+
+        if (!empty($_GET['month'])) {
+            $sql .= " AND month = :month";
+            $params[':month'] = $_GET['month'];
+        }
+
+        $sql .= " ORDER BY date DESC";
+        $stmt = $db->prepare($sql);
         $stmt->execute($params);
-        jsonSuccess(['income' => $stmt->fetchAll()]);
+        ok(['income' => $stmt->fetchAll()]);
     }
 
-    protected function show(int $id): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+    // POST — create
+    if ($method === 'POST') {
+        $body = json_decode(file_get_contents('php://input'), true);
+        $uid  = $body['uid'] ?? null;
+        if (!$uid)              fail('uid is required', 400);
+        if (empty($body['amount'])) fail('amount is required', 400);
+        if (empty($body['source'])) fail('source is required', 400);
+        if (empty($body['date']))   fail('date is required', 400);
 
-        $stmt = $this->db->prepare(
-            'SELECT * FROM finova.income WHERE id = $1 AND user_id = $2'
-        );
-        $stmt->execute([$id, $userId]);
-        $row = $stmt->fetch();
-        if (!$row) jsonError('Income record not found', 404);
-        jsonSuccess($row);
-    }
-
-    protected function store(): void {
-        $body = getRequestBody();
-        $uid  = $body['uid'] ?? requireUID();
-        $this->requireFields($body, ['amount', 'source', 'date']);
-
-        $userId   = $this->getUserId($uid);
-        $amount   = $this->safeFloat($body['amount']);
+        $userId   = getUserId($db, $uid);
+        $amount   = (float) $body['amount'];
         $month    = substr($body['date'], 0, 7);
         $currency = $body['currency'] ?? 'PHP';
 
-        if ($amount <= 0) jsonError('Amount must be greater than zero', 400);
+        if ($amount <= 0) fail('Amount must be greater than zero', 400);
 
-        $this->db->beginTransaction();
-        $stmt = $this->db->prepare('
-            INSERT INTO finova.income (user_id, amount, currency, source, date, month, note)
-            VALUES ($1,$2,$3,$4,$5,$6,$7)
+        $db->beginTransaction();
+        $stmt = $db->prepare("
+            INSERT INTO finova.income
+                (user_id, amount, currency, source, date, month, note)
+            VALUES (:userId, :amount, :currency, :source, :date, :month, :note)
             RETURNING *
-        ');
+        ");
         $stmt->execute([
-            $userId, $amount, $currency,
-            $body['source'], $body['date'], $month,
-            $body['note'] ?? null,
+            ':userId'   => $userId,
+            ':amount'   => $amount,
+            ':currency' => $currency,
+            ':source'   => $body['source'],
+            ':date'     => $body['date'],
+            ':month'    => $month,
+            ':note'     => $body['note'] ?? null,
         ]);
         $income = $stmt->fetch();
-        $this->db->commit();
-
-        $this->firestore->upsert($uid, 'income', (string) $income['id'], [
-            'pgId'     => (int)   $income['id'],
-            'amount'   => (float) $income['amount'],
-            'currency' => $income['currency'],
-            'source'   => $income['source'],
-            'date'     => $income['date'],
-            'month'    => $income['month'],
-            'note'     => $income['note'],
-        ]);
-
-        jsonSuccess($income, 201);
+        $db->commit();
+        ok($income, 201);
     }
 
-    protected function update(int $id): void {
-        $body   = getRequestBody();
-        $uid    = $body['uid'] ?? requireUID();
-        $userId = $this->getUserId($uid);
+    // PUT — update
+    if ($method === 'PUT') {
+        if (!$id) fail('id is required', 400);
+        $body = json_decode(file_get_contents('php://input'), true);
+        $uid  = $body['uid'] ?? null;
+        if (!$uid) fail('uid is required', 400);
+
+        $userId = getUserId($db, $uid);
         $month  = isset($body['date']) ? substr($body['date'], 0, 7) : null;
 
-        $this->db->beginTransaction();
-        $stmt = $this->db->prepare('
+        $db->beginTransaction();
+        $stmt = $db->prepare("
             UPDATE finova.income SET
-                amount     = COALESCE($1, amount),
-                currency   = COALESCE($2, currency),
-                source     = COALESCE($3, source),
-                date       = COALESCE($4, date),
-                month      = COALESCE($5, month),
-                note       = COALESCE($6, note),
+                amount     = COALESCE(:amount,   amount),
+                currency   = COALESCE(:currency, currency),
+                source     = COALESCE(:source,   source),
+                date       = COALESCE(:date,     date),
+                month      = COALESCE(:month,    month),
+                note       = COALESCE(:note,     note),
                 updated_at = NOW()
-            WHERE id = $7 AND user_id = $8
+            WHERE id = :id AND user_id = :userId
             RETURNING *
-        ');
+        ");
         $stmt->execute([
-            isset($body['amount']) ? $this->safeFloat($body['amount']) : null,
-            $body['currency'] ?? null,
-            $body['source']   ?? null,
-            $body['date']     ?? null,
-            $month,
-            $body['note']     ?? null,
-            $id, $userId,
+            ':amount'   => isset($body['amount']) ? (float)$body['amount'] : null,
+            ':currency' => $body['currency'] ?? null,
+            ':source'   => $body['source']   ?? null,
+            ':date'     => $body['date']     ?? null,
+            ':month'    => $month,
+            ':note'     => $body['note']     ?? null,
+            ':id'       => $id,
+            ':userId'   => $userId,
         ]);
         $income = $stmt->fetch();
-        if (!$income) { $this->db->rollBack(); jsonError('Income record not found', 404); }
-        $this->db->commit();
-
-        $this->firestore->upsert($uid, 'income', (string) $id, [
-            'pgId'     => (int)   $income['id'],
-            'amount'   => (float) $income['amount'],
-            'currency' => $income['currency'],
-            'source'   => $income['source'],
-            'date'     => $income['date'],
-            'month'    => $income['month'],
-            'note'     => $income['note'],
-        ]);
-
-        jsonSuccess($income);
+        if (!$income) { $db->rollBack(); fail('Income record not found', 404); }
+        $db->commit();
+        ok($income);
     }
 
-    protected function destroy(int $id): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+    // DELETE
+    if ($method === 'DELETE') {
+        if (!$id) fail('id is required', 400);
+        $uid = $_GET['uid'] ?? null;
+        if (!$uid) fail('uid is required', 400);
 
-        $stmt = $this->db->prepare(
-            'DELETE FROM finova.income WHERE id = $1 AND user_id = $2 RETURNING id'
+        $userId = getUserId($db, $uid);
+        $stmt = $db->prepare(
+            "DELETE FROM finova.income WHERE id = :id AND user_id = :userId RETURNING id"
         );
-        $stmt->execute([$id, $userId]);
-        if (!$stmt->fetch()) jsonError('Income record not found', 404);
-
-        $this->firestore->delete($uid, 'income', (string) $id);
-        jsonSuccess(['deleted' => true, 'id' => $id]);
+        $stmt->execute([':id' => $id, ':userId' => $userId]);
+        if (!$stmt->fetch()) fail('Income record not found', 404);
+        ok(['deleted' => true, 'id' => $id]);
     }
-}
 
-(new IncomeApi())->dispatch();
+    fail('Method not allowed', 405);
+
+} catch (PDOException $e) {
+    fail('Database error: ' . $e->getMessage(), 500);
+} catch (Throwable $e) {
+    if (!headers_sent()) fail('Server error: ' . $e->getMessage(), 500);
+}

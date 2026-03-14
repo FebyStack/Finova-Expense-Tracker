@@ -1,138 +1,178 @@
 <?php
-// api/budgets.php
-// GET    /api/budgets.php?uid=xxx[&month=3&year=2026]
-// GET    /api/budgets.php?id=2&uid=xxx
-// POST   /api/budgets.php
-// PUT    /api/budgets.php?id=2
-// DELETE /api/budgets.php?id=2&uid=xxx
+// api/budgets.php — standalone
 
-require_once __DIR__ . '/../services/BaseApi.php';
+ini_set('display_errors', 0);
+error_reporting(0);
 
-class BudgetsApi extends BaseApi {
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Firebase-UID');
+header('Content-Type: application/json; charset=UTF-8');
 
-    protected function index(): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
-        $sql    = 'SELECT * FROM budgets WHERE user_id = $1';
-        $params = [$userId];
+function ok(mixed $data, int $code = 200): void {
+    http_response_code($code);
+    echo json_encode(['success' => true, 'data' => $data]);
+    exit;
+}
+
+function fail(string $msg, int $code = 400): void {
+    http_response_code($code);
+    echo json_encode(['success' => false, 'error' => $msg]);
+    exit;
+}
+
+function getDb(): PDO {
+    static $pdo = null;
+    if ($pdo === null) {
+        $pdo = new PDO(
+            'pgsql:host=localhost;port=5432;dbname=finova_db',
+            'postgres',
+            'bingbong321',
+            [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
+        $pdo->exec("SET search_path TO finova, public");
+    }
+    return $pdo;
+}
+
+function getUserId(PDO $db, string $uid): int {
+    $stmt = $db->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
+    $stmt->execute([':uid' => $uid]);
+    $row = $stmt->fetch();
+    if (!$row) fail('User not found', 404);
+    return (int) $row['id'];
+}
+
+$method = $_SERVER['REQUEST_METHOD'];
+$id     = isset($_GET['id']) ? (int) $_GET['id'] : null;
+
+try {
+    $db = getDb();
+
+    // GET — list or single
+    if ($method === 'GET') {
+        $uid = $_GET['uid'] ?? null;
+        if (!$uid) fail('uid is required', 400);
+        $userId = getUserId($db, $uid);
+
+        if ($id) {
+            $stmt = $db->prepare("SELECT * FROM finova.budgets WHERE id = :id AND user_id = :userId");
+            $stmt->execute([':id' => $id, ':userId' => $userId]);
+            $row = $stmt->fetch();
+            if (!$row) fail('Budget not found', 404);
+            ok($row);
+        }
+
+        $sql    = "SELECT * FROM finova.budgets WHERE user_id = :userId";
+        $params = [':userId' => $userId];
 
         if (!empty($_GET['month'])) {
-            $params[] = (int) $_GET['month'];
-            $sql     .= ' AND month = $' . count($params);
+            $sql .= " AND month = :month";
+            $params[':month'] = (int) $_GET['month'];
         }
         if (!empty($_GET['year'])) {
-            $params[] = (int) $_GET['year'];
-            $sql     .= ' AND year = $' . count($params);
+            $sql .= " AND year = :year";
+            $params[':year'] = (int) $_GET['year'];
         }
 
-        $sql .= ' ORDER BY category ASC';
-        $stmt = $this->db->prepare($sql);
+        $sql .= " ORDER BY category ASC";
+        $stmt = $db->prepare($sql);
         $stmt->execute($params);
-        jsonSuccess(['budgets' => $stmt->fetchAll()]);
+        ok(['budgets' => $stmt->fetchAll()]);
     }
 
-    protected function show(int $id): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+    // POST — create or upsert
+    if ($method === 'POST') {
+        $body = json_decode(file_get_contents('php://input'), true);
+        $uid  = $body['uid'] ?? null;
+        if (!$uid)                   fail('uid is required', 400);
+        if (empty($body['category'])) fail('category is required', 400);
+        if (empty($body['limitAmount'])) fail('limitAmount is required', 400);
+        if (empty($body['month']))   fail('month is required', 400);
+        if (empty($body['year']))    fail('year is required', 400);
 
-        $stmt = $this->db->prepare(
-            'SELECT * FROM finova.budgets WHERE id = $1 AND user_id = $2'
-        );
-        $stmt->execute([$id, $userId]);
-        $row = $stmt->fetch();
-        if (!$row) jsonError('Budget not found', 404);
-        jsonSuccess($row);
-    }
+        $userId = getUserId($db, $uid);
 
-    protected function store(): void {
-        $body = getRequestBody();
-        $uid  = $body['uid'] ?? requireUID();
-        $this->requireFields($body, ['category', 'limitAmount', 'month', 'year']);
-
-        $userId = $this->getUserId($uid);
-
-        $this->db->beginTransaction();
-        // ON CONFLICT respects UNIQUE(user_id, category, month, year) constraint
-        $stmt = $this->db->prepare('
-            INSERT INTO finova.budgets (user_id, category, limit_amount, spent, month, year)
-            VALUES ($1,$2,$3,$4,$5,$6)
+        $db->beginTransaction();
+        $stmt = $db->prepare("
+            INSERT INTO finova.budgets
+                (user_id, category, limit_amount, spent, month, year)
+            VALUES (:userId, :category, :limit, :spent, :month, :year)
             ON CONFLICT (user_id, category, month, year) DO UPDATE SET
                 limit_amount = EXCLUDED.limit_amount,
                 updated_at   = NOW()
             RETURNING *
-        ');
+        ");
         $stmt->execute([
-            $userId,
-            $body['category'],
-            $this->safeFloat($body['limitAmount']),
-            $this->safeFloat($body['spent'] ?? 0),
-            $this->safeInt($body['month']),
-            $this->safeInt($body['year']),
+            ':userId'   => $userId,
+            ':category' => $body['category'],
+            ':limit'    => (float) $body['limitAmount'],
+            ':spent'    => (float) ($body['spent'] ?? 0),
+            ':month'    => (int)   $body['month'],
+            ':year'     => (int)   $body['year'],
         ]);
         $budget = $stmt->fetch();
-        $this->db->commit();
-
-        $this->firestore->upsert($uid, 'budgets', (string) $budget['id'], [
-            'pgId'        => (int)   $budget['id'],
-            'category'    => $budget['category'],
-            'limitAmount' => (float) $budget['limit_amount'],
-            'spent'       => (float) $budget['spent'],
-            'month'       => (int)   $budget['month'],
-            'year'        => (int)   $budget['year'],
-        ]);
-
-        jsonSuccess($budget, 201);
+        $db->commit();
+        ok($budget, 201);
     }
 
-    protected function update(int $id): void {
-        $body   = getRequestBody();
-        $uid    = $body['uid'] ?? requireUID();
-        $userId = $this->getUserId($uid);
+    // PUT — update
+    if ($method === 'PUT') {
+        if (!$id) fail('id is required', 400);
+        $body = json_decode(file_get_contents('php://input'), true);
+        $uid  = $body['uid'] ?? null;
+        if (!$uid) fail('uid is required', 400);
 
-        $this->db->beginTransaction();
-        $stmt = $this->db->prepare('
+        $userId = getUserId($db, $uid);
+
+        $db->beginTransaction();
+        $stmt = $db->prepare("
             UPDATE finova.budgets SET
-                limit_amount = COALESCE($1, limit_amount),
-                spent        = COALESCE($2, spent),
+                limit_amount = COALESCE(:limit, limit_amount),
+                spent        = COALESCE(:spent, spent),
                 updated_at   = NOW()
-            WHERE id = $3 AND user_id = $4
+            WHERE id = :id AND user_id = :userId
             RETURNING *
-        ');
+        ");
         $stmt->execute([
-            isset($body['limitAmount']) ? $this->safeFloat($body['limitAmount']) : null,
-            isset($body['spent'])       ? $this->safeFloat($body['spent'])       : null,
-            $id, $userId,
+            ':limit'  => isset($body['limitAmount']) ? (float)$body['limitAmount'] : null,
+            ':spent'  => isset($body['spent'])       ? (float)$body['spent']       : null,
+            ':id'     => $id,
+            ':userId' => $userId,
         ]);
         $budget = $stmt->fetch();
-        if (!$budget) { $this->db->rollBack(); jsonError('Budget not found', 404); }
-        $this->db->commit();
-
-        $this->firestore->upsert($uid, 'budgets', (string) $id, [
-            'pgId'        => (int)   $budget['id'],
-            'category'    => $budget['category'],
-            'limitAmount' => (float) $budget['limit_amount'],
-            'spent'       => (float) $budget['spent'],
-            'month'       => (int)   $budget['month'],
-            'year'        => (int)   $budget['year'],
-        ]);
-
-        jsonSuccess($budget);
+        if (!$budget) { $db->rollBack(); fail('Budget not found', 404); }
+        $db->commit();
+        ok($budget);
     }
 
-    protected function destroy(int $id): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+    // DELETE
+    if ($method === 'DELETE') {
+        if (!$id) fail('id is required', 400);
+        $uid = $_GET['uid'] ?? null;
+        if (!$uid) fail('uid is required', 400);
 
-        $stmt = $this->db->prepare(
-            'DELETE FROM finova.budgets WHERE id = $1 AND user_id = $2 RETURNING id'
+        $userId = getUserId($db, $uid);
+        $stmt = $db->prepare(
+            "DELETE FROM finova.budgets WHERE id = :id AND user_id = :userId RETURNING id"
         );
-        $stmt->execute([$id, $userId]);
-        if (!$stmt->fetch()) jsonError('Budget not found', 404);
-
-        $this->firestore->delete($uid, 'budgets', (string) $id);
-        jsonSuccess(['deleted' => true, 'id' => $id]);
+        $stmt->execute([':id' => $id, ':userId' => $userId]);
+        if (!$stmt->fetch()) fail('Budget not found', 404);
+        ok(['deleted' => true, 'id' => $id]);
     }
-}
 
-(new BudgetsApi())->dispatch();
+    fail('Method not allowed', 405);
+
+} catch (PDOException $e) {
+    fail('Database error: ' . $e->getMessage(), 500);
+} catch (Throwable $e) {
+    if (!headers_sent()) fail('Server error: ' . $e->getMessage(), 500);
+}
