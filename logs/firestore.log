@@ -1,0 +1,9 @@
+[2026-03-14 05:04:58] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "baseCurrency": {
+[2026-03-14 05:05:10] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/16 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/16",
+  "fields": {
+    "amount": {
+      

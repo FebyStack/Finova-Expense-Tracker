@@ -1,5 +1,5 @@
 <?php
-// api/savings.php — standalone
+// api/savings.php — standalone + Firestore mirror
 
 ini_set('display_errors', 0);
 error_reporting(0);
@@ -9,40 +9,31 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Firebase-UID');
 header('Content-Type: application/json; charset=UTF-8');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
+
+require_once __DIR__ . '/../services/firestore.php';
 
 function ok(mixed $data, int $code = 200): void {
     http_response_code($code);
     echo json_encode(['success' => true, 'data' => $data]);
     exit;
 }
-
 function fail(string $msg, int $code = 400): void {
     http_response_code($code);
     echo json_encode(['success' => false, 'error' => $msg]);
     exit;
 }
-
 function getDb(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        $pdo = new PDO(
-            'pgsql:host=localhost;port=5432;dbname=finova_db',
-            'postgres',
-            'bingbong321',
-            [
-                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            ]
-        );
+        $pdo = new PDO('pgsql:host=localhost;port=5432;dbname=finova_db', 'postgres', 'bingbong321', [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
         $pdo->exec("SET search_path TO finova, public");
     }
     return $pdo;
 }
-
 function getUserId(PDO $db, string $uid): int {
     $stmt = $db->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
     $stmt->execute([':uid' => $uid]);
@@ -57,7 +48,7 @@ $id     = isset($_GET['id']) ? (int) $_GET['id'] : null;
 try {
     $db = getDb();
 
-    // GET — list or single
+    // GET
     if ($method === 'GET') {
         $uid = $_GET['uid'] ?? null;
         if (!$uid) fail('uid is required', 400);
@@ -71,45 +62,51 @@ try {
             ok($row);
         }
 
-        $stmt = $db->prepare(
-            "SELECT * FROM finova.savings_goals WHERE user_id = :userId ORDER BY created_at DESC"
-        );
+        $stmt = $db->prepare("SELECT * FROM finova.savings_goals WHERE user_id = :userId ORDER BY created_at DESC");
         $stmt->execute([':userId' => $userId]);
         ok(['savings' => $stmt->fetchAll()]);
     }
 
-    // POST — create
+    // POST
     if ($method === 'POST') {
         $body = json_decode(file_get_contents('php://input'), true);
         $uid  = $body['uid'] ?? null;
-        if (!$uid)                      fail('uid is required', 400);
-        if (empty($body['name']))        fail('name is required', 400);
+        if (!$uid)                       fail('uid is required', 400);
+        if (empty($body['name']))         fail('name is required', 400);
         if (empty($body['targetAmount'])) fail('targetAmount is required', 400);
 
         $userId = getUserId($db, $uid);
-        $target = (float) $body['targetAmount'];
+        $target = (float)$body['targetAmount'];
         if ($target <= 0) fail('Target amount must be greater than zero', 400);
 
         $db->beginTransaction();
         $stmt = $db->prepare("
-            INSERT INTO finova.savings_goals
-                (user_id, name, target_amount, current_amount, deadline)
-            VALUES (:userId, :name, :target, :current, :deadline)
+            INSERT INTO finova.savings_goals (user_id, name, target_amount, current_amount, deadline)
+            VALUES (:userId,:name,:target,:current,:deadline)
             RETURNING *
         ");
         $stmt->execute([
             ':userId'  => $userId,
             ':name'    => trim($body['name']),
             ':target'  => $target,
-            ':current' => (float) ($body['currentAmount'] ?? 0),
+            ':current' => (float)($body['currentAmount'] ?? 0),
             ':deadline'=> $body['deadline'] ?? null,
         ]);
         $goal = $stmt->fetch();
         $db->commit();
+
+        firestore_upsert($uid, 'savings', (string)$goal['id'], [
+            'pgId'          => (int)   $goal['id'],
+            'name'          => $goal['name'],
+            'targetAmount'  => (float) $goal['target_amount'],
+            'currentAmount' => (float) $goal['current_amount'],
+            'deadline'      => $goal['deadline'],
+        ]);
+
         ok($goal, 201);
     }
 
-    // PUT — update
+    // PUT
     if ($method === 'PUT') {
         if (!$id) fail('id is required', 400);
         $body = json_decode(file_get_contents('php://input'), true);
@@ -130,16 +127,25 @@ try {
             RETURNING *
         ");
         $stmt->execute([
-            ':name'    => $body['name']          ?? null,
-            ':target'  => isset($body['targetAmount'])  ? (float)$body['targetAmount']  : null,
-            ':current' => isset($body['currentAmount']) ? (float)$body['currentAmount'] : null,
-            ':deadline'=> $body['deadline']      ?? null,
+            ':name'    => $body['name']                  ?? null,
+            ':target'  => isset($body['targetAmount'])   ? (float)$body['targetAmount']  : null,
+            ':current' => isset($body['currentAmount'])  ? (float)$body['currentAmount'] : null,
+            ':deadline'=> $body['deadline']              ?? null,
             ':id'      => $id,
             ':userId'  => $userId,
         ]);
         $goal = $stmt->fetch();
         if (!$goal) { $db->rollBack(); fail('Savings goal not found', 404); }
         $db->commit();
+
+        firestore_upsert($uid, 'savings', (string)$id, [
+            'pgId'          => (int)   $goal['id'],
+            'name'          => $goal['name'],
+            'targetAmount'  => (float) $goal['target_amount'],
+            'currentAmount' => (float) $goal['current_amount'],
+            'deadline'      => $goal['deadline'],
+        ]);
+
         ok($goal);
     }
 
@@ -150,11 +156,11 @@ try {
         if (!$uid) fail('uid is required', 400);
 
         $userId = getUserId($db, $uid);
-        $stmt = $db->prepare(
-            "DELETE FROM finova.savings_goals WHERE id = :id AND user_id = :userId RETURNING id"
-        );
+        $stmt = $db->prepare("DELETE FROM finova.savings_goals WHERE id = :id AND user_id = :userId RETURNING id");
         $stmt->execute([':id' => $id, ':userId' => $userId]);
         if (!$stmt->fetch()) fail('Savings goal not found', 404);
+
+        firestore_delete($uid, 'savings', (string)$id);
         ok(['deleted' => true, 'id' => $id]);
     }
 

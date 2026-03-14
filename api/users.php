@@ -1,52 +1,40 @@
 <?php
-// api/users.php — standalone, no BaseApi dependency
+// api/users.php — standalone + Firestore mirror
 
 ini_set('display_errors', 0);
 error_reporting(0);
 
-// CORS
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Firebase-UID');
 header('Content-Type: application/json; charset=UTF-8');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
-// ── Helpers ───────────────────────────────────────────────
+require_once __DIR__ . '/../services/firestore.php';
+
 function ok(mixed $data, int $code = 200): void {
     http_response_code($code);
     echo json_encode(['success' => true, 'data' => $data]);
     exit;
 }
-
 function fail(string $msg, int $code = 400): void {
     http_response_code($code);
     echo json_encode(['success' => false, 'error' => $msg]);
     exit;
 }
-
-// ── DB connection ─────────────────────────────────────────
 function getDb(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        $pdo = new PDO(
-            'pgsql:host=localhost;port=5432;dbname=finova_db',
-            'postgres',
-            'bingbong321',
-            [
-                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            ]
-        );
+        $pdo = new PDO('pgsql:host=localhost;port=5432;dbname=finova_db', 'postgres', 'bingbong321', [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
         $pdo->exec("SET search_path TO finova, public");
     }
     return $pdo;
 }
 
-// ── Route ─────────────────────────────────────────────────
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = $_GET['id'] ?? null;
 
@@ -56,10 +44,7 @@ try {
     if ($method === 'POST') {
         $raw  = file_get_contents('php://input');
         $body = json_decode($raw, true);
-
-        if (empty($body['uid'])) {
-            fail('Missing uid. Raw body: ' . $raw, 400);
-        }
+        if (empty($body['uid'])) fail('Missing uid. Raw: ' . $raw, 400);
 
         $uid      = trim($body['uid']);
         $email    = strtolower(trim($body['email']    ?? ''));
@@ -69,10 +54,8 @@ try {
 
         $db = getDb();
         $db->beginTransaction();
-
         $stmt = $db->prepare("
-            INSERT INTO finova.users
-                (firebase_uid, email, display_name, base_currency, theme)
+            INSERT INTO finova.users (firebase_uid, email, display_name, base_currency, theme)
             VALUES (:uid, :email, :name, :currency, :theme)
             ON CONFLICT (firebase_uid) DO UPDATE SET
                 email        = EXCLUDED.email,
@@ -80,24 +63,25 @@ try {
                 updated_at   = NOW()
             RETURNING *
         ");
-        $stmt->execute([
-            ':uid'      => $uid,
-            ':email'    => $email,
-            ':name'     => $name,
-            ':currency' => $currency,
-            ':theme'    => $theme,
-        ]);
-
+        $stmt->execute([':uid'=>$uid,':email'=>$email,':name'=>$name,':currency'=>$currency,':theme'=>$theme]);
         $user = $stmt->fetch();
         $db->commit();
+
+        // Mirror to Firestore
+        firestore_upsert($uid, 'profile', 'data', [
+            'email'        => $user['email'],
+            'displayName'  => $user['display_name'],
+            'baseCurrency' => $user['base_currency'],
+            'theme'        => $user['theme'],
+        ]);
+
         ok($user, 201);
     }
 
-    // GET — fetch user by uid or id
+    // GET — fetch user
     if ($method === 'GET') {
         $db  = getDb();
         $uid = $_GET['uid'] ?? null;
-
         if ($uid) {
             $stmt = $db->prepare("SELECT * FROM finova.users WHERE firebase_uid = :uid");
             $stmt->execute([':uid' => $uid]);
@@ -107,7 +91,6 @@ try {
         } else {
             fail('uid or id required', 400);
         }
-
         $row = $stmt->fetch();
         if (!$row) fail('User not found', 404);
         ok($row);
@@ -115,10 +98,8 @@ try {
 
     // PUT — update profile
     if ($method === 'PUT') {
-        $raw  = file_get_contents('php://input');
-        $body = json_decode($raw, true);
+        $body = json_decode(file_get_contents('php://input'), true);
         $uid  = $body['uid'] ?? $_GET['uid'] ?? null;
-
         if (!$uid) fail('uid required', 400);
 
         $db   = getDb();
@@ -137,9 +118,16 @@ try {
             ':theme'    => $body['theme']        ?? null,
             ':uid'      => $uid,
         ]);
-
         $user = $stmt->fetch();
         if (!$user) fail('User not found', 404);
+
+        // Mirror to Firestore
+        firestore_upsert($uid, 'profile', 'data', [
+            'displayName'  => $user['display_name'],
+            'baseCurrency' => $user['base_currency'],
+            'theme'        => $user['theme'],
+        ]);
+
         ok($user);
     }
 
