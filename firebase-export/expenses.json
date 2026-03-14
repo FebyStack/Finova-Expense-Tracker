@@ -1,0 +1,122 @@
+[
+  {
+    "firebase_id": "BM27puuxvBIgsv8EenZn",
+    "uid": "fnB3AyBwYcRcymWhBNYMsQ4wItD3",
+    "amount": 85,
+    "currency": "PHP",
+    "category": "Food",
+    "date": "2026-03-09",
+    "month": "2026-03",
+    "note": "",
+    "recurring": true,
+    "frequency": "monthly",
+    "createdAt": {
+      "_seconds": 1773060744,
+      "_nanoseconds": 219000000
+    },
+    "updatedAt": {
+      "_seconds": 1773060744,
+      "_nanoseconds": 219000000
+    }
+  },
+  {
+    "firebase_id": "RRmUXm6zsCGlpMmCCHKc",
+    "uid": "fnB3AyBwYcRcymWhBNYMsQ4wItD3",
+    "amount": 85,
+    "currency": "PHP",
+    "category": "Food",
+    "date": "2026-03-09",
+    "month": "2026-03",
+    "note": "",
+    "recurring": true,
+    "frequency": "daily",
+    "createdAt": {
+      "_seconds": 1773060486,
+      "_nanoseconds": 391000000
+    },
+    "updatedAt": {
+      "_seconds": 1773060486,
+      "_nanoseconds": 391000000
+    }
+  },
+  {
+    "firebase_id": "UYvBFD4WlZb8ZFlLJ9iA",
+    "uid": "fnB3AyBwYcRcymWhBNYMsQ4wItD3",
+    "amount": 500,
+    "currency": "PHP",
+    "category": "Food",
+    "date": "2026-03-12",
+    "month": "2026-03",
+    "note": "for food",
+    "recurring": false,
+    "frequency": null,
+    "createdAt": {
+      "_seconds": 1773289655,
+      "_nanoseconds": 302000000
+    },
+    "updatedAt": {
+      "_seconds": 1773289655,
+      "_nanoseconds": 302000000
+    }
+  },
+  {
+    "firebase_id": "dkEQH2ABF22BhplsWPOq",
+    "uid": "fnB3AyBwYcRcymWhBNYMsQ4wItD3",
+    "amount": 85,
+    "currency": "PHP",
+    "category": "Food",
+    "date": "2026-03-09",
+    "month": "2026-03",
+    "note": "",
+    "recurring": true,
+    "frequency": "monthly",
+    "createdAt": {
+      "_seconds": 1773061291,
+      "_nanoseconds": 211000000
+    },
+    "updatedAt": {
+      "_seconds": 1773061291,
+      "_nanoseconds": 211000000
+    }
+  },
+  {
+    "firebase_id": "fTv3kd9O37Uu9FO9J9KM",
+    "uid": "fnB3AyBwYcRcymWhBNYMsQ4wItD3",
+    "amount": 85,
+    "currency": "PHP",
+    "category": "Food",
+    "date": "2026-03-09",
+    "month": "2026-03",
+    "note": "",
+    "recurring": true,
+    "frequency": "monthly",
+    "createdAt": {
+      "_seconds": 1773060942,
+      "_nanoseconds": 285000000
+    },
+    "updatedAt": {
+      "_seconds": 1773060942,
+      "_nanoseconds": 285000000
+    }
+  },
+  {
+    "firebase_id": "kBzSvGJWSRaavEC70x9n",
+    "uid": "fnB3AyBwYcRcymWhBNYMsQ4wItD3",
+    "amount": 85,
+    "currency": "PHP",
+    "category": "Food",
+    "date": "2026-03-09",
+    "month": "2026-03",
+    "note": "",
+    "recurring": true,
+    "frequency": "daily",
+    "createdAt": {
+      "_seconds": 1773060609,
+      "_nanoseconds": 717000000
+    },
+    "updatedAt": {
+      "_seconds": 1773060609,
+      "_nanoseconds": 717000000
+    }
+  }
+]

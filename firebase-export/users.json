@@ -1,0 +1,18 @@
+[
+  {
+    "firebase_id": "fnB3AyBwYcRcymWhBNYMsQ4wItD3",
+    "uid": "fnB3AyBwYcRcymWhBNYMsQ4wItD3",
+    "email": "febrielotud0@gmail.com",
+    "displayName": "Febriel Otud",
+    "baseCurrency": "PHP",
+    "createdAt": {
+      "_seconds": 1773049328,
+      "_nanoseconds": 135000000
+    },
+    "updatedAt": {
+      "_seconds": 1773049328,
+      "_nanoseconds": 135000000
+    },
+    "theme": "dark"
+  }
+]

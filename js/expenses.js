@@ -1,12 +1,8 @@
 // js/expenses.js
-// Add Expense modal — UI + Firestore save
+// Add Expense modal — UI + PostgreSQL save (mirrors to Firebase automatically)
 
-import { db, auth }   from './firebase-config.js';
-import {
-  collection,
-  addDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { addExpense } from './api.js'
+import { auth }       from './firebase-config.js';
 
 // ── Category definitions ───────────────────────────────────
 const CATEGORIES = [
@@ -74,15 +70,9 @@ export function openExpenseModal(prefill = {}) {
   document.getElementById('expDate').value = prefill.date || today;
 
   // Prefill from receipt scan if provided
-  if (prefill.amount) {
-    document.getElementById('expAmount').value = prefill.amount;
-  }
-  if (prefill.note) {
-    document.getElementById('expNote').value = prefill.note;
-  }
-  if (prefill.category) {
-    window.selectCategory(prefill.category);
-  }
+  if (prefill.amount)   document.getElementById('expAmount').value = prefill.amount;
+  if (prefill.note)     document.getElementById('expNote').value   = prefill.note;
+  if (prefill.category) window.selectCategory(prefill.category);
 
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -146,69 +136,8 @@ function validateExpenseForm() {
   return true;
 }
 
-// ── Save expense to Firestore ──────────────────────────────
-async function saveExpense() {
-  if (!validateExpenseForm()) return;
-  if (isSaving) return;
-
-  const user = auth.currentUser;
-  if (!user) return;
-
-  isSaving = true;
-  const btn = document.getElementById('btnSaveExpense');
-  btn.disabled  = true;
-  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving…`;
-
-  try {
-    const amount    = parseFloat(document.getElementById('expAmount').value);
-    const currency  = document.getElementById('expCurrency').value;
-    const date      = document.getElementById('expDate').value;
-    const note      = document.getElementById('expNote').value.trim();
-    const recurring = document.getElementById('expRecurring').checked;
-    const frequency = document.getElementById('expFrequency').value;
-
-    const dateObj = new Date(date);
-    const month   = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-
-    const docRef = await addDoc(
-      collection(db, 'users', user.uid, 'expenses'),
-      {
-        amount,
-        currency,
-        category:    selectedCategory,
-        date,
-        month,
-        note:        note || '',
-        recurring,
-        frequency:   recurring ? frequency : null,
-        receiptPath: window._pendingReceiptPath || null,
-        createdAt:   serverTimestamp(),
-        updatedAt:   serverTimestamp(),
-      }
-    );
-
-    console.log('✅ Saved! Doc ID:', docRef.id);
-    window._pendingReceiptPath = null;
-
-    closeExpenseModal();
-    showToast('Expense saved successfully!', 'success');
-
-    const currentPage = window.location.hash.replace('#', '') || 'dashboard';
-    if (currentPage === 'dashboard' && window.refreshDashboard) {
-      window.refreshDashboard();
-    }
-
-  } catch (error) {
-    console.error('❌ Save expense error:', error.code, error.message);
-    showExpenseError('Failed to save expense. Please try again.');
-  } finally {
-    isSaving      = false;
-    btn.disabled  = false;
-    btn.innerHTML = `<i class="fa-solid fa-plus"></i> Save Expense`;
-  }
-}
-
 // ── Toast notification ─────────────────────────────────────
+// Defined BEFORE saveExpense so it's always available when called
 export function showToast(message, type = 'success') {
   document.getElementById('appToast')?.remove();
 
@@ -226,6 +155,64 @@ export function showToast(message, type = 'success') {
     toast.classList.remove('visible');
     setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+
+// ── Save expense ───────────────────────────────────────────
+async function saveExpense() {
+  if (!validateExpenseForm()) return;
+  if (isSaving) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  isSaving      = true;
+  const btn     = document.getElementById('btnSaveExpense');
+  btn.disabled  = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving…`;
+
+  try {
+    const amount    = parseFloat(document.getElementById('expAmount').value);
+    const currency  = document.getElementById('expCurrency').value  || 'PHP';
+    const date      = document.getElementById('expDate').value;
+    const note      = document.getElementById('expNote').value.trim();
+    const recurring = document.getElementById('expRecurring').checked;
+    const frequency = document.getElementById('expFrequency')?.value || null;
+
+    const dateObj = new Date(date);
+    const month   = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+
+    // ── Write to PostgreSQL first (mirrors to Firebase automatically) ──
+    const saved = await addExpense(user.uid, {
+      amount,
+      currency,
+      category:    selectedCategory,
+      date,
+      month,
+      note:        note || '',
+      recurring,
+      frequency:   recurring ? frequency : null,
+      receiptPath: window._pendingReceiptPath || null,
+    });
+
+    console.log('✅ Saved to PostgreSQL! ID:', saved.id);
+    window._pendingReceiptPath = null;
+
+    closeExpenseModal();
+    showToast('Expense saved successfully!', 'success');
+
+    const currentPage = window.location.hash.replace('#', '') || 'dashboard';
+    if (currentPage === 'dashboard' && window.refreshDashboard) {
+      window.refreshDashboard();
+    }
+
+  } catch (err) {
+    console.error('❌ Save expense error:', err.message);
+    showExpenseError('Failed to save expense. Please try again.');
+  } finally {
+    isSaving      = false;
+    btn.disabled  = false;
+    btn.innerHTML = `<i class="fa-solid fa-plus"></i> Save Expense`;
+  }
 }
 
 // ── Currency symbol update ─────────────────────────────────

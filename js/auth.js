@@ -1,6 +1,5 @@
 // js/auth.js
-// Full Firebase Authentication — Day 5
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js"; 
 import { auth } from './firebase-config.js';
 import {
   signInWithEmailAndPassword,
@@ -12,15 +11,13 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
+console.log('auth.js loaded')
 
 // ── Providers ──────────────────────────────────────────────
 const googleProvider = new GoogleAuthProvider();
 const appleProvider  = new OAuthProvider('apple.com');
-
-// Request user's name and email from Apple
 appleProvider.addScope('email');
 appleProvider.addScope('name');
-
 
 // ── UI Helpers ─────────────────────────────────────────────
 function showError(message) {
@@ -41,7 +38,6 @@ function setLoading(btnId, isLoading, defaultHTML) {
     : defaultHTML;
 }
 
-// Map Firebase error codes to friendly messages
 function friendlyError(code) {
   const errors = {
     'auth/invalid-email':            'That email address is not valid.',
@@ -61,7 +57,6 @@ function friendlyError(code) {
   return errors[code] || 'Something went wrong. Please try again.';
 }
 
-
 // ── Password Visibility Toggle ─────────────────────────────
 const togglePasswordBtn  = document.getElementById('togglePassword');
 const togglePasswordIcon = document.getElementById('togglePasswordIcon');
@@ -75,8 +70,7 @@ togglePasswordBtn?.addEventListener('click', () => {
     : 'fa-solid fa-eye-slash';
 });
 
-
-// ── Hide error when user types ─────────────────────────────
+// ── Hide error when typing ─────────────────────────────────
 ['inputEmail', 'inputPassword'].forEach(id => {
   document.getElementById(id)
     ?.addEventListener('input', () => {
@@ -84,20 +78,18 @@ togglePasswordBtn?.addEventListener('click', () => {
     });
 });
 
-
 // ── Google Sign-In ─────────────────────────────────────────
 document.getElementById('btnGoogle')
   ?.addEventListener('click', async () => {
     setLoading('btnGoogle', true, `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"/> Continue with Google`);
     try {
       await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged below will handle the redirect
+      // Redirect handled by onAuthStateChanged
     } catch (error) {
       showError(friendlyError(error.code));
       setLoading('btnGoogle', false, `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"/> Continue with Google`);
     }
   });
-
 
 // ── Apple Sign-In ──────────────────────────────────────────
 document.getElementById('btnApple')
@@ -110,7 +102,6 @@ document.getElementById('btnApple')
       setLoading('btnApple', false, `<i class="fa-brands fa-apple" style="font-size:18px;"></i> Continue with Apple`);
     }
   });
-
 
 // ── Email / Password Sign-In ───────────────────────────────
 document.getElementById('btnEmailLogin')
@@ -134,21 +125,17 @@ document.getElementById('btnEmailLogin')
     }
   });
 
-
 // ── Forgot Password ────────────────────────────────────────
 document.getElementById('linkForgot')
   ?.addEventListener('click', async (e) => {
     e.preventDefault();
     const email = document.getElementById('inputEmail').value.trim();
-
     if (!email) {
       showError('Enter your email address above, then click "Forgot password?"');
       return;
     }
-
     try {
       await sendPasswordResetEmail(auth, email);
-      // Show success message
       const errorBox  = document.getElementById('authError');
       const errorText = document.getElementById('authErrorText');
       errorBox.style.display    = 'flex';
@@ -158,7 +145,6 @@ document.getElementById('linkForgot')
       errorText.textContent     = `Password reset email sent to ${email}`;
       setTimeout(() => {
         errorBox.style.display = 'none';
-        // Reset styles back to error style
         errorBox.style.background  = '';
         errorBox.style.borderColor = '';
         errorBox.style.color       = '';
@@ -168,40 +154,64 @@ document.getElementById('linkForgot')
     }
   });
 
-
-
-
 // ── Auth State Listener & Route Guard ─────────────────────
-// This runs every time the auth state changes (login / logout)
-onAuthStateChanged(auth, (user) => {
-  const page = window.location.pathname;
+onAuthStateChanged(auth, async (user) => {
+  console.log('Auth state changed:', user);
 
-  // Pages that should only be visible when LOGGED OUT
-  const authPages = ['/login.html', '/signup.html', '/index.html', '/'];
-
-  // Pages that require LOGIN
-  const protectedPages = ['/dashboard.html'];
-
-  const isAuthPage      = authPages.some(p => page.endsWith(p));
-  const isProtectedPage = protectedPages.some(p => page.endsWith(p));
-
-  if (user) {
-    // User is logged in
-    if (isAuthPage) {
-      // Redirect away from login/signup to dashboard
-      window.location.href = 'dashboard.html';
-    }
-  } else {
-    // User is not logged in
-    if (isProtectedPage) {
-      // Redirect away from protected pages to login
+  if (!user) {
+    // Not logged in → redirect if on dashboard
+    const protectedPages = ['/dashboard.html'];
+    if (protectedPages.some(p => window.location.pathname.endsWith(p))) {
       window.location.href = 'login.html';
+    }
+    return;
+  }
+
+  // --- Sync user with backend database first ---
+  let userSynced = false;
+  try {
+
+    const res = await fetch('http://localhost/Expense_Tracker/api/users.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || null,
+        baseCurrency: 'PHP',
+        theme: 'light'
+      })
+    });
+
+    const text = await res.text();
+console.log("API raw response:", text);
+
+const data = JSON.parse(text);
+
+
+    if (data.success) {
+      console.log('✅ User synced to PostgreSQL');
+      userSynced = true;
+    } else {
+      console.error('❌ User sync failed:', data.error);
+    }
+  } catch (err) {
+    console.error('❌ User sync failed:', err);
+  }
+
+  // --- Redirect only if user synced successfully ---
+  const page = window.location.pathname;
+  const authPages = ['/login.html', '/signup.html', '/index.html', '/'];
+  if (authPages.some(p => page.endsWith(p))) {
+    if (userSynced) {
+      window.location.href = 'dashboard.html';
+    } else {
+      showError('Could not sync user. Please try again.');
     }
   }
 });
 
-
-// ── Logout (call this from dashboard) ─────────────────────
+// ── Logout ───────────────────────────────────────────────
 export async function logout() {
   try {
     await signOut(auth);
