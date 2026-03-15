@@ -1,0 +1,8 @@
+<IfModule mod_headers.c>
+  # Disable caching for JavaScript and HTML files to bypass old module caches
+  <FilesMatch "\.(js|html|css)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+</IfModule>

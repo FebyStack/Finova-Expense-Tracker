@@ -127,17 +127,15 @@ export async function openBudgetModal(budget = null) {
 
   // SHOW
   console.log('[budgets] Showing modal…');
-  budgetBackdrop.style.display = 'flex';
-  void budgetBackdrop.offsetHeight; // force reflow
-  budgetModal.classList.add('visible');
+  budgetBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
 export function closeBudgetModal() {
-  const budgetModal    = getModal();
   const budgetBackdrop = getBackdrop();
-  if (!budgetModal || !budgetBackdrop) return;
-  budgetModal.classList.remove('visible');
-  setTimeout(() => { budgetBackdrop.style.display = 'none'; }, 300);
+  if (!budgetBackdrop) return;
+  budgetBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 async function saveBudgetHandler() {
