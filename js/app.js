@@ -3,9 +3,9 @@
 
 import { auth, db }       from './firebase-config.js';
 import { onAuthStateChanged, signOut }
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+  from "../firebase-auth.js";
 import { doc, getDoc, updateDoc }
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+  from "../firebase-firestore.js";
 import { loadDashboard }  from './dashboard.js';
 import { openExpenseModal } from './expenses.js';
 

@@ -81,13 +81,13 @@ togglePasswordBtn?.addEventListener('click', () => {
 // ── Google Sign-In ─────────────────────────────────────────
 document.getElementById('btnGoogle')
   ?.addEventListener('click', async () => {
-    setLoading('btnGoogle', true, `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"/> Continue with Google`);
+    setLoading('btnGoogle', true, `<img src=".\assets\google_logo.png" width="18" height="18"/> Continue with Google`);
     try {
       await signInWithPopup(auth, googleProvider);
       // Redirect handled by onAuthStateChanged
     } catch (error) {
       showError(friendlyError(error.code));
-      setLoading('btnGoogle', false, `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"/> Continue with Google`);
+      setLoading('btnGoogle', false, `<img src=".\assets\google_logo.png" width="18" height="18"/> Continue with Google`);
     }
   });
 
