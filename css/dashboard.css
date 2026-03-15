@@ -1297,3 +1297,126 @@ body.dark .confirm-dialog-title {
 body.dark .confirm-dialog-message {
   color: var(--text-muted);
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE — Day 11 features
+   ============================================================ */
+
+/* ── Tablet (≤ 768px) ────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Action buttons always visible on touch devices */
+  .expense-actions {
+    opacity: 1;
+  }
+
+  .expense-action-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  /* Filter bar stacks vertically */
+  .filter-bar {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .filter-group {
+    min-width: 100%;
+  }
+
+  /* Transaction items adjust padding */
+  .transaction-item {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* ── Mobile (≤ 640px) ────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Stack transaction row: info on top, amount + actions below */
+  #expenseListContainer .transaction-item {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  /* Transaction amount shrinks on mobile */
+  .transaction-amount {
+    font-size: var(--text-xs, 12px);
+  }
+
+  /* Action buttons slightly smaller */
+  .expense-action-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .expense-actions {
+    gap: 2px;
+  }
+
+  /* Confirm dialog — bottom sheet style */
+  .confirm-dialog-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .confirm-dialog {
+    max-width: 100%;
+    width: 100%;
+    border-radius: var(--radius-2xl, 20px) var(--radius-2xl, 20px) 0 0;
+    padding: var(--space-6, 24px) var(--space-5, 20px);
+    padding-bottom: calc(var(--space-6, 24px) + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+  }
+
+  .confirm-dialog-overlay.open .confirm-dialog {
+    transform: translateY(0);
+  }
+
+  .confirm-dialog-actions {
+    flex-direction: column;
+    gap: var(--space-2, 8px);
+  }
+
+  .confirm-dialog-actions .btn {
+    width: 100%;
+    min-width: unset;
+    justify-content: center;
+  }
+
+  /* Toast above bottom nav */
+  .toast {
+    max-width: 90vw;
+    white-space: normal;
+    text-align: center;
+  }
+
+  /* Transaction icon smaller on mobile */
+  .transaction-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  /* Transaction name tighter */
+  .transaction-name {
+    font-size: var(--text-xs, 12px);
+  }
+
+  .transaction-meta {
+    font-size: 10px;
+  }
+
+  /* Filter bar labels smaller */
+  .filter-group label {
+    font-size: 11px;
+  }
+
+  /* List container less padding */
+  .list-container {
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+  }
+}
