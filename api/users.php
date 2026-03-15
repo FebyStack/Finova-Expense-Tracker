@@ -35,16 +35,24 @@ function getDb(): PDO {
     return $pdo;
 }
 
-$method = $_SERVER['REQUEST_METHOD'];
-$id     = $_GET['id'] ?? null;
+$method   = $_SERVER['REQUEST_METHOD'];
+$id       = $_GET['id'] ?? null;
+$RAW_BODY = file_get_contents('php://input');
+
+// Support _method override (for hosts that block PUT/DELETE)
+if ($method === 'POST') {
+    $peek = json_decode($RAW_BODY, true);
+    if (!empty($peek['_method'])) {
+        $method = strtoupper($peek['_method']);
+    }
+}
 
 try {
 
     // POST — create or upsert user on login
     if ($method === 'POST') {
-        $raw  = file_get_contents('php://input');
-        $body = json_decode($raw, true);
-        if (empty($body['uid'])) fail('Missing uid. Raw: ' . $raw, 400);
+        $body = json_decode($RAW_BODY, true);
+        if (empty($body['uid'])) fail('Missing uid. Raw: ' . $RAW_BODY, 400);
 
         $uid      = trim($body['uid']);
         $email    = strtolower(trim($body['email']    ?? ''));
@@ -98,7 +106,7 @@ try {
 
     // PUT — update profile
     if ($method === 'PUT') {
-        $body = json_decode(file_get_contents('php://input'), true);
+        $body = json_decode($RAW_BODY, true);
         $uid  = $body['uid'] ?? $_GET['uid'] ?? null;
         if (!$uid) fail('uid required', 400);
 

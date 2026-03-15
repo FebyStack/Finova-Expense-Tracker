@@ -34,10 +34,10 @@ async function saveBaseCurrency() {
 
   try {
     // Update PostgreSQL
-    const res = await fetch(`${API_BASE}/users.php?uid=${user.uid}`, {
-      method: 'PUT',
+    const res = await fetch(`${API_BASE}/users.php`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: user.uid, baseCurrency: newCurrency }),
+      body: JSON.stringify({ uid: user.uid, baseCurrency: newCurrency, _method: 'PUT' }),
     });
     if (!res.ok) throw new Error('API error');
 
