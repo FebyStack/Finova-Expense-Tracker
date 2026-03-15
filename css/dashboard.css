@@ -1175,6 +1175,228 @@ body.dark .bottom-nav {
 }
 
 /* ============================================================
+   SETTINGS — Category Management (Day 13)
+   ============================================================ */
+
+/* ── Settings sections ──────────────────────────────────── */
+.settings-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.settings-section-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.settings-section-title i {
+  color: var(--accent);
+}
+
+.settings-section-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ── Category list ──────────────────────────────────────── */
+.cat-mgmt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cat-mgmt-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease;
+}
+
+.cat-mgmt-item:hover {
+  background: var(--bg-hover);
+}
+
+.cat-mgmt-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.cat-mgmt-name {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.cat-mgmt-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.cat-mgmt-actions {
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.cat-mgmt-item:hover .cat-mgmt-actions {
+  opacity: 1;
+}
+
+/* ── Add/Edit form (collapsed by default) ───────────────── */
+.cat-form-section {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.25s ease, padding 0.25s ease;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  margin-bottom: 0;
+  padding: 0 var(--space-5);
+}
+
+.cat-form-section.open {
+  max-height: 600px;
+  opacity: 1;
+  margin-bottom: var(--space-5);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+}
+
+.cat-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.cat-form-header h3 {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.cat-form-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+
+/* ── Icon picker grid ───────────────────────────────────── */
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.icon-pick-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.icon-pick-btn:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.icon-pick-btn.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(79, 126, 248, 0.08);
+}
+
+/* ── Color picker grid ──────────────────────────────────── */
+.color-picker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px;
+}
+
+.color-pick-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-pick-btn:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.color-pick-btn.selected {
+  border-color: var(--text-primary);
+  transform: scale(1.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+
+/* ── Mobile: always show actions ────────────────────────── */
+@media (max-width: 768px) {
+  .cat-mgmt-actions {
+    opacity: 1;
+  }
+
+  .settings-section-header {
+    flex-direction: column;
+  }
+
+  .icon-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    max-height: 120px;
+  }
+}
+
+/* ============================================================
    EXPENSE LIST (Day 10)
    ============================================================ */
 

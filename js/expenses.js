@@ -1,24 +1,9 @@
-// js/expenses.js
-// Add / Edit Expense modal — UI + PostgreSQL save (mirrors to Firebase automatically)
-
 import { addExpense, editExpense } from './api.js'
 import { auth }       from './firebase-config.js';
+import { loadCategories, bgFromColor } from './categories.js';
 
-// ── Category definitions ───────────────────────────────────
-const CATEGORIES = [
-  { name: 'Food',          icon: 'fa-solid fa-utensils',       bg: '#fff3e0', color: '#f59e0b' },
-  { name: 'Transport',     icon: 'fa-solid fa-car',            bg: '#e3f2fd', color: '#2196f3' },
-  { name: 'Shopping',      icon: 'fa-solid fa-bag-shopping',   bg: '#fce4ec', color: '#e91e63' },
-  { name: 'Bills',         icon: 'fa-solid fa-file-invoice',   bg: '#f3e5f5', color: '#9c27b0' },
-  { name: 'Health',        icon: 'fa-solid fa-heart-pulse',    bg: '#e8f5e9', color: '#4caf50' },
-  { name: 'Entertainment', icon: 'fa-solid fa-tv',             bg: '#e0f7fa', color: '#00bcd4' },
-  { name: 'Education',     icon: 'fa-solid fa-graduation-cap', bg: '#e8eaf6', color: '#3f51b5' },
-  { name: 'Savings',       icon: 'fa-solid fa-piggy-bank',     bg: '#fff8e1', color: '#ffc107' },
-  { name: 'Subscriptions', icon: 'fa-solid fa-repeat',         bg: '#f3e5f5', color: '#7c3aed' },
-  { name: 'Travel',        icon: 'fa-solid fa-plane',          bg: '#e0f2fe', color: '#0284c7' },
-  { name: 'Groceries',     icon: 'fa-solid fa-cart-shopping',  bg: '#f0fdf4', color: '#16a34a' },
-  { name: 'Other',         icon: 'fa-solid fa-circle-dot',     bg: '#f5f5f5', color: '#9aa0b0' },
-];
+// ── Category definitions are loaded dynamically ────────────
+// (from Firestore via categories.js)
 
 const CURRENCY_SYMBOLS = {
   PHP: '₱', USD: '$', EUR: '€',
@@ -30,23 +15,28 @@ let selectedCategory   = null;
 let isSaving           = false;
 let editingExpenseId   = null;   // null = add mode, number = edit mode
 
-// ── Build category grid ────────────────────────────────────
-function buildCategoryGrid() {
+// ── Build category grid (async — loads from Firestore) ────
+async function buildCategoryGrid() {
   const grid = document.getElementById('expCategoryGrid');
   if (!grid) return;
-  grid.innerHTML = CATEGORIES.map(cat => `
+
+  const categories = await loadCategories();
+  grid.innerHTML = categories.map(cat => {
+    const bg = bgFromColor(cat.color);
+    return `
     <button
       type="button"
       class="category-btn"
       data-category="${cat.name}"
       onclick="selectCategory('${cat.name}')"
     >
-      <div class="category-btn-icon" style="background:${cat.bg}; color:${cat.color};">
+      <div class="category-btn-icon" style="background:${bg}; color:${cat.color};">
         <i class="${cat.icon}"></i>
       </div>
       <span class="category-btn-label">${cat.name}</span>
     </button>
-  `).join('');
+  `;
+  }).join('');
 }
 
 // ── Select a category ──────────────────────────────────────
@@ -60,11 +50,12 @@ window.selectCategory = function(name) {
 };
 
 // ── Open modal ─────────────────────────────────────────────
-export function openExpenseModal(prefill = {}) {
+export async function openExpenseModal(prefill = {}) {
   const modal = document.getElementById('modalAddExpense');
   if (!modal) return;
 
   resetExpenseForm();
+  await buildCategoryGrid(); // always rebuild from latest Firestore categories
 
   // ── Edit mode (prefill.id is set) vs Add mode ──
   editingExpenseId = prefill.id || null;

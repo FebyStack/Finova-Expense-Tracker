@@ -11,6 +11,7 @@ import { openExpenseModal } from './expenses.js';
 import { loadExpenseList, initExpenseListFilters } from './expense-list.js';
 import { openIncomeModal } from './income.js';
 import { loadIncomeList, initIncomeListFilters } from './income-list.js';
+import { initSettings } from './settings.js';
 
 // ══════════════════════════════════════════════════════════
 // PAGE MAP
@@ -72,6 +73,9 @@ window.navigateTo = function navigateTo(pageKey) {
   if (pageKey === 'income') {
     initIncomeListFilters();
     loadIncomeList(window.userCurrency || 'PHP');
+  }
+  if (pageKey === 'settings') {
+    initSettings();
   }
 };
 

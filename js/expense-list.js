@@ -4,25 +4,8 @@
 import { auth } from './firebase-config.js';
 import { fetchExpenses, removeExpense } from './api.js';
 import { showToast, openExpenseModal } from './expenses.js';
+import { getCategoryStyle, loadCategories } from './categories.js';
 
-const CATEGORY_STYLES = {
-  'Food':          { icon: 'fa-solid fa-utensils',       bg: '#fff3e0', color: '#f59e0b' },
-  'Transport':     { icon: 'fa-solid fa-car',            bg: '#e3f2fd', color: '#2196f3' },
-  'Shopping':      { icon: 'fa-solid fa-bag-shopping',   bg: '#fce4ec', color: '#e91e63' },
-  'Bills':         { icon: 'fa-solid fa-file-invoice',   bg: '#f3e5f5', color: '#9c27b0' },
-  'Health':        { icon: 'fa-solid fa-heart-pulse',    bg: '#e8f5e9', color: '#4caf50' },
-  'Entertainment': { icon: 'fa-solid fa-tv',             bg: '#e0f7fa', color: '#00bcd4' },
-  'Education':     { icon: 'fa-solid fa-graduation-cap', bg: '#e8eaf6', color: '#3f51b5' },
-  'Savings':       { icon: 'fa-solid fa-piggy-bank',     bg: '#fff8e1', color: '#ffc107' },
-  'Subscriptions': { icon: 'fa-solid fa-repeat',         bg: '#f3e5f5', color: '#7c3aed' },
-  'Travel':        { icon: 'fa-solid fa-plane',          bg: '#e0f2fe', color: '#0284c7' },
-  'Groceries':     { icon: 'fa-solid fa-cart-shopping',  bg: '#f0fdf4', color: '#16a34a' },
-  'Other':         { icon: 'fa-solid fa-circle-dot',     bg: '#f5f5f5', color: '#9aa0b0' },
-};
-
-function getCategoryStyle(cat) {
-  return CATEGORY_STYLES[cat] || CATEGORY_STYLES['Other'];
-}
 
 function formatCurrency(amount, currency = 'PHP') {
   return new Intl.NumberFormat('en-PH', {
@@ -203,13 +186,14 @@ window.editExpenseHandler = function(id) {
 };
 
 // ── Setup Filters ──────────────────────────────────────────
-export function initExpenseListFilters() {
+export async function initExpenseListFilters() {
   const catFilter = document.getElementById('expListCategoryFilter');
   if (catFilter && catFilter.options.length <= 1) {
-    Object.keys(CATEGORY_STYLES).forEach(cat => {
+    const cats = await loadCategories();
+    cats.forEach(cat => {
       const option = document.createElement('option');
-      option.value = cat;
-      option.textContent = cat;
+      option.value = cat.name;
+      option.textContent = cat.name;
       catFilter.appendChild(option);
     });
   }
