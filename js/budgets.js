@@ -10,7 +10,7 @@ let currentBudgetId = null;
 let currentBudgetUid = null;
 
 export function initBudgetsModal() {
-  budgetModal = document.querySelector('.modal:has(#budCategory)');
+  budgetModal = document.getElementById('budgetModalContainer');
   budgetBackdrop = document.getElementById('budgetModalBackdrop');
   
   if (!budgetModal || !budgetBackdrop) return;
