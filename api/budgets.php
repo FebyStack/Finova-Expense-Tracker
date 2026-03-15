@@ -86,8 +86,8 @@ try {
 
         $db->beginTransaction();
         $stmt = $db->prepare("
-            INSERT INTO finova.budgets (user_id, category, limit_amount, spent, month, year)
-            VALUES (:userId,:category,:limit,:spent,:month,:year)
+            INSERT INTO finova.budgets (user_id, firebase_uid, category, limit_amount, spent, month, year)
+            VALUES (:userId,:uid,:category,:limit,:spent,:month,:year)
             ON CONFLICT (user_id, category, month, year) DO UPDATE SET
                 limit_amount = EXCLUDED.limit_amount,
                 updated_at   = NOW()
@@ -95,6 +95,7 @@ try {
         ");
         $stmt->execute([
             ':userId'  => $userId,
+            ':uid'     => $uid,
             ':category'=> $body['category'],
             ':limit'   => (float)$body['limitAmount'],
             ':spent'   => (float)($body['spent'] ?? 0),

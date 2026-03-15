@@ -91,13 +91,14 @@ try {
         $db->beginTransaction();
         $stmt = $db->prepare("
             INSERT INTO finova.income
-                (user_id, amount, currency, source, date, month, note)
+                (user_id, firebase_uid, amount, currency, source, date, month, note)
             VALUES
-                (:userId,:amount,:currency,:source,:date,:month,:note)
+                (:userId,:uid,:amount,:currency,:source,:date,:month,:note)
             RETURNING *
         ");
         $stmt->execute([
             ':userId'  => $userId,
+            ':uid'     => $uid,
             ':amount'  => $amount,
             ':currency'=> $currency,
             ':source'  => $body['source'],

@@ -81,12 +81,13 @@ try {
 
         $db->beginTransaction();
         $stmt = $db->prepare("
-            INSERT INTO finova.savings_goals (user_id, name, target_amount, current_amount, deadline)
-            VALUES (:userId,:name,:target,:current,:deadline)
+            INSERT INTO finova.savings_goals (user_id, firebase_uid, name, target_amount, current_amount, deadline)
+            VALUES (:userId,:uid,:name,:target,:current,:deadline)
             RETURNING *
         ");
         $stmt->execute([
             ':userId'  => $userId,
+            ':uid'     => $uid,
             ':name'    => trim($body['name']),
             ':target'  => $target,
             ':current' => (float)($body['currentAmount'] ?? 0),

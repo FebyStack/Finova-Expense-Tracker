@@ -95,13 +95,13 @@ try {
         $db->beginTransaction();
         $stmt = $db->prepare("
             INSERT INTO finova.expenses
-                (user_id, amount, currency, category, date, month, note, recurring, frequency, receipt_path)
+                (user_id, firebase_uid, amount, currency, category, date, month, note, recurring, frequency, receipt_path)
             VALUES
-                (:userId,:amount,:currency,:category,:date,:month,:note,:recurring,:frequency,:receipt)
+                (:userId,:uid,:amount,:currency,:category,:date,:month,:note,:recurring,:frequency,:receipt)
             RETURNING *
         ");
         $stmt->execute([
-            ':userId'=>$userId,':amount'=>$amount,':currency'=>$currency,
+            ':userId'=>$userId,':uid'=>$uid,':amount'=>$amount,':currency'=>$currency,
             ':category'=>$body['category'],':date'=>$body['date'],':month'=>$month,
             ':note'=>$note,':recurring'=>$recurring,':frequency'=>$frequency,':receipt'=>$receipt,
         ]);
