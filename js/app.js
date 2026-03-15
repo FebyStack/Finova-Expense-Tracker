@@ -107,25 +107,7 @@ const overlay = document.getElementById('sidebarOverlay');
 
 function isMobile() { return window.innerWidth <= 768; }
 
-// ── Desktop collapse ──────────────────────────────────────
-function collapseDesktop() {
-  sidebar.classList.add('collapsed');
-  localStorage.setItem('sidebarCollapsed', 'true');
-}
-
-function expandDesktop() {
-  sidebar.classList.remove('collapsed');
-  localStorage.setItem('sidebarCollapsed', 'false');
-}
-
-function toggleDesktop() {
-  if (sidebar.classList.contains('collapsed')) {
-    expandDesktop();
-  } else {
-    collapseDesktop();
-  }
-}
-
+// Desktop hover-expand is now handled purely in CSS.
 // ── Mobile drawer ─────────────────────────────────────────
 function openMobileSidebar() {
   sidebar.classList.add('mobile-open');
@@ -149,18 +131,11 @@ document.getElementById('navbarToggle')?.addEventListener('click', () => {
     sidebar.classList.contains('mobile-open')
       ? closeMobileSidebar()
       : openMobileSidebar();
-  } else {
-    toggleDesktop();
   }
 });
 
 // Close drawer when overlay is tapped on mobile
 overlay?.addEventListener('click', closeMobileSidebar);
-
-// Restore desktop collapsed state from localStorage
-if (!isMobile() && localStorage.getItem('sidebarCollapsed') === 'true') {
-  collapseDesktop();
-}
 
 // Handle resize — clean up states when switching breakpoints
 window.addEventListener('resize', () => {
