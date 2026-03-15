@@ -104,14 +104,16 @@ try {
         $budget = $stmt->fetch();
         $db->commit();
 
-        firestore_upsert($uid, 'budgets', (string)$budget['id'], [
-            'pgId'        => (int)   $budget['id'],
-            'category'    => $budget['category'],
-            'limitAmount' => (float) $budget['limit_amount'],
-            'spent'       => (float) $budget['spent'],
-            'month'       => (int)   $budget['month'],
-            'year'        => (int)   $budget['year'],
-        ]);
+        try {
+            firestore_upsert($uid, 'budgets', (string)$budget['id'], [
+                'pgId'        => (int)   $budget['id'],
+                'category'    => $budget['category'],
+                'limitAmount' => (float) $budget['limit_amount'],
+                'spent'       => (float) $budget['spent'],
+                'month'       => (int)   $budget['month'],
+                'year'        => (int)   $budget['year'],
+            ]);
+        } catch (Throwable $e) {}
 
         ok($budget, 201);
     }
@@ -144,14 +146,16 @@ try {
         if (!$budget) { $db->rollBack(); fail('Budget not found', 404); }
         $db->commit();
 
-        firestore_upsert($uid, 'budgets', (string)$id, [
-            'pgId'        => (int)   $budget['id'],
-            'category'    => $budget['category'],
-            'limitAmount' => (float) $budget['limit_amount'],
-            'spent'       => (float) $budget['spent'],
-            'month'       => (int)   $budget['month'],
-            'year'        => (int)   $budget['year'],
-        ]);
+        try {
+            firestore_upsert($uid, 'budgets', (string)$id, [
+                'pgId'        => (int)   $budget['id'],
+                'category'    => $budget['category'],
+                'limitAmount' => (float) $budget['limit_amount'],
+                'spent'       => (float) $budget['spent'],
+                'month'       => (int)   $budget['month'],
+                'year'        => (int)   $budget['year'],
+            ]);
+        } catch (Throwable $e) {}
 
         ok($budget);
     }
@@ -167,7 +171,7 @@ try {
         $stmt->execute([':id' => $id, ':userId' => $userId]);
         if (!$stmt->fetch()) fail('Budget not found', 404);
 
-        firestore_delete($uid, 'budgets', (string)$id);
+        try { firestore_delete($uid, 'budgets', (string)$id); } catch (Throwable $e) {}
         ok(['deleted' => true, 'id' => $id]);
     }
 

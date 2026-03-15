@@ -95,13 +95,15 @@ try {
         $goal = $stmt->fetch();
         $db->commit();
 
-        firestore_upsert($uid, 'savings', (string)$goal['id'], [
-            'pgId'          => (int)   $goal['id'],
-            'name'          => $goal['name'],
-            'targetAmount'  => (float) $goal['target_amount'],
-            'currentAmount' => (float) $goal['current_amount'],
-            'deadline'      => $goal['deadline'],
-        ]);
+        try {
+            firestore_upsert($uid, 'savings', (string)$goal['id'], [
+                'pgId'          => (int)   $goal['id'],
+                'name'          => $goal['name'],
+                'targetAmount'  => (float) $goal['target_amount'],
+                'currentAmount' => (float) $goal['current_amount'],
+                'deadline'      => $goal['deadline'],
+            ]);
+        } catch (Throwable $e) {}
 
         ok($goal, 201);
     }
@@ -138,13 +140,15 @@ try {
         if (!$goal) { $db->rollBack(); fail('Savings goal not found', 404); }
         $db->commit();
 
-        firestore_upsert($uid, 'savings', (string)$id, [
-            'pgId'          => (int)   $goal['id'],
-            'name'          => $goal['name'],
-            'targetAmount'  => (float) $goal['target_amount'],
-            'currentAmount' => (float) $goal['current_amount'],
-            'deadline'      => $goal['deadline'],
-        ]);
+        try {
+            firestore_upsert($uid, 'savings', (string)$id, [
+                'pgId'          => (int)   $goal['id'],
+                'name'          => $goal['name'],
+                'targetAmount'  => (float) $goal['target_amount'],
+                'currentAmount' => (float) $goal['current_amount'],
+                'deadline'      => $goal['deadline'],
+            ]);
+        } catch (Throwable $e) {}
 
         ok($goal);
     }
@@ -160,7 +164,7 @@ try {
         $stmt->execute([':id' => $id, ':userId' => $userId]);
         if (!$stmt->fetch()) fail('Savings goal not found', 404);
 
-        firestore_delete($uid, 'savings', (string)$id);
+        try { firestore_delete($uid, 'savings', (string)$id); } catch (Throwable $e) {}
         ok(['deleted' => true, 'id' => $id]);
     }
 

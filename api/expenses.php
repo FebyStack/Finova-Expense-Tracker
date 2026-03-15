@@ -109,17 +109,19 @@ try {
         $db->commit();
 
         // Mirror to Firestore
-        firestore_upsert($uid, 'expenses', (string)$expense['id'], [
-            'pgId'      => (int)   $expense['id'],
-            'amount'    => (float) $expense['amount'],
-            'currency'  => $expense['currency'],
-            'category'  => $expense['category'],
-            'date'      => $expense['date'],
-            'month'     => $expense['month'],
-            'note'      => $expense['note'],
-            'recurring' => (bool)  $expense['recurring'],
-            'frequency' => $expense['frequency'],
-        ]);
+        try {
+            firestore_upsert($uid, 'expenses', (string)$expense['id'], [
+                'pgId'      => (int)   $expense['id'],
+                'amount'    => (float) $expense['amount'],
+                'currency'  => $expense['currency'],
+                'category'  => $expense['category'],
+                'date'      => $expense['date'],
+                'month'     => $expense['month'],
+                'note'      => $expense['note'],
+                'recurring' => (bool)  $expense['recurring'],
+                'frequency' => $expense['frequency'],
+            ]);
+        } catch (Throwable $e) {}
 
         ok($expense, 201);
     }
@@ -166,17 +168,19 @@ try {
         $db->commit();
 
         // Mirror to Firestore
-        firestore_upsert($uid, 'expenses', (string)$id, [
-            'pgId'      => (int)   $expense['id'],
-            'amount'    => (float) $expense['amount'],
-            'currency'  => $expense['currency'],
-            'category'  => $expense['category'],
-            'date'      => $expense['date'],
-            'month'     => $expense['month'],
-            'note'      => $expense['note'],
-            'recurring' => (bool)  $expense['recurring'],
-            'frequency' => $expense['frequency'],
-        ]);
+        try {
+            firestore_upsert($uid, 'expenses', (string)$id, [
+                'pgId'      => (int)   $expense['id'],
+                'amount'    => (float) $expense['amount'],
+                'currency'  => $expense['currency'],
+                'category'  => $expense['category'],
+                'date'      => $expense['date'],
+                'month'     => $expense['month'],
+                'note'      => $expense['note'],
+                'recurring' => (bool)  $expense['recurring'],
+                'frequency' => $expense['frequency'],
+            ]);
+        } catch (Throwable $e) {}
 
         ok($expense);
     }
@@ -193,7 +197,7 @@ try {
         if (!$stmt->fetch()) fail('Expense not found', 404);
 
         // Mirror delete to Firestore
-        firestore_delete($uid, 'expenses', (string)$id);
+        try { firestore_delete($uid, 'expenses', (string)$id); } catch (Throwable $e) {}
 
         ok(['deleted' => true, 'id' => $id]);
     }
