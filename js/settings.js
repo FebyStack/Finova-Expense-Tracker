@@ -9,9 +9,7 @@ import {
   ICON_OPTIONS, COLOR_OPTIONS, bgFromColor
 } from './categories.js';
 
-const API_BASE = window.location.hostname === 'localhost'
-  ? '/Finova-Expense-Tracker/api'   // XAMPP
-  : '/api';
+const API_BASE = 'http://localhost/Expense_Tracker/api';
 
 let editingIndex = null;
 
