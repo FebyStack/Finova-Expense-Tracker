@@ -277,7 +277,24 @@
             <div><h1 class="page-title">Expenses</h1><p class="page-subtitle">Track and manage your spending.</p></div>
             <button class="btn btn-primary" id="btnAddExpense"><i class="fa-solid fa-plus"></i> Add Expense</button>
           </div>
-          <div class="placeholder-content"><i class="fa-solid fa-arrow-trend-down"></i><p>Expenses list coming on Day 10</p></div>
+          
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="expListMonthFilter"><i class="fa-solid fa-calendar-days"></i> Month</label>
+              <input type="month" id="expListMonthFilter" class="form-input" />
+            </div>
+            <div class="filter-group">
+              <label for="expListCategoryFilter"><i class="fa-solid fa-tag"></i> Category</label>
+              <select id="expListCategoryFilter" class="form-select">
+                <option value="">All Categories</option>
+                <!-- populated by JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="list-container" id="expenseListContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading expenses...</div>
+          </div>
         </section>
 
         <!-- Income -->
@@ -604,6 +621,7 @@
   <!-- Scripts -->
   <script type="module" src="js/firebase-config.js"></script>
   <script type="module" src="js/expenses.js"></script>
+  <script type="module" src="js/expense-list.js"></script>
   <script type="module" src="js/receipt.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/auth.js"></script>

@@ -1,5 +1,5 @@
 <?php
-// api/budgets.php — standalone + Firestore mirror
+// api/income.php — standalone + Firestore mirror
 
 ini_set('display_errors', 0);
 error_reporting(0);
@@ -55,65 +55,75 @@ try {
         $userId = getUserId($db, $uid);
 
         if ($id) {
-            $stmt = $db->prepare("SELECT * FROM finova.budgets WHERE id = :id AND user_id = :userId");
+            $stmt = $db->prepare("SELECT * FROM finova.income WHERE id = :id AND user_id = :userId");
             $stmt->execute([':id' => $id, ':userId' => $userId]);
             $row = $stmt->fetch();
-            if (!$row) fail('Budget not found', 404);
+            if (!$row) fail('Income not found', 404);
             ok($row);
         }
 
-        $sql    = "SELECT * FROM finova.budgets WHERE user_id = :userId";
+        $sql    = "SELECT * FROM finova.income WHERE user_id = :userId";
         $params = [':userId' => $userId];
-        if (!empty($_GET['month'])) { $sql .= " AND month = :month"; $params[':month'] = (int)$_GET['month']; }
-        if (!empty($_GET['year']))  { $sql .= " AND year = :year";   $params[':year']  = (int)$_GET['year']; }
-        $sql .= " ORDER BY category ASC";
+        if (!empty($_GET['month'])) { $sql .= " AND month = :month"; $params[':month'] = $_GET['month']; }
+        $sql .= " ORDER BY date DESC";
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
-        ok(['budgets' => $stmt->fetchAll()]);
+        ok(['income' => $stmt->fetchAll()]);
     }
 
     // POST
     if ($method === 'POST') {
         $body = json_decode(file_get_contents('php://input'), true);
         $uid  = $body['uid'] ?? null;
-        if (!$uid)                      fail('uid is required', 400);
-        if (empty($body['category']))    fail('category is required', 400);
-        if (empty($body['limitAmount'])) fail('limitAmount is required', 400);
-        if (empty($body['month']))       fail('month is required', 400);
-        if (empty($body['year']))        fail('year is required', 400);
+        if (!$uid)                  fail('uid is required', 400);
+        if (empty($body['amount'])) fail('amount is required', 400);
+        if (empty($body['source'])) fail('source is required', 400);
+        if (empty($body['date']))   fail('date is required', 400);
 
-        $userId = getUserId($db, $uid);
+        $userId   = getUserId($db, $uid);
+        $amount   = (float) $body['amount'];
+        $month    = substr($body['date'], 0, 7);
+        $currency = $body['currency'] ?? 'PHP';
+        $note     = $body['note']     ?? null;
+
+        if ($amount <= 0) fail('Amount must be greater than zero', 400);
 
         $db->beginTransaction();
         $stmt = $db->prepare("
-            INSERT INTO finova.budgets (user_id, category, limit_amount, spent, month, year)
-            VALUES (:userId,:category,:limit,:spent,:month,:year)
-            ON CONFLICT (user_id, category, month, year) DO UPDATE SET
-                limit_amount = EXCLUDED.limit_amount,
-                updated_at   = NOW()
+            INSERT INTO finova.income
+                (user_id, amount, currency, source, date, month, note)
+            VALUES
+                (:userId,:amount,:currency,:source,:date,:month,:note)
             RETURNING *
         ");
         $stmt->execute([
             ':userId'  => $userId,
-            ':category'=> $body['category'],
-            ':limit'   => (float)$body['limitAmount'],
-            ':spent'   => (float)($body['spent'] ?? 0),
-            ':month'   => (int)$body['month'],
-            ':year'    => (int)$body['year'],
+            ':amount'  => $amount,
+            ':currency'=> $currency,
+            ':source'  => $body['source'],
+            ':date'    => $body['date'],
+            ':month'   => $month,
+            ':note'    => $note,
         ]);
-        $budget = $stmt->fetch();
+        $income = $stmt->fetch();
         $db->commit();
 
-        firestore_upsert($uid, 'budgets', (string)$budget['id'], [
-            'pgId'        => (int)   $budget['id'],
-            'category'    => $budget['category'],
-            'limitAmount' => (float) $budget['limit_amount'],
-            'spent'       => (float) $budget['spent'],
-            'month'       => (int)   $budget['month'],
-            'year'        => (int)   $budget['year'],
-        ]);
+        // Mirror to Firestore (non-blocking)
+        try {
+            firestore_upsert($uid, 'income', (string)$income['id'], [
+                'pgId'     => (int)   $income['id'],
+                'amount'   => (float) $income['amount'],
+                'currency' => $income['currency'],
+                'source'   => $income['source'],
+                'date'     => $income['date'],
+                'month'    => $income['month'],
+                'note'     => $income['note'],
+            ]);
+        } catch (Throwable $e) {
+            // Firestore sync failure must never block PostgreSQL response
+        }
 
-        ok($budget, 201);
+        ok($income, 201);
     }
 
     // PUT
@@ -124,36 +134,51 @@ try {
         if (!$uid) fail('uid is required', 400);
 
         $userId = getUserId($db, $uid);
+        $month  = isset($body['date']) ? substr($body['date'], 0, 7) : null;
 
         $db->beginTransaction();
         $stmt = $db->prepare("
-            UPDATE finova.budgets SET
-                limit_amount = COALESCE(:limit, limit_amount),
-                spent        = COALESCE(:spent, spent),
-                updated_at   = NOW()
+            UPDATE finova.income SET
+                amount     = COALESCE(:amount,   amount),
+                currency   = COALESCE(:currency, currency),
+                source     = COALESCE(:source,   source),
+                date       = COALESCE(:date,     date),
+                month      = COALESCE(:month,    month),
+                note       = COALESCE(:note,     note),
+                updated_at = NOW()
             WHERE id = :id AND user_id = :userId
             RETURNING *
         ");
         $stmt->execute([
-            ':limit'  => isset($body['limitAmount']) ? (float)$body['limitAmount'] : null,
-            ':spent'  => isset($body['spent'])       ? (float)$body['spent']       : null,
-            ':id'     => $id,
-            ':userId' => $userId,
+            ':amount'  => isset($body['amount'])  ? (float)$body['amount'] : null,
+            ':currency'=> $body['currency'] ?? null,
+            ':source'  => $body['source']   ?? null,
+            ':date'    => $body['date']     ?? null,
+            ':month'   => $month,
+            ':note'    => $body['note']     ?? null,
+            ':id'      => $id,
+            ':userId'  => $userId,
         ]);
-        $budget = $stmt->fetch();
-        if (!$budget) { $db->rollBack(); fail('Budget not found', 404); }
+        $income = $stmt->fetch();
+        if (!$income) { $db->rollBack(); fail('Income not found', 404); }
         $db->commit();
 
-        firestore_upsert($uid, 'budgets', (string)$id, [
-            'pgId'        => (int)   $budget['id'],
-            'category'    => $budget['category'],
-            'limitAmount' => (float) $budget['limit_amount'],
-            'spent'       => (float) $budget['spent'],
-            'month'       => (int)   $budget['month'],
-            'year'        => (int)   $budget['year'],
-        ]);
+        // Mirror to Firestore (non-blocking)
+        try {
+            firestore_upsert($uid, 'income', (string)$id, [
+                'pgId'     => (int)   $income['id'],
+                'amount'   => (float) $income['amount'],
+                'currency' => $income['currency'],
+                'source'   => $income['source'],
+                'date'     => $income['date'],
+                'month'    => $income['month'],
+                'note'     => $income['note'],
+            ]);
+        } catch (Throwable $e) {
+            // Firestore sync failure must never block PostgreSQL response
+        }
 
-        ok($budget);
+        ok($income);
     }
 
     // DELETE
@@ -163,11 +188,17 @@ try {
         if (!$uid) fail('uid is required', 400);
 
         $userId = getUserId($db, $uid);
-        $stmt = $db->prepare("DELETE FROM finova.budgets WHERE id = :id AND user_id = :userId RETURNING id");
+        $stmt = $db->prepare("DELETE FROM finova.income WHERE id = :id AND user_id = :userId RETURNING id");
         $stmt->execute([':id' => $id, ':userId' => $userId]);
-        if (!$stmt->fetch()) fail('Budget not found', 404);
+        if (!$stmt->fetch()) fail('Income not found', 404);
 
-        firestore_delete($uid, 'budgets', (string)$id);
+        // Mirror delete to Firestore (non-blocking)
+        try {
+            firestore_delete($uid, 'income', (string)$id);
+        } catch (Throwable $e) {
+            // Firestore sync failure must never block PostgreSQL response
+        }
+
         ok(['deleted' => true, 'id' => $id]);
     }
 

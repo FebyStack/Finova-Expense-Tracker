@@ -8,6 +8,7 @@ import { doc, getDoc, updateDoc }
   from "../firebase-firestore.js";
 import { loadDashboard }  from './dashboard.js';
 import { openExpenseModal } from './expenses.js';
+import { loadExpenseList, initExpenseListFilters } from './expense-list.js';
 
 // ══════════════════════════════════════════════════════════
 // PAGE MAP
@@ -60,6 +61,12 @@ window.navigateTo = function navigateTo(pageKey) {
 
   // Close sidebar drawer on mobile after navigating
   if (window.innerWidth <= 768) closeMobileSidebar();
+
+  // Route-specific loading
+  if (pageKey === 'expenses') {
+    initExpenseListFilters();
+    loadExpenseList(window.userCurrency || 'PHP');
+  }
 };
 
 window.addEventListener('hashchange', () => navigateTo(getCurrentPage()));
@@ -222,6 +229,8 @@ onAuthStateChanged(auth, async (user) => {
     const userDoc  = await getDoc(doc(db, 'users', user.uid));
     const userData = userDoc.exists() ? userDoc.data() : null;
 
+    window.userCurrency = userData?.baseCurrency || 'PHP';
+
     const displayName = userData?.displayName || user.displayName || user.email || 'User';
     const email       = user.email || '';
     const initials    = displayName
@@ -303,6 +312,11 @@ window.refreshDashboard = async () => {
     const userDoc  = await getDoc(doc(db, 'users', user.uid));
     const userData = userDoc.exists() ? userDoc.data() : null;
     await loadDashboard(user, userData);
+    
+    // Also refresh expense list if currently on expenses page
+    if (window.location.hash.replace('#', '') === 'expenses') {
+      loadExpenseList(userData?.baseCurrency || 'PHP');
+    }
   } catch (err) {
     console.error('Refresh error:', err);
   }

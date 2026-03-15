@@ -1,8 +1,4 @@
-    // js/dashboard.js
-    // Reads all data from PostgreSQL via backend API
-
-
-const API_BASE = window.location.origin + '/Expense_Tracker/api';
+import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavings } from './api.js';
 
     // ── Category icon + color map ──────────────────────────────
     const CATEGORY_STYLES = {
@@ -17,7 +13,6 @@ const API_BASE = window.location.origin + '/Expense_Tracker/api';
       'Income':        { icon: 'fa-solid fa-arrow-trend-up', bg: '#e8f5e9', color: '#22c55e' },
       'Other':         { icon: 'fa-solid fa-circle-dot',     bg: '#f5f5f5', color: '#9aa0b0' },
     };
-
 
     function getCategoryStyle(cat) {
       return CATEGORY_STYLES[cat] || CATEGORY_STYLES['Other'];
@@ -35,13 +30,6 @@ const API_BASE = window.location.origin + '/Expense_Tracker/api';
       return new Date(dateStr).toLocaleDateString('en-PH', {
         month: 'short', day: 'numeric',
       });
-    }
-
-    async function apiFetch(path) {
-      const res  = await fetch(`${API_BASE}${path}`);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'API error');
-      return data.data;
     }
 
     // ── Greeting ───────────────────────────────────────────────
@@ -81,15 +69,14 @@ const API_BASE = window.location.origin + '/Expense_Tracker/api';
 
       try {
         // ── Expenses this month ───────────────────────────────
-        const expData  = await apiFetch(`/expenses.php?uid=${uid}&month=${thisMonth}`);
-        const expenses = expData.expenses || [];
+        const expenses = await fetchExpenses(uid, { month: thisMonth });
         const totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
         // ── Income this month ─────────────────────────────────
         let totalIncome = 0;
         try {
-          const incData = await apiFetch(`/income.php?uid=${uid}&month=${thisMonth}`);
-          totalIncome   = (incData.income || []).reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
+          const incomeData = await fetchIncome(uid, { month: thisMonth });
+          totalIncome   = incomeData.reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
         } catch (_) { /* no income yet */ }
 
         // ── Balance & savings rate ────────────────────────────
@@ -184,8 +171,7 @@ const API_BASE = window.location.origin + '/Expense_Tracker/api';
       try {
         const month = now.getMonth() + 1;
         const year  = now.getFullYear();
-        const data  = await apiFetch(`/budgets.php?uid=${uid}&month=${month}&year=${year}`);
-        const budgets = data.budgets || [];
+        const budgets = await fetchBudgets(uid, { month, year });
 
         if (!budgets.length) {
           container.innerHTML = `
@@ -227,8 +213,7 @@ const API_BASE = window.location.origin + '/Expense_Tracker/api';
       if (!container) return;
 
       try {
-        const data  = await apiFetch(`/savings.php?uid=${uid}`);
-        const goals = data.savings || [];
+        const goals = await fetchSavings(uid);
 
         if (!goals.length) {
           container.innerHTML = `
