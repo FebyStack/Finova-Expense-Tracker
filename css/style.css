@@ -317,6 +317,7 @@ body.dark {
   padding-top: calc(var(--navbar-height) + var(--space-8));
   max-width: 1280px;
   width: 100%;
+  margin: 0 auto;
 }
 
 /* Page header — title + action button row */
