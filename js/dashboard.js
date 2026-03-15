@@ -1,30 +1,6 @@
 import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavings } from './api.js';
-
-    // ── Category icon + color map ──────────────────────────────
-    const CATEGORY_STYLES = {
-      'Food':          { icon: 'fa-solid fa-utensils',       bg: '#fff3e0', color: '#f59e0b' },
-      'Transport':     { icon: 'fa-solid fa-car',            bg: '#e3f2fd', color: '#2196f3' },
-      'Shopping':      { icon: 'fa-solid fa-bag-shopping',   bg: '#fce4ec', color: '#e91e63' },
-      'Bills':         { icon: 'fa-solid fa-file-invoice',   bg: '#f3e5f5', color: '#9c27b0' },
-      'Health':        { icon: 'fa-solid fa-heart-pulse',    bg: '#e8f5e9', color: '#4caf50' },
-      'Entertainment': { icon: 'fa-solid fa-tv',             bg: '#e0f7fa', color: '#00bcd4' },
-      'Education':     { icon: 'fa-solid fa-graduation-cap', bg: '#e8eaf6', color: '#3f51b5' },
-      'Savings':       { icon: 'fa-solid fa-piggy-bank',     bg: '#fff8e1', color: '#ffc107' },
-      'Income':        { icon: 'fa-solid fa-arrow-trend-up', bg: '#e8f5e9', color: '#22c55e' },
-      'Other':         { icon: 'fa-solid fa-circle-dot',     bg: '#f5f5f5', color: '#9aa0b0' },
-    };
-
-    function getCategoryStyle(cat) {
-      return CATEGORY_STYLES[cat] || CATEGORY_STYLES['Other'];
-    }
-
-    // ── Helpers ────────────────────────────────────────────────
-    function formatCurrency(amount, currency = 'PHP') {
-      return new Intl.NumberFormat('en-PH', {
-        style: 'currency', currency,
-        minimumFractionDigits: 2,
-      }).format(amount);
-    }
+import { convertItems, formatCurrency, warmRateCache } from './currency.js';
+import { getCategoryStyle } from './categories.js';
 
     function formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('en-PH', {
@@ -68,15 +44,21 @@ import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavings } from './api.js
       const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
       try {
-        // ── Expenses this month ───────────────────────────────
-        const expenses = await fetchExpenses(uid, { month: thisMonth });
-        const totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+        // ── Pre-warm exchange rate cache ───────────────────────
+        await warmRateCache(currency);
 
-        // ── Income this month ─────────────────────────────────
+        // ── Expenses this month (converted to base currency) ──
+        const expenses = await fetchExpenses(uid, { month: thisMonth });
+        const expResult = await convertItems(expenses, currency);
+        const totalExpenses = expResult.total;
+
+        // ── Income this month (converted to base currency) ────
         let totalIncome = 0;
+        let incomeData = [];
         try {
-          const incomeData = await fetchIncome(uid, { month: thisMonth });
-          totalIncome   = incomeData.reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
+          incomeData  = await fetchIncome(uid, { month: thisMonth });
+          const incResult = await convertItems(incomeData, currency);
+          totalIncome = incResult.total;
         } catch (_) { /* no income yet */ }
 
         // ── Balance & savings rate ────────────────────────────

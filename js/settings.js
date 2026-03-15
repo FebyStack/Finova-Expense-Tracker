@@ -1,13 +1,78 @@
 // js/settings.js
-// Settings page — Category management UI
+// Settings page — Category management + Base currency
 
-import { auth } from './firebase-config.js';
+import { auth, db } from './firebase-config.js';
+import { doc, updateDoc }
+  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 import {
   loadCategories, saveCategories, invalidateCache,
   ICON_OPTIONS, COLOR_OPTIONS, bgFromColor
 } from './categories.js';
 
+const API_BASE = window.location.hostname === 'localhost'
+  ? '/Finova-Expense-Tracker/api'   // XAMPP
+  : '/api';
+
 let editingIndex = null;
+
+// ══════════════════════════════════════════════════════════
+// BASE CURRENCY
+// ══════════════════════════════════════════════════════════
+
+async function saveBaseCurrency() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const select  = document.getElementById('settingsBaseCurrency');
+  const status  = document.getElementById('currencySaveStatus');
+  const btn     = document.getElementById('btnSaveBaseCurrency');
+  const newCurrency = select.value;
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  if (status) status.textContent = '';
+
+  try {
+    // Update PostgreSQL
+    const res = await fetch(`${API_BASE}/users.php?uid=${user.uid}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: user.uid, baseCurrency: newCurrency }),
+    });
+    if (!res.ok) throw new Error('API error');
+
+    // Update Firestore
+    await updateDoc(doc(db, 'users', user.uid), { baseCurrency: newCurrency });
+
+    // Update global
+    window.userCurrency = newCurrency;
+
+    if (status) {
+      status.textContent = '✓ Saved';
+      status.style.color = 'var(--success)';
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    }
+
+    showCatToast(`Base currency changed to ${newCurrency}`);
+
+    // Refresh dashboard
+    if (window.refreshDashboard) window.refreshDashboard();
+
+  } catch (err) {
+    console.error('Save currency error:', err);
+    if (status) {
+      status.textContent = '✗ Failed';
+      status.style.color = 'var(--danger)';
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Save</span>';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// CATEGORY MANAGEMENT
+// ══════════════════════════════════════════════════════════
 
 // ── Render category list ───────────────────────────────────
 async function renderCategoryList() {
@@ -99,7 +164,6 @@ function openCategoryForm(cat = null, index = null) {
     saveBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add';
     buildIconPicker();
     buildColorPicker(COLOR_OPTIONS[0]);
-    // Auto-select first color
     document.querySelector('.color-pick-btn')?.click();
   }
 
@@ -116,31 +180,17 @@ function closeCategoryForm() {
 // ── Save category ──────────────────────────────────────────
 async function saveCategoryFromForm() {
   const name = document.getElementById('catNameInput').value.trim();
-  if (!name) {
-    showCatError('Category name is required.');
-    return;
-  }
+  if (!name) { showCatError('Category name is required.'); return; }
 
   const selectedIcon = document.querySelector('.icon-pick-btn.selected')?.dataset.icon;
   const selectedColor = document.querySelector('.color-pick-btn.selected')?.dataset.color;
 
-  if (!selectedIcon) {
-    showCatError('Please select an icon.');
-    return;
-  }
-  if (!selectedColor) {
-    showCatError('Please select a color.');
-    return;
-  }
+  if (!selectedIcon) { showCatError('Please select an icon.'); return; }
+  if (!selectedColor) { showCatError('Please select a color.'); return; }
 
   const categories = await loadCategories();
-
-  // Check duplicate names (except when editing the same one)
   const dupIndex = categories.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
-  if (dupIndex !== -1 && dupIndex !== editingIndex) {
-    showCatError(`"${name}" already exists.`);
-    return;
-  }
+  if (dupIndex !== -1 && dupIndex !== editingIndex) { showCatError(`"${name}" already exists.`); return; }
 
   if (editingIndex !== null) {
     categories[editingIndex] = { name, icon: selectedIcon, color: selectedColor };
@@ -165,7 +215,6 @@ window.deleteCategory = async function(index) {
   const cat = categories[index];
   if (!cat) return;
 
-  // Show confirmation
   const overlay = document.createElement('div');
   overlay.id = 'confirmDialogOverlay';
   overlay.className = 'confirm-dialog-overlay';
@@ -184,7 +233,6 @@ window.deleteCategory = async function(index) {
   requestAnimationFrame(() => overlay.classList.add('open'));
 
   const close = () => { overlay.classList.remove('open'); setTimeout(() => overlay.remove(), 250); };
-
   document.getElementById('confirmDialogCancel').addEventListener('click', close);
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
 
@@ -222,13 +270,25 @@ function showCatToast(msg) {
   setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 300); }, 3000);
 }
 
-// ── Initialize ─────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+// INITIALIZE
+// ══════════════════════════════════════════════════════════
+
 export async function initSettings() {
+  // Set currency selector to current value
+  const currSel = document.getElementById('settingsBaseCurrency');
+  if (currSel) currSel.value = window.userCurrency || 'PHP';
+
   await renderCategoryList();
 
+  // Base currency save
+  document.getElementById('btnSaveBaseCurrency')?.addEventListener('click', saveBaseCurrency);
+
+  // Category management
   document.getElementById('btnNewCategory')?.addEventListener('click', () => openCategoryForm());
   document.getElementById('btnSaveCategory')?.addEventListener('click', saveCategoryFromForm);
   document.getElementById('btnCancelCategory')?.addEventListener('click', closeCategoryForm);
   document.getElementById('catFormSection')?.querySelector('.cat-form-close')
     ?.addEventListener('click', closeCategoryForm);
 }
+
