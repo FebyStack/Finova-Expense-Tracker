@@ -1,6 +1,6 @@
 import { db, auth } from './firebase-config.js';
 import { loadCategories, getCategoryStyle } from './categories.js';
-import { showToast } from './app.js';
+import { showToast } from './expenses.js';
 import { addBudget, editBudget } from './api.js';
 
 let budgetModal;

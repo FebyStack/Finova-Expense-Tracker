@@ -2,7 +2,7 @@ import { auth } from './firebase-config.js';
 import { fetchBudgets, fetchExpenses, editBudget, removeBudget } from './api.js';
 import { getCategoryStyle } from './categories.js';
 import { convertItems, formatCurrency, warmRateCache } from './currency.js';
-import { showToast } from './app.js';
+import { showToast } from './expenses.js';
 import { openBudgetModal } from './budgets.js';
 
 let currentBudgets = [];
