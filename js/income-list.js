@@ -15,6 +15,7 @@ const SOURCE_STYLES = {
   'Rental':      { icon: 'fa-solid fa-house',           bg: '#fff3e0', color: '#ef6c00' },
   'Side Hustle': { icon: 'fa-solid fa-bolt',            bg: '#eef2ff', color: '#6366f1' },
   'Pension':     { icon: 'fa-solid fa-landmark',        bg: '#f0fdf4', color: '#16a34a' },
+  'Allowance':   { icon: 'fa-solid fa-wallet',           bg: '#e8eaf6', color: '#3f51b5' },
   'Other':       { icon: 'fa-solid fa-circle-dot',      bg: '#f5f5f5', color: '#9aa0b0' },
 };
 
