@@ -289,10 +289,20 @@ body.dark {
 .app-main {
   flex: 1;
   min-width: 0;
-  margin-left: var(--sidebar-width);
-  transition: margin-left var(--duration-slow) var(--ease);
+  margin-left: var(--sidebar-collapsed);
+  transition: margin-left var(--duration-fast) var(--ease);
   display: flex;
   flex-direction: column;
+}
+
+/* PUSH layout when sidebar expands on hover (Desktop) */
+@media (min-width: 769px) {
+  .sidebar:hover ~ .app-main {
+    margin-left: var(--sidebar-width);
+  }
+  .sidebar:hover ~ .app-main .navbar {
+    left: var(--sidebar-width);
+  }
 }
 
 /* When sidebar is collapsed */
@@ -698,7 +708,7 @@ body.dark {
 .navbar {
   position: fixed;
   top: 0;
-  left: var(--sidebar-width);
+  left: var(--sidebar-collapsed);
   right: 0;
   height: var(--navbar-height);
   background: var(--navbar-bg);
@@ -709,13 +719,9 @@ body.dark {
   padding: 0 var(--space-8);
   gap: var(--space-4);
   z-index: var(--z-navbar);
-  transition: left var(--duration-slow) var(--ease),
+  transition: left var(--duration-fast) var(--ease),
               background var(--duration-base) var(--ease),
               border-color var(--duration-base) var(--ease);
-}
-
-.navbar.sidebar-collapsed {
-  left: var(--sidebar-collapsed);
 }
 
 /* ── Sidebar toggle button ────────────────────────────────── */
