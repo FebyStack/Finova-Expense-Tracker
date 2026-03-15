@@ -70,7 +70,7 @@ async function loadBudgets() {
     currentBudgets = budgets || [];
 
     // 3. Convert all expenses to user's base currency to accurately calculate 'spent'
-    const convertedExpenses = await convertItems(expenses || [], window.userCurrency || 'PHP');
+    const { items: convertedExpenses } = await convertItems(expenses || [], window.userCurrency || 'PHP');
 
     // 4. Aggregate spent by category
     const spentByCategory = {};
