@@ -301,9 +301,26 @@
         <section class="page-view" id="page-income">
           <div class="page-header">
             <div><h1 class="page-title">Income</h1><p class="page-subtitle">Track all your income sources.</p></div>
-            <button class="btn btn-primary" id="btnAddIncome"><i class="fa-solid fa-plus"></i> Add Income</button>
+            <button class="btn btn-success" id="btnAddIncome"><i class="fa-solid fa-plus"></i> Add Income</button>
           </div>
-          <div class="placeholder-content"><i class="fa-solid fa-arrow-trend-up"></i><p>Income tracking coming on Day 12</p></div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="incListMonthFilter"><i class="fa-solid fa-calendar-days"></i> Month</label>
+              <input type="month" id="incListMonthFilter" class="form-input" />
+            </div>
+            <div class="filter-group">
+              <label for="incListSourceFilter"><i class="fa-solid fa-briefcase"></i> Source</label>
+              <select id="incListSourceFilter" class="form-select">
+                <option value="">All Sources</option>
+                <!-- populated by JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="list-container" id="incomeListContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading income...</div>
+          </div>
         </section>
 
         <!-- Calendar -->
@@ -618,10 +635,83 @@
     </div>
   </div>
 
+  <!-- ── ADD / EDIT INCOME MODAL ── -->
+  <div class="modal-overlay" id="modalAddIncome">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalIncomeTitle">
+
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalIncomeTitle">
+          <i class="fa-solid fa-arrow-trend-up" style="color:var(--success);"></i>
+          Add Income
+        </h2>
+        <button class="modal-close" id="btnCloseIncomeModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="form-label" for="incAmount">Amount <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-prefix currency" id="incCurrencySymbol">₱</span>
+            <input
+              class="form-input form-input-amount has-prefix"
+              type="number" id="incAmount"
+              placeholder="0.00" min="0" step="0.01" required
+            />
+            <select class="input-action-select" id="incCurrency">
+              <option value="PHP">PHP</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="JPY">JPY</option>
+              <option value="SGD">SGD</option>
+              <option value="AUD">AUD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Source <span class="required">*</span></label>
+          <div class="category-grid" id="incSourceGrid"></div>
+          <input type="hidden" id="incSource" required/>
+        </div>
+
+        <div class="form-row" style="gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="incDate">Date <span class="required">*</span></label>
+            <input class="form-input" type="date" id="incDate" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="incNote">Note <span class="optional">(optional)</span></label>
+            <input class="form-input" type="text" id="incNote" placeholder="e.g., March salary, Upwork project" maxlength="120"/>
+          </div>
+        </div>
+
+        <div class="form-error-banner" id="incError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="incErrorText"></span>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelIncome">Cancel</button>
+        <button class="btn btn-success" id="btnSaveIncome">
+          <i class="fa-solid fa-plus"></i> <span>Save Income</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script type="module" src="js/firebase-config.js"></script>
   <script type="module" src="js/expenses.js"></script>
   <script type="module" src="js/expense-list.js"></script>
+  <script type="module" src="js/income.js"></script>
+  <script type="module" src="js/income-list.js"></script>
   <script type="module" src="js/receipt.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/auth.js"></script>

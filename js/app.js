@@ -9,6 +9,8 @@ import { doc, getDoc, updateDoc }
 import { loadDashboard }  from './dashboard.js';
 import { openExpenseModal } from './expenses.js';
 import { loadExpenseList, initExpenseListFilters } from './expense-list.js';
+import { openIncomeModal } from './income.js';
+import { loadIncomeList, initIncomeListFilters } from './income-list.js';
 
 // ══════════════════════════════════════════════════════════
 // PAGE MAP
@@ -66,6 +68,10 @@ window.navigateTo = function navigateTo(pageKey) {
   if (pageKey === 'expenses') {
     initExpenseListFilters();
     loadExpenseList(window.userCurrency || 'PHP');
+  }
+  if (pageKey === 'income') {
+    initIncomeListFilters();
+    loadIncomeList(window.userCurrency || 'PHP');
   }
 };
 
@@ -302,6 +308,14 @@ document.getElementById('bottomNavAdd')
 
 
 // ══════════════════════════════════════════════════════════
+// INCOME MODAL TRIGGERS
+// ══════════════════════════════════════════════════════════
+
+document.getElementById('btnAddIncome')
+  ?.addEventListener('click', () => openIncomeModal());
+
+
+// ══════════════════════════════════════════════════════════
 // DASHBOARD REFRESH (called from expenses.js after saving)
 // ══════════════════════════════════════════════════════════
 
@@ -313,9 +327,14 @@ window.refreshDashboard = async () => {
     const userData = userDoc.exists() ? userDoc.data() : null;
     await loadDashboard(user, userData);
     
+    const page = window.location.hash.replace('#', '');
     // Also refresh expense list if currently on expenses page
-    if (window.location.hash.replace('#', '') === 'expenses') {
+    if (page === 'expenses') {
       loadExpenseList(userData?.baseCurrency || 'PHP');
+    }
+    // Also refresh income list if currently on income page
+    if (page === 'income') {
+      loadIncomeList(userData?.baseCurrency || 'PHP');
     }
   } catch (err) {
     console.error('Refresh error:', err);
