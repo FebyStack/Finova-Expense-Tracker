@@ -1527,7 +1527,7 @@ body.dark {
    9. RESPONSIVE
    ============================================================ */
 
-/* Tablet */
+/* ── Tablet (≤ 1024px): Sidebar collapsed → hover to expand ─ */
 @media (max-width: 1024px) {
   .sidebar {
     width: var(--sidebar-collapsed);
@@ -1540,10 +1540,38 @@ body.dark {
   .sidebar .sidebar-badge {
     opacity: 0;
     pointer-events: none;
+    transition: opacity 0.2s ease;
   }
 
   .sidebar .sidebar-item::before {
     display: none;
+  }
+
+  .sidebar .sidebar-theme-btn {
+    display: none;
+  }
+
+  /* ── Hover expand: icon-only → full sidebar on hover ── */
+  .sidebar:hover {
+    width: var(--sidebar-width);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .sidebar:hover .sidebar-label,
+  .sidebar:hover .sidebar-brand-text,
+  .sidebar:hover .sidebar-section-label,
+  .sidebar:hover .sidebar-user-info,
+  .sidebar:hover .sidebar-badge {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar:hover .sidebar-item::before {
+    display: block;
+  }
+
+  .sidebar:hover .sidebar-theme-btn {
+    display: flex;
   }
 
   .app-main {
@@ -1568,17 +1596,97 @@ body.dark {
   }
 }
 
-/* Mobile */
-@media (max-width: 640px) {
-  /* Sidebar slides off-screen on mobile */
-  .sidebar {
-    width: var(--sidebar-width);
-    transform: translateX(-100%);
-    box-shadow: var(--shadow-xl);
+/* ── Mobile (≤ 768px): Navbar compact mode ───────────────── */
+@media (max-width: 768px) {
+  /* Hide search, receipt text, button labels */
+  .navbar-search {
+    display: none;
   }
 
-  .sidebar.open {
+  .navbar-breadcrumb {
+    display: none;
+  }
+
+  /* Compact navbar padding */
+  .navbar {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+
+  /* Hide button text, show only icons */
+  .navbar-actions .btn span,
+  .navbar-actions .btn .btn-label {
+    display: none;
+  }
+
+  /* Hide "Upload Receipt" text, show icon only */
+  .navbar-actions .btn-outline span,
+  .navbar-actions .btn-outline:not(i) {
+    font-size: 0;
+  }
+
+  .navbar-actions .btn-outline i,
+  .navbar-actions .btn-primary i {
+    font-size: 14px;
+    margin: 0;
+  }
+
+  /* Make navbar buttons icon-only */
+  .navbar-actions .btn-sm {
+    padding: 7px 9px;
+    min-width: unset;
+    gap: 0;
+  }
+
+  .navbar-divider {
+    display: none;
+  }
+
+  .navbar-actions {
+    gap: var(--space-1);
+  }
+}
+
+/* ── Small mobile (≤ 640px): Full mobile layout ──────────── */
+@media (max-width: 640px) {
+  /* Sidebar becomes a drawer that slides in from left */
+  .sidebar {
+    position: fixed;
+    width: var(--sidebar-width);
+    max-width: 280px;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-xl);
+    z-index: var(--z-sidebar);
+  }
+
+  /* JS uses .mobile-open class */
+  .sidebar.mobile-open {
     transform: translateX(0);
+  }
+
+  /* Ensure labels are visible when drawer is open */
+  .sidebar.mobile-open .sidebar-label,
+  .sidebar.mobile-open .sidebar-brand-text,
+  .sidebar.mobile-open .sidebar-section-label,
+  .sidebar.mobile-open .sidebar-user-info,
+  .sidebar.mobile-open .sidebar-badge {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar.mobile-open .sidebar-item::before {
+    display: block;
+  }
+
+  .sidebar.mobile-open .sidebar-theme-btn {
+    display: flex;
+  }
+
+  /* Disable hover-expand on mobile (touch devices) */
+  .sidebar:hover {
+    width: var(--sidebar-width);
+    max-width: 280px;
+    box-shadow: none;
   }
 
   .app-main {
@@ -1587,15 +1695,13 @@ body.dark {
 
   .navbar {
     left: 0;
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-3);
   }
 
   .page-content {
     padding: var(--space-4);
     padding-top: calc(var(--navbar-height) + var(--space-4));
   }
-
-  .navbar-search { display: none; }
 
   .page-header {
     flex-direction: column;
@@ -1606,19 +1712,23 @@ body.dark {
     grid-template-columns: 1fr;
   }
 
-  /* Mobile sidebar overlay */
+  /* Mobile sidebar overlay — backdrop blur */
   .sidebar-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: calc(var(--z-sidebar) - 1);
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--duration-base) var(--ease);
+    transition: opacity 0.26s ease;
   }
 
-  .sidebar-overlay.visible {
-    opacity: 1;
-    pointer-events: all;
+  /* Shown via JS inline style opacity=1/display=block */
+
+  /* Page title in navbar smaller */
+  .navbar #navbarPageTitle {
+    font-size: var(--text-sm);
   }
 }
