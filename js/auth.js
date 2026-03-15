@@ -171,7 +171,7 @@ onAuthStateChanged(auth, async (user) => {
   let userSynced = false;
   try {
 
-    const res = await fetch('http://localhost/Expense_Tracker/api/users.php', {
+    const res = await fetch('api/users.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -2,7 +2,7 @@
 // Frontend API service — now pointing to PHP/XAMPP backend
 // Drop-in replacement for the old Node.js API calls
 
-const API_BASE = 'http://localhost/Expense_Tracker/api';  // XAMPP path
+const API_BASE = 'api';  // Relative path
 
 // ── Generic fetch wrapper ──────────────────────────────────
 async function apiFetch(endpoint, options = {}) {

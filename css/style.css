@@ -295,14 +295,12 @@ body.dark {
   flex-direction: column;
 }
 
-/* PUSH layout when sidebar expands on hover (Desktop) */
-@media (min-width: 769px) {
-  .sidebar:hover ~ .app-main {
-    margin-left: var(--sidebar-width);
-  }
-  .sidebar:hover ~ .app-main .navbar {
-    left: var(--sidebar-width);
-  }
+/* PUSH layout when sidebar expands on hover (All sizes) */
+.sidebar:hover ~ .app-main {
+  margin-left: var(--sidebar-width);
+}
+.sidebar:hover ~ .app-main .navbar {
+  left: var(--sidebar-width);
 }
 
 /* When sidebar is collapsed */
@@ -367,12 +365,10 @@ body.dark {
   overflow: hidden;
 }
 
-/* Expand on hover (desktop only where hover works well, but active on all if forced) */
-@media (min-width: 769px) {
-  .sidebar:hover {
-    width: var(--sidebar-width);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15); /* give floating depth when expanded */
-  }
+/* Expand on hover (desktop & tablet) */
+.sidebar:hover {
+  width: var(--sidebar-width);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15); /* give floating depth when expanded */
 }
 
 /* ── Logo / Brand ─────────────────────────────────────────── */
@@ -1599,8 +1595,16 @@ body.dark {
     margin-left: var(--sidebar-collapsed);
   }
 
+  .sidebar:hover ~ .app-main {
+    margin-left: var(--sidebar-width);
+  }
+
   .navbar {
     left: var(--sidebar-collapsed);
+  }
+
+  .sidebar:hover ~ .app-main .navbar {
+    left: var(--sidebar-width);
   }
 
   .page-content {

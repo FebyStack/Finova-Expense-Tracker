@@ -9,7 +9,7 @@ import {
   ICON_OPTIONS, COLOR_OPTIONS, bgFromColor
 } from './categories.js';
 
-const API_BASE = 'http://localhost/Expense_Tracker/api';
+const API_BASE = 'api';
 
 let editingIndex = null;
 
