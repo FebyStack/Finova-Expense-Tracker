@@ -1,5 +1,5 @@
 // js/expense-list.js
-// Logic for displaying, filtering, and deleting expenses natively without blocking UI
+// Logic for displaying, filtering, editing, and deleting expenses
 
 import { auth } from './firebase-config.js';
 import { fetchExpenses, removeExpense } from './api.js';
@@ -54,8 +54,8 @@ export async function loadExpenseList(userDataCurrency = 'PHP') {
   container.innerHTML = '<div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading expenses...</div>';
 
   try {
-    const monthFilter = document.getElementById('expListMonthFilter').value || undefined;
-    const catFilter   = document.getElementById('expListCategoryFilter').value || undefined;
+    const monthFilter = document.getElementById('expListMonthFilter')?.value || undefined;
+    const catFilter   = document.getElementById('expListCategoryFilter')?.value || undefined;
 
     allExpenses = await fetchExpenses(user.uid, { month: monthFilter, category: catFilter });
     renderExpenseList();
@@ -103,11 +103,11 @@ function renderExpenseList() {
           <div class="transaction-amount expense">
             -${formatCurrency(exp.amount, exp.currency || currentCurrency)}
           </div>
-          <div class="action-buttons" style="display:flex; gap:8px;">
-            <button class="btn btn-ghost btn-sm" onclick="editExpenseHandler(${exp.id})" title="Edit">
+          <div class="expense-actions">
+            <button class="expense-action-btn edit" onclick="editExpenseHandler(${exp.id})" title="Edit">
               <i class="fa-solid fa-pen"></i>
             </button>
-            <button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="deleteExpenseHandler(${exp.id})" title="Delete">
+            <button class="expense-action-btn delete" onclick="deleteExpenseHandler(${exp.id})" title="Delete">
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
@@ -119,22 +119,69 @@ function renderExpenseList() {
   container.innerHTML = `<div class="transaction-list">${html}</div>`;
 }
 
-// ── Delete Handler ─────────────────────────────────────────
-window.deleteExpenseHandler = async function(id) {
-  if (!confirm('Are you sure you want to delete this expense?')) return;
-  
-  const user = auth.currentUser;
-  if (!user) return;
+// ── Styled Confirmation Dialog ─────────────────────────────
+function showConfirmDialog(message, onConfirm) {
+  // Remove any existing dialog
+  document.getElementById('confirmDialogOverlay')?.remove();
 
-  try {
-    await removeExpense(id, user.uid);
-    showToast('Expense deleted', 'success');
-    loadExpenseList(currentCurrency);
-    if (window.refreshDashboard) window.refreshDashboard();
-  } catch (err) {
-    console.error('Delete failed:', err);
-    showToast('Failed to delete expense', 'error');
-  }
+  const overlay = document.createElement('div');
+  overlay.id = 'confirmDialogOverlay';
+  overlay.className = 'confirm-dialog-overlay';
+  overlay.innerHTML = `
+    <div class="confirm-dialog">
+      <div class="confirm-dialog-icon">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 class="confirm-dialog-title">Confirm Delete</h3>
+      <p class="confirm-dialog-message">${message}</p>
+      <div class="confirm-dialog-actions">
+        <button class="btn btn-ghost" id="confirmDialogCancel">Cancel</button>
+        <button class="btn btn-danger" id="confirmDialogConfirm">
+          <i class="fa-solid fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('open'));
+
+  const close = () => {
+    overlay.classList.remove('open');
+    setTimeout(() => overlay.remove(), 250);
+  };
+
+  document.getElementById('confirmDialogCancel').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  document.getElementById('confirmDialogConfirm').addEventListener('click', () => {
+    close();
+    onConfirm();
+  });
+}
+
+// ── Delete Handler ─────────────────────────────────────────
+window.deleteExpenseHandler = function(id) {
+  const exp = allExpenses.find(e => e.id == id);
+  const label = exp ? (exp.note || exp.category || 'this expense') : 'this expense';
+
+  showConfirmDialog(
+    `Are you sure you want to delete <strong>"${label}"</strong>? This action cannot be undone.`,
+    async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        await removeExpense(id, user.uid);
+        showToast('Expense deleted', 'success');
+        loadExpenseList(currentCurrency);
+        if (window.refreshDashboard) window.refreshDashboard();
+      } catch (err) {
+        console.error('Delete failed:', err);
+        showToast('Failed to delete expense', 'error');
+      }
+    }
+  );
 };
 
 // ── Edit Handler ───────────────────────────────────────────
@@ -142,19 +189,17 @@ window.editExpenseHandler = function(id) {
   const exp = allExpenses.find(e => e.id == id);
   if (!exp) return;
   
-  // Reuse the existing Add Expense modal, but you could pre-fill it.
-  // For now, we dispatch the open modal hook with prefill config.
+  // Open the modal in edit mode with full prefill data including ID
   openExpenseModal({
-    amount: exp.amount,
-    category: exp.category,
-    date: exp.date,
-    note: exp.note
+    id:        exp.id,
+    amount:    exp.amount,
+    category:  exp.category,
+    date:      exp.date,
+    note:      exp.note || '',
+    currency:  exp.currency || currentCurrency,
+    recurring: exp.recurring === true || exp.recurring === 'true' || exp.recurring === 't',
+    frequency: exp.frequency || null,
   });
-  
-  // We need to implement actual update logic inside expenses.js for full edit support.
-  // Right now Add Expense modal just creates new. 
-  // Modifying it to support updates is complex for Day 10, so prefilling is a good bridging step.
-  // Real implementation normally tracks editingId in state.
 };
 
 // ── Setup Filters ──────────────────────────────────────────

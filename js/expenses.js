@@ -1,7 +1,7 @@
 // js/expenses.js
-// Add Expense modal — UI + PostgreSQL save (mirrors to Firebase automatically)
+// Add / Edit Expense modal — UI + PostgreSQL save (mirrors to Firebase automatically)
 
-import { addExpense } from './api.js'
+import { addExpense, editExpense } from './api.js'
 import { auth }       from './firebase-config.js';
 
 // ── Category definitions ───────────────────────────────────
@@ -26,8 +26,9 @@ const CURRENCY_SYMBOLS = {
 };
 
 // ── State ──────────────────────────────────────────────────
-let selectedCategory = null;
-let isSaving         = false;
+let selectedCategory   = null;
+let isSaving           = false;
+let editingExpenseId   = null;   // null = add mode, number = edit mode
 
 // ── Build category grid ────────────────────────────────────
 function buildCategoryGrid() {
@@ -65,14 +66,39 @@ export function openExpenseModal(prefill = {}) {
 
   resetExpenseForm();
 
+  // ── Edit mode (prefill.id is set) vs Add mode ──
+  editingExpenseId = prefill.id || null;
+
+  const titleEl = document.getElementById('modalExpenseTitle');
+  const saveBtn = document.getElementById('btnSaveExpense');
+  if (editingExpenseId) {
+    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen" style="color:var(--accent);"></i> Edit Expense';
+    if (saveBtn) saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Update Expense</span>';
+  } else {
+    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-arrow-trend-down" style="color:var(--danger);"></i> Add Expense';
+    if (saveBtn) saveBtn.innerHTML = '<i class="fa-solid fa-plus"></i> <span>Save Expense</span>';
+  }
+
   // Default to today
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('expDate').value = prefill.date || today;
 
-  // Prefill from receipt scan if provided
+  // Prefill fields
   if (prefill.amount)   document.getElementById('expAmount').value = prefill.amount;
   if (prefill.note)     document.getElementById('expNote').value   = prefill.note;
+  if (prefill.currency) {
+    const currSel = document.getElementById('expCurrency');
+    if (currSel) currSel.value = prefill.currency;
+    const sym = CURRENCY_SYMBOLS[prefill.currency] || prefill.currency;
+    const symEl = document.getElementById('expCurrencySymbol');
+    if (symEl) symEl.textContent = sym;
+  }
   if (prefill.category) window.selectCategory(prefill.category);
+  if (prefill.recurring) {
+    document.getElementById('expRecurring').checked = true;
+    document.getElementById('expRecurringGroup').style.display = 'block';
+    if (prefill.frequency) document.getElementById('expFrequency').value = prefill.frequency;
+  }
 
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -97,7 +123,8 @@ function resetExpenseForm() {
   document.getElementById('expCategory').value    = '';
   document.getElementById('expRecurring').checked = false;
   document.getElementById('expRecurringGroup').style.display = 'none';
-  selectedCategory = null;
+  selectedCategory   = null;
+  editingExpenseId   = null;
   document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected'));
   hideExpenseError();
 }
@@ -181,8 +208,7 @@ async function saveExpense() {
     const dateObj = new Date(date);
     const month   = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
 
-    // ── Write to PostgreSQL first (mirrors to Firebase automatically) ──
-    const saved = await addExpense(user.uid, {
+    const payload = {
       amount,
       currency,
       category:    selectedCategory,
@@ -192,26 +218,43 @@ async function saveExpense() {
       recurring,
       frequency:   recurring ? frequency : null,
       receiptPath: window._pendingReceiptPath || null,
-    });
+    };
 
-    console.log('✅ Saved to PostgreSQL! ID:', saved.id);
+    // ── Edit mode vs Add mode ──
+    let saved;
+    if (editingExpenseId) {
+      saved = await editExpense(editingExpenseId, user.uid, payload);
+      console.log('✅ Updated in PostgreSQL! ID:', editingExpenseId);
+    } else {
+      saved = await addExpense(user.uid, payload);
+      console.log('✅ Saved to PostgreSQL! ID:', saved.id);
+    }
+
     window._pendingReceiptPath = null;
 
     closeExpenseModal();
-    showToast('Expense saved successfully!', 'success');
+    showToast(
+      editingExpenseId ? 'Expense updated successfully!' : 'Expense saved successfully!',
+      'success'
+    );
 
-    const currentPage = window.location.hash.replace('#', '') || 'dashboard';
-    if (currentPage === 'dashboard' && window.refreshDashboard) {
-      window.refreshDashboard();
-    }
+    // Refresh both dashboard and expense list
+    if (window.refreshDashboard) window.refreshDashboard();
 
   } catch (err) {
     console.error('❌ Save expense error:', err.message);
-    showExpenseError('Failed to save expense. Please try again.');
+    showExpenseError(
+      editingExpenseId
+        ? 'Failed to update expense. Please try again.'
+        : 'Failed to save expense. Please try again.'
+    );
   } finally {
     isSaving      = false;
     btn.disabled  = false;
-    btn.innerHTML = `<i class="fa-solid fa-plus"></i> Save Expense`;
+    btn.innerHTML = editingExpenseId
+      ? `<i class="fa-solid fa-check"></i> Update Expense`
+      : `<i class="fa-solid fa-plus"></i> Save Expense`;
+    editingExpenseId = null;
   }
 }
 

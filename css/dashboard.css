@@ -1157,3 +1157,143 @@ body.dark .bottom-nav {
   margin-bottom: var(--space-8);
   min-height: 200px;
 }
+
+/* ============================================================
+   EXPENSE ACTION BUTTONS (Day 11)
+   ============================================================ */
+
+.expense-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.transaction-item:hover .expense-actions {
+  opacity: 1;
+}
+
+.expense-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.expense-action-btn.edit {
+  color: var(--accent, #4f7ef8);
+}
+
+.expense-action-btn.edit:hover {
+  background: rgba(79, 126, 248, 0.12);
+  color: var(--accent, #4f7ef8);
+  transform: scale(1.1);
+}
+
+.expense-action-btn.delete {
+  color: var(--danger, #ef4444);
+}
+
+.expense-action-btn.delete:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger, #ef4444);
+  transform: scale(1.1);
+}
+
+/* ============================================================
+   CONFIRM DIALOG (Day 11)
+   ============================================================ */
+
+.confirm-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.confirm-dialog-overlay.open {
+  opacity: 1;
+}
+
+.confirm-dialog {
+  background: var(--bg-secondary, #fff);
+  border: 1px solid var(--border, #e2e6ef);
+  border-radius: var(--radius-2xl, 20px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  padding: var(--space-8, 32px);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  transform: scale(0.9) translateY(10px);
+  transition: transform 0.25s ease;
+}
+
+.confirm-dialog-overlay.open .confirm-dialog {
+  transform: scale(1) translateY(0);
+}
+
+.confirm-dialog-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4, 16px);
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--danger, #ef4444);
+}
+
+.confirm-dialog-title {
+  font-family: var(--font-heading, 'Inter', sans-serif);
+  font-size: var(--text-lg, 18px);
+  font-weight: var(--weight-bold, 700);
+  color: var(--text-primary, #1a1d23);
+  margin-bottom: var(--space-2, 8px);
+}
+
+.confirm-dialog-message {
+  font-size: var(--text-sm, 14px);
+  color: var(--text-muted, #9aa0b0);
+  line-height: 1.5;
+  margin-bottom: var(--space-6, 24px);
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  gap: var(--space-3, 12px);
+  justify-content: center;
+}
+
+.confirm-dialog-actions .btn {
+  min-width: 110px;
+}
+
+/* Dark mode overrides */
+body.dark .confirm-dialog {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+body.dark .confirm-dialog-title {
+  color: var(--text-primary);
+}
+
+body.dark .confirm-dialog-message {
+  color: var(--text-muted);
+}
