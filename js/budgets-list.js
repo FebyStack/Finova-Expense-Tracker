@@ -2,8 +2,22 @@ import { auth } from './firebase-config.js';
 import { fetchBudgets, fetchExpenses, editBudget, removeBudget } from './api.js';
 import { getCategoryStyle } from './categories.js';
 import { convertItems, formatCurrency, warmRateCache } from './currency.js';
-import { showToast } from './expenses.js';
-import { openBudgetModal } from './budgets.js';
+// openBudgetModal accessed via window.openBudgetModal (set by budgets.js)
+
+// Local toast helper (avoids circular dep with expenses.js)
+function budgetToast(message, type = 'success') {
+  document.getElementById('appToast')?.remove();
+  const toast = document.createElement('div');
+  toast.id        = 'appToast';
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('visible'), 10);
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
 let currentBudgets = [];
 let currentMonth = new Date().getMonth() + 1;
@@ -201,7 +215,7 @@ function buildBudgetCardHTML(budget) {
 // Global actions
 function openEditBudget(id) {
   const budget = currentBudgets.find(b => b.id === id);
-  if (budget) openBudgetModal(budget);
+  if (budget) window.openBudgetModal(budget);
 }
 
 window.confirmDeleteBudget = function(id) {
@@ -231,10 +245,14 @@ async function executeDeleteBudget(id) {
   try {
     const user = auth.currentUser;
     await removeBudget(id, user.uid);
-    showToast('Budget deleted successfully', 'success');
+    budgetToast('Budget deleted successfully', 'success');
     window.dispatchEvent(new Event('budgetsUpdated'));
   } catch (err) {
     console.error("Delete Error:", err);
-    showToast('Failed to delete budget', 'error');
+    budgetToast('Failed to delete budget', 'error');
   }
 }
+
+// Self-initialize
+initBudgetsList();
+console.log('[budgets-list] ✅ Module loaded and self-initialized');

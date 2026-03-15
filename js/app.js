@@ -12,8 +12,7 @@ import { loadExpenseList, initExpenseListFilters } from './expense-list.js';
 import { openIncomeModal } from './income.js';
 import { loadIncomeList, initIncomeListFilters } from './income-list.js';
 import { initSettings } from './settings.js';
-import { initBudgetsModal, openBudgetModal } from './budgets.js';
-import { initBudgetsList } from './budgets-list.js';
+// budgets.js and budgets-list.js self-initialize via their own <script> tags
 
 // ══════════════════════════════════════════════════════════
 // PAGE MAP
@@ -298,15 +297,7 @@ document.getElementById('bottomNavAdd')
 document.getElementById('btnAddIncome')
   ?.addEventListener('click', () => openIncomeModal());
 
-// ══════════════════════════════════════════════════════════
-// BUDGET MODAL TRIGGERS
-// ══════════════════════════════════════════════════════════
-
-document.getElementById('btnAddBudget')
-  ?.addEventListener('click', () => openBudgetModal());
-
-initBudgetsModal();
-initBudgetsList();
+// Budget modal triggers are handled by budgets.js self-init
 
 
 // ══════════════════════════════════════════════════════════
