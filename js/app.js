@@ -12,6 +12,8 @@ import { loadExpenseList, initExpenseListFilters } from './expense-list.js';
 import { openIncomeModal } from './income.js';
 import { loadIncomeList, initIncomeListFilters } from './income-list.js';
 import { initSettings } from './settings.js';
+import { initBudgetsModal, openBudgetModal } from './budgets.js';
+import { initBudgetsList } from './budgets-list.js';
 
 // ══════════════════════════════════════════════════════════
 // PAGE MAP
@@ -76,6 +78,9 @@ window.navigateTo = function navigateTo(pageKey) {
   }
   if (pageKey === 'settings') {
     initSettings();
+  }
+  if (pageKey === 'budgets') {
+    window.dispatchEvent(new Event('budgetsUpdated'));
   }
 };
 
@@ -293,6 +298,16 @@ document.getElementById('bottomNavAdd')
 document.getElementById('btnAddIncome')
   ?.addEventListener('click', () => openIncomeModal());
 
+// ══════════════════════════════════════════════════════════
+// BUDGET MODAL TRIGGERS
+// ══════════════════════════════════════════════════════════
+
+document.getElementById('btnAddBudget')
+  ?.addEventListener('click', () => openBudgetModal());
+
+initBudgetsModal();
+initBudgetsList();
+
 
 // ══════════════════════════════════════════════════════════
 // DASHBOARD REFRESH (called from expenses.js after saving)
@@ -314,6 +329,10 @@ window.refreshDashboard = async () => {
     // Also refresh income list if currently on income page
     if (page === 'income') {
       loadIncomeList(userData?.baseCurrency || 'PHP');
+    }
+    // Refresh budgets if on budgets page
+    if (page === 'budgets') {
+      window.dispatchEvent(new Event('budgetsUpdated'));
     }
   } catch (err) {
     console.error('Refresh error:', err);

@@ -332,9 +332,18 @@
         <section class="page-view" id="page-budgets">
           <div class="page-header">
             <div><h1 class="page-title">Budgets</h1><p class="page-subtitle">Set and manage your spending limits.</p></div>
-            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Budget</button>
+            <button class="btn btn-primary" id="btnAddBudget"><i class="fa-solid fa-plus"></i> Add Budget</button>
           </div>
-          <div class="placeholder-content"><i class="fa-solid fa-chart-pie"></i><p>Budget management coming on Day 15</p></div>
+          
+          <div class="filter-bar">
+            <select class="form-select" id="budgetMonthFilter" style="width:140px;"></select>
+            <select class="form-select" id="budgetYearFilter" style="width:100px;"></select>
+          </div>
+
+          <div class="budget-items-grid" id="budgetItemsContainer">
+            <!-- Budget cards populate here -->
+            <div class="list-empty">Loading budgets...</div>
+          </div>
         </section>
 
         <!-- Savings -->
@@ -582,6 +591,71 @@
     </div>
   </div>
 
+  <!-- ── ADD / EDIT BUDGET MODAL ── -->
+  <div class="modal-overlay" id="budgetModalBackdrop" style="display:none;">
+    <div class="modal" role="dialog" aria-modal="true">
+
+      <div class="modal-header">
+        <h2 class="modal-title" id="budgetModalTitle">
+          <i class="fa-solid fa-chart-pie" style="color:var(--accent);"></i>
+          Add Budget
+        </h2>
+        <button class="modal-close" id="btnCloseBudgetModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="form-label" for="budCategory">Category <span class="required">*</span></label>
+          <select class="form-select" id="budCategory" required>
+            <option value="" disabled selected>Select category...</option>
+            <!-- Categories populated by JS -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="budAmount">Monthly Limit <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-prefix currency" id="budCurrencySymbol">₱</span>
+            <input
+              class="form-input form-input-amount has-prefix"
+              type="number" id="budAmount"
+              placeholder="0.00" min="1" step="0.01" required
+            />
+          </div>
+          <div class="settings-section-desc">Budgets are automatically converted and compared against your base currency.</div>
+        </div>
+
+        <div class="form-row" style="gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="budMonth">Month</label>
+            <select class="form-select" id="budMonth"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="budYear">Year</label>
+            <select class="form-select" id="budYear"></select>
+          </div>
+        </div>
+
+        <div class="form-error-banner" id="budError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="budErrorText"></span>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelBudget">Cancel</button>
+        <button class="btn btn-primary" id="btnSaveBudget">
+          <i class="fa-solid fa-check"></i> <span id="btnSaveBudgetText">Save Budget</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ── UPLOAD RECEIPT MODAL (3-step AI flow) ── -->
   <div class="modal-overlay" id="receiptModalBackdrop" style="display:none;">
     <div class="modal modal-receipt" role="dialog" aria-modal="true">
@@ -798,6 +872,8 @@
   <script type="module" src="js/income-list.js"></script>
   <script type="module" src="js/settings.js"></script>
   <script type="module" src="js/receipt.js"></script>
+  <script type="module" src="js/budgets.js"></script>
+  <script type="module" src="js/budgets-list.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/auth.js"></script>
 

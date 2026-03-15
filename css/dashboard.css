@@ -1426,6 +1426,158 @@ body.dark .bottom-nav {
 }
 
 /* ============================================================
+   BUDGET MANAGEMENT (Day 15)
+   ============================================================ */
+
+.budget-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.budget-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast) var(--ease),
+              box-shadow var(--duration-fast) var(--ease);
+}
+
+.budget-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.budget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.budget-category {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.budget-cat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.budget-cat-name {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.budget-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.budget-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.budget-action-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.budget-action-btn.edit:hover { color: var(--accent); }
+.budget-action-btn.delete:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
+
+.budget-amounts {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+}
+
+.budget-spent {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.budget-limit {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.budget-progress-container {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.budget-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.4s ease;
+}
+
+/* Warnings and Danger */
+.budget-progress-bar.warning {
+  background: #eab308; /* Yellow */
+}
+
+.budget-progress-bar.danger {
+  background: var(--danger); /* Red */
+}
+
+.budget-card.danger {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(239,68,68,0.03) 100%);
+}
+
+.budget-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.budget-meta-status {
+  font-weight: var(--weight-medium);
+}
+
+.budget-meta-status.warning { color: #eab308; }
+.budget-meta-status.danger { color: var(--danger); }
+
+/* ============================================================
    EXPENSE LIST (Day 10)
    ============================================================ */
 
