@@ -69,7 +69,6 @@ async function loadBudgets() {
   if (!user) return;
 
   if (budgetListContainer) budgetListContainer.innerHTML = '<div class="list-empty">Loading budgets...</div>';
-  if (dashBudgetListContainer) dashBudgetListContainer.innerHTML = '<div class="list-empty" style="padding:var(--space-2); min-height:80px;">Loading...</div>';
 
   try {
     // 1. Ensure currency rates are warmed up
@@ -115,7 +114,6 @@ async function loadBudgets() {
   } catch (err) {
     console.error("Error loading budgets:", err);
     if (budgetListContainer) budgetListContainer.innerHTML = `<div class="list-empty text-danger">Failed to load budgets: ${err.message}</div>`;
-    if (dashBudgetListContainer) dashBudgetListContainer.innerHTML = `<div class="list-empty text-danger" style="padding:var(--space-2)">Error loading budgets.</div>`;
   }
 }
 
@@ -129,21 +127,6 @@ function renderBudgets() {
 
   if (budgetListContainer) {
     budgetListContainer.innerHTML = html;
-  }
-
-  if (dashBudgetListContainer) {
-    // Dashboard just shows top 3
-    if (currentBudgets.length === 0) {
-      dashBudgetListContainer.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:120px; color:var(--text-muted); font-size:var(--text-sm);">
-          <i class="fa-solid fa-chart-pie" style="font-size:24px; margin-bottom:8px; opacity:0.5;"></i>
-          No budgets set
-        </div>`;
-    } else {
-      dashBudgetListContainer.innerHTML = `<div style="display:flex; flex-direction:column; gap:var(--space-3)">` +
-        currentBudgets.slice(0, 3).map(b => buildBudgetCardHTML(b)).join('') +
-        `</div>`;
-    }
   }
 }
 

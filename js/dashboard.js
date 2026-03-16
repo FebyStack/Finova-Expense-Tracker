@@ -97,7 +97,7 @@ import { getCategoryStyle } from './categories.js';
 
         // ── Sections ──────────────────────────────────────────
         renderRecentTransactions(expenses, currency);
-        await loadBudgetOverview(uid, currency, now);
+        await loadBudgetOverview(uid, currency, now, expResult.items);
         await loadSavingsOverview(uid, currency);
 
       } catch (err) {
@@ -146,7 +146,7 @@ import { getCategoryStyle } from './categories.js';
     }
 
     // ── Budget overview ────────────────────────────────────────
-    async function loadBudgetOverview(uid, currency, now) {
+    async function loadBudgetOverview(uid, currency, now, convertedExpenses = []) {
       const container = document.getElementById('dashBudgetList');
       if (!container) return;
 
@@ -154,6 +154,14 @@ import { getCategoryStyle } from './categories.js';
         const month = now.getMonth() + 1;
         const year  = now.getFullYear();
         const budgets = await fetchBudgets(uid, { month, year });
+
+        // Calculate actual spent locally for instant UI update
+        const spentByCategory = {};
+        convertedExpenses.forEach(exp => {
+          const cat = exp.category || 'Uncategorized';
+          if (!spentByCategory[cat]) spentByCategory[cat] = 0;
+          spentByCategory[cat] += parseFloat(exp.convertedAmount || 0);
+        });
 
         if (!budgets.length) {
           container.innerHTML = `
@@ -166,7 +174,9 @@ import { getCategoryStyle } from './categories.js';
         }
 
         container.innerHTML = budgets.map(b => {
-          const spent = parseFloat(b.spent)        || 0;
+          let spent = spentByCategory[b.category];
+          if (spent === undefined) spent = parseFloat(b.spent) || 0;
+          
           const lim   = parseFloat(b.limit_amount) || 1;
           const pct   = Math.min(Math.round((spent / lim) * 100), 100);
           const level = pct >= 100 ? 'exceeded' : pct >= 80 ? 'warning' : 'safe';

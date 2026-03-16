@@ -312,6 +312,10 @@ window.refreshDashboard = async () => {
     const userData = userDoc.exists() ? userDoc.data() : null;
     await loadDashboard(user, userData);
     
+    // Notify other components (like budgets-list.js) that expenses changed
+    // so they can recalculate limits and sync with the database immediately.
+    window.dispatchEvent(new Event('expensesUpdated'));
+
     const page = window.location.hash.replace('#', '');
     // Also refresh expense list if currently on expenses page
     if (page === 'expenses') {
