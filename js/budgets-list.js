@@ -76,7 +76,7 @@ async function loadBudgets() {
     await warmRateCache(window.userCurrency || 'PHP');
 
     // 2. Fetch budgets and expenses for the month
-    const [{ budgets }, { expenses }] = await Promise.all([
+    const [ budgets, expenses ] = await Promise.all([
       fetchBudgets(user.uid, { month: currentMonth, year: currentYear }),
       fetchExpenses(user.uid, { month: currentMonth, year: currentYear })
     ]);
