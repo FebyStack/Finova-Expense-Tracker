@@ -2,6 +2,7 @@ import { auth } from './firebase-config.js';
 import { fetchBudgets, fetchExpenses, editBudget, removeBudget } from './api.js';
 import { getCategoryStyle } from './categories.js';
 import { convertItems, formatCurrency, warmRateCache } from './currency.js';
+import { addNotification } from './notifications.js';
 // openBudgetModal accessed via window.openBudgetModal (set by budgets.js)
 
 // Local toast helper (avoids circular dep with expenses.js)
@@ -93,14 +94,36 @@ async function loadBudgets() {
       spentByCategory[cat] += parseFloat(exp.convertedAmount || 0);
     });
 
-    // 5. Update budgets if spent amount has drifted
+    // 5. Update budgets if spent amount has drifted & trigger alerts
     const updatePromises = [];
     currentBudgets.forEach(b => {
       const actualSpent = spentByCategory[b.category] || 0;
+      const limit = parseFloat(b.limit_amount) || 1;
+      
       // Compare ignoring tiny float differences
       if (Math.abs(parseFloat(b.spent) - actualSpent) > 0.02) {
         b.spent = actualSpent; // Update local memory immediately
         updatePromises.push(editBudget(b.id, user.uid, { spent: actualSpent }));
+      }
+
+      // -- Budget Alerts Logic --
+      const ratio = actualSpent / limit;
+      if (ratio >= 1.0) {
+        // Exceeded alert
+        addNotification(
+          `budget-${b.id}-100-${currentMonth}-${currentYear}`,
+          `${b.category} Budget Exceeded!`,
+          `You've spent ${formatCurrency(actualSpent, window.userCurrency)} out of ${formatCurrency(limit, window.userCurrency)} for ${b.category}.`,
+          'danger'
+        );
+      } else if (ratio >= 0.8) {
+        // Warning alert
+        addNotification(
+          `budget-${b.id}-80-${currentMonth}-${currentYear}`,
+          `${b.category} Budget Warning`,
+          `You've reached ${Math.round(ratio * 100)}% of your ${b.category} budget.`,
+          'warning'
+        );
       }
     });
 

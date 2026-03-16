@@ -12,6 +12,7 @@ import { loadExpenseList, initExpenseListFilters } from './expense-list.js';
 import { openIncomeModal } from './income.js';
 import { loadIncomeList, initIncomeListFilters } from './income-list.js';
 import { initSettings } from './settings.js';
+import { initNotifications } from './notifications.js';
 // budgets.js and budgets-list.js self-initialize via their own <script> tags
 
 // ══════════════════════════════════════════════════════════
@@ -248,6 +249,9 @@ onAuthStateChanged(auth, async (user) => {
 
     // Load dashboard data
     await loadDashboard(user, userData);
+    
+    // Start listening for notifications
+    initNotifications();
 
     // Navigate to current hash
     navigateTo(getCurrentPage());

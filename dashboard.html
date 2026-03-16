@@ -165,10 +165,21 @@
             <i class="fa-solid fa-moon" id="themeIcon"></i>
           </button>
 
-          <button class="navbar-icon-btn" id="btnNotifications">
-            <i class="fa-solid fa-bell"></i>
-            <span class="notif-dot" id="notifDot" style="display:none;"></span>
-          </button>
+          <div style="position:relative;">
+            <button class="navbar-icon-btn" id="btnNotifications">
+              <i class="fa-solid fa-bell"></i>
+              <span class="notif-dot" id="notifDot" style="display:none;"></span>
+            </button>
+            <div class="notif-dropdown" id="notifDropdown">
+              <div class="notif-dropdown-header">
+                <h3>Notifications</h3>
+                <button class="btn btn-ghost btn-xs" id="btnMarkAllRead">Mark all read</button>
+              </div>
+              <div class="notif-dropdown-list" id="notifList">
+                <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+              </div>
+            </div>
+          </div>
 
           <div class="navbar-divider"></div>
 
@@ -350,9 +361,13 @@
         <section class="page-view" id="page-savings">
           <div class="page-header">
             <div><h1 class="page-title">Savings Goals</h1><p class="page-subtitle">Set targets and track your progress.</p></div>
-            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Goal</button>
+            <button class="btn btn-primary" id="btnAddSavings" onclick="window.openSavingsModal()"><i class="fa-solid fa-plus"></i> New Goal</button>
           </div>
-          <div class="placeholder-content"><i class="fa-solid fa-piggy-bank"></i><p>Savings goals coming on Day 17</p></div>
+          
+          <div class="savings-grid" id="savingsListContainer">
+            <!-- Populated via JS -->
+            <div class="list-empty">Loading savings goals...</div>
+          </div>
         </section>
 
         <!-- Recurring -->
@@ -861,6 +876,105 @@
 
     </div>
   </div>
+  
+  <!-- ── ADD / EDIT SAVINGS GOAL MODAL ── -->
+  <div class="modal-overlay" id="modalSavings">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalSavingsTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalSavingsTitle">
+          <i class="fa-solid fa-piggy-bank" style="color:var(--accent);"></i>
+          New Savings Goal
+        </h2>
+        <button class="modal-close" id="btnCloseSavingsModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="savingsName">Goal Name <span class="required">*</span></label>
+          <input class="form-input" type="text" id="savingsName" placeholder="e.g., Emergency Fund, Vacation" required/>
+        </div>
+
+        <div class="form-row" style="gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="savingsTarget">Target Amount <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix">₱</span>
+              <input class="form-input has-prefix" type="number" id="savingsTarget" placeholder="0.00" min="0" step="0.01" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="savingsCurrent">Initial Saved <span class="optional">(optional)</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix">₱</span>
+              <input class="form-input has-prefix" type="number" id="savingsCurrent" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="savingsDeadline">Deadline <span class="optional">(optional)</span></label>
+          <input class="form-input" type="date" id="savingsDeadline"/>
+        </div>
+
+        <div class="form-error-banner" id="savingsError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="savingsErrorText"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelSavings">Cancel</button>
+        <button class="btn btn-primary" id="btnSaveSavings">
+          <i class="fa-solid fa-save"></i> <span>Save Goal</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADD CONTRIBUTION MODAL ── -->
+  <div class="modal-overlay" id="modalAddContribution">
+    <div class="modal modal-sm" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fa-solid fa-plus-circle" style="color:var(--success);"></i>
+          Add Contribution
+        </h2>
+        <button class="modal-close" id="btnCloseContribModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:var(--space-4);">
+          Adding money to <strong id="contribGoalName">...</strong>.
+        </p>
+        
+        <input type="hidden" id="contribGoalId"/>
+
+        <div class="form-group">
+          <label class="form-label" for="contribAmount">Amount to Add <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-prefix">₱</span>
+            <input class="form-input has-prefix" type="number" id="contribAmount" placeholder="0.00" min="0.01" step="0.01" required/>
+          </div>
+        </div>
+
+        <div class="form-error-banner" id="contribError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="contribErrorText"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelContrib">Cancel</button>
+        <button class="btn btn-success" id="btnSaveContrib">
+          <i class="fa-solid fa-check"></i> Add Funds
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script type="module" src="js/firebase-config.js"></script>
@@ -872,8 +986,11 @@
   <script type="module" src="js/income-list.js"></script>
   <script type="module" src="js/settings.js"></script>
   <script type="module" src="js/receipt.js"></script>
+  <script type="module" src="js/notifications.js"></script>
   <script type="module" src="js/budgets.js?v=2"></script>
   <script type="module" src="js/budgets-list.js?v=2"></script>
+  <script type="module" src="js/savings.js"></script>
+  <script type="module" src="js/savings-list.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/auth.js"></script>
 

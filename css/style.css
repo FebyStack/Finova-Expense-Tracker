@@ -342,9 +342,113 @@ body.dark {
   font-size: var(--text-sm);
   color: var(--text-muted);
   margin-top: var(--space-1);
+  box-shadow: var(--shadow-sm);
 }
 
 
+/* ============================================================
+   NEW: SAVINGS GOALS
+   ============================================================ */
+
+.savings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.savings-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--duration-fast) var(--ease),
+              box-shadow var(--duration-fast) var(--ease);
+}
+
+.savings-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.savings-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-2);
+}
+
+.savings-card-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.savings-card-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.savings-card-amounts {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.savings-amount-current {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.savings-amount-target {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.savings-progress-track {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--space-2);
+}
+
+.savings-progress-fill {
+  height: 100%;
+  background: var(--success);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-base) var(--ease);
+}
+
+.savings-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.savings-deadline {
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.savings-percentage {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--success);
+}
+
+
+/* ============================================================
+   10. MODALS
+   ============================================================ */
 /* ============================================================
    5. SIDEBAR
    ============================================================ */
@@ -848,6 +952,113 @@ body.dark {
   background: var(--danger);
   border-radius: var(--radius-full);
   border: 2px solid var(--navbar-bg);
+}
+
+/* Notifications Dropdown */
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: -60px;
+  width: 320px;
+  max-height: 400px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+  transition: opacity var(--duration-fast) var(--ease),
+              transform var(--duration-fast) var(--ease);
+  overflow: hidden;
+}
+
+.notif-dropdown.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.notif-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.notif-dropdown-header h3 {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.notif-dropdown-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease);
+  position: relative;
+}
+
+.notif-item:hover {
+  background: var(--bg-hover);
+}
+
+.notif-item.unread {
+  background: var(--bg-tertiary);
+}
+
+.notif-icon {
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.notif-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-title {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.notif-message {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: var(--space-1);
+}
+
+.notif-time {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.notif-unread-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  align-self: center;
 }
 
 /* ── Navbar divider ───────────────────────────────────────── */

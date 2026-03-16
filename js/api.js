@@ -123,6 +123,19 @@ export async function removeSavingsGoal(id, uid) {
   return apiFetch(`/savings.php?id=${id}&uid=${uid}`, { method: 'DELETE' });
 }
 
+// ── Savings ───────────────────────────────────────────────
+export async function fetchSavingsGoals(uid) {
+  const data = await apiFetch(`/savings.php?uid=${uid}`);
+  return data.savings ?? [];
+}
+
+export async function addSavingsGoal(uid, goalData) {
+  return apiFetch('/savings.php', {
+    method: 'POST',
+    body:   JSON.stringify({ uid, ...goalData }),
+  });
+}
+
 // ── Receipts ───────────────────────────────────────────────
 export async function fetchReceipts(uid, expenseId = null) {
   const params = new URLSearchParams({ uid });

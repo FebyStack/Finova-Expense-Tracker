@@ -1,6 +1,6 @@
-import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavings } from './api.js';
+import { fetchExpenses, fetchBudgets, fetchSavingsGoals } from './api.js';
 import { convertItems, formatCurrency, warmRateCache } from './currency.js';
-import { getCategoryStyle } from './categories.js';
+import { getCategoryStyle, getCategoryIcon } from './categories.js';
 
     function formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('en-PH', {
@@ -205,7 +205,7 @@ import { getCategoryStyle } from './categories.js';
       if (!container) return;
 
       try {
-        const goals = await fetchSavings(uid);
+        const goals = await fetchSavingsGoals(uid);
 
         if (!goals.length) {
           container.innerHTML = `
