@@ -768,13 +768,19 @@ body.dark {
 
 /* ── Search bar ───────────────────────────────────────────── */
 
+.navbar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .navbar-search-input {
   width: 240px;
   height: 36px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
-  padding: 0 var(--space-4) 0 var(--space-8);
+  padding: 0 var(--space-4) 0 36px; /* 36px left padding to fit the icon */
   font-family: var(--font-body);
   font-size: var(--text-sm);
   color: var(--text-primary);
@@ -798,10 +804,11 @@ body.dark {
 
 .navbar-search-icon {
   position: absolute;
-  left: var(--space-3);
+  left: 12px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 14px;
   pointer-events: none;
+  z-index: 1;
 }
 
 /* ── Navbar actions (right side) ──────────────────────────── */
