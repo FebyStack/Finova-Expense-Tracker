@@ -155,15 +155,16 @@ document.getElementById('linkForgot')
   });
 
 // ── Auth State Listener & Route Guard ─────────────────────
+// Only handles auth on login/signup pages — app.js manages dashboard auth
 onAuthStateChanged(auth, async (user) => {
   console.log('Auth state changed:', user);
 
+  // Skip on dashboard — app.js handles auth there
+  const page = window.location.pathname;
+  const isAuthPage = ['/login.html', '/signup.html', '/index.html'].some(p => page.endsWith(p)) || page.endsWith('/');
+  if (!isAuthPage) return;
+
   if (!user) {
-    // Not logged in → redirect if on dashboard
-    const protectedPages = ['/dashboard.html'];
-    if (protectedPages.some(p => window.location.pathname.endsWith(p))) {
-      window.location.href = 'login.html';
-    }
     return;
   }
 
@@ -199,15 +200,11 @@ const data = JSON.parse(text);
     console.error('❌ User sync failed:', err);
   }
 
-  // --- Redirect only if user synced successfully ---
-  const page = window.location.pathname;
-  const authPages = ['/login.html', '/signup.html', '/index.html', '/'];
-  if (authPages.some(p => page.endsWith(p))) {
-    if (userSynced) {
-      window.location.href = 'dashboard.html';
-    } else {
-      showError('Could not sync user. Please try again.');
-    }
+  // --- Redirect to dashboard if user synced successfully ---
+  if (userSynced) {
+    window.location.href = 'dashboard.html';
+  } else {
+    showError('Could not sync user. Please try again.');
   }
 });
 

@@ -12,6 +12,7 @@ header('Content-Type: application/json; charset=UTF-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/../services/firestore.php';
+require_once __DIR__ . '/../config/database.php';
 
 function ok(mixed $data, int $code = 200): void {
     http_response_code($code);

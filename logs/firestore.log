@@ -7,3 +7,311 @@
   "fields": {
     "amount": {
       
+[2026-03-15 06:32:36] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 06:32:37] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "displayName": {
+
+[2026-03-15 06:47:35] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 06:59:15] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 06:59:19] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 07:02:59] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "email": {
+      
+[2026-03-15 07:09:10] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "email": {
+      
+[2026-03-15 07:09:22] DELETE users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/13 → 200 | {}
+
+[2026-03-15 07:19:41] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "email": {
+      
+[2026-03-15 07:19:56] DELETE users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/14 → 200 | {}
+
+[2026-03-15 07:20:10] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/15 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/15",
+  "fields": {
+    "frequency": {
+   
+[2026-03-15 07:23:18] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 07:28:34] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 07:32:28] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 07:38:41] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 07:56:03] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 07:56:52] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/income/1 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/income/1",
+  "fields": {
+    "month": {
+      "str
+[2026-03-15 08:35:12] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 08:45:02] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 08:54:35] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 09:00:43] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 09:03:25] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 09:03:30] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 09:03:56] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "baseCurrency": {
+[2026-03-15 09:04:05] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 09:11:26] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 09:18:12] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 09:21:03] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "email": {
+      
+[2026-03-15 09:38:48] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 09:41:51] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 09:44:38] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 09:48:49] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "baseCurrency": {
+[2026-03-15 09:52:10] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 10:02:35] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 10:23:05] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 10:25:35] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "baseCurrency": {
+[2026-03-15 14:51:10] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "email": {
+      
+[2026-03-15 15:10:05] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 15:17:30] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 15:42:29] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 15:43:12] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/budgets/1 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/budgets/1",
+  "fields": {
+    "year": {
+      "int
+[2026-03-15 15:43:23] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-15 15:46:40] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-15 15:47:00] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/budgets/1 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/budgets/1",
+  "fields": {
+    "year": {
+      "int
+[2026-03-16 03:32:24] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-16 04:00:38] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-16 04:00:40] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-16 04:01:16] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/budgets/1 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/budgets/1",
+  "fields": {
+    "category": {
+      
+[2026-03-16 04:06:52] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-16 04:08:27] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-16 04:25:49] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/20 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/20",
+  "fields": {
+    "month": {
+      "
+[2026-03-16 04:26:14] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/21 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/21",
+  "fields": {
+    "pgId": {
+      "i
+[2026-03-16 04:39:19] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "displayName": {
+
+[2026-03-16 04:40:02] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-16 04:50:42] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-26 05:37:27] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "baseCurrency": {
+[2026-03-26 05:40:54] ERROR  token → 0 | Token exchange failed: null
+[2026-03-26 05:43:13] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "theme": {
+      
+[2026-03-26 05:47:26] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "baseCurrency": {
+[2026-03-26 05:48:46] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-26 05:50:57] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-26 05:50:58] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "baseCurrency": {
+[2026-03-26 05:51:19] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-26 05:52:08] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "baseCurrency": {
+[2026-03-26 06:07:49] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "_syncedAt": {
+  

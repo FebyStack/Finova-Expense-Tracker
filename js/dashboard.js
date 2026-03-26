@@ -1,4 +1,4 @@
-import { fetchExpenses, fetchBudgets, fetchSavingsGoals } from './api.js';
+import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavingsGoals } from './api.js';
 import { convertItems, formatCurrency, warmRateCache } from './currency.js';
 import { getCategoryStyle, getCategoryIcon } from './categories.js';
 
