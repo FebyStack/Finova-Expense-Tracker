@@ -803,7 +803,7 @@
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, 1fr) 0.8fr;
   gap: 4px;
 }
 
@@ -830,9 +830,36 @@
   padding: var(--space-2);
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
   position: relative;
   overflow: hidden;
+}
+
+.calendar-cell.week-total {
+  background: rgba(79, 126, 248, 0.05);
+  border-color: rgba(79, 126, 248, 0.2);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.calendar-cell.week-total .calendar-day-spend {
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+  text-shadow: none;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.calendar-cell.clickable {
+  cursor: pointer;
+}
+.calendar-cell.clickable:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  filter: brightness(1.1);
+  z-index: 2;
 }
 
 .calendar-cell.empty {
@@ -902,7 +929,102 @@
   border: 1px solid var(--border);
 }
 
+/* Calendar View Toggle */
+.cal-view-toggle {
+  display: flex;
+  background: var(--bg-secondary);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  margin-left: auto;
+  border: 1px solid var(--border);
+}
+.cal-view-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cal-view-btn.active {
+  background: var(--bg-primary);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Sparkline Chart */
+.cal-sparkline-container {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+}
+.cal-sparkline-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+.cal-sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 60px;
+  width: 100%;
+}
+.cal-spark-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  position: relative;
+}
+.cal-spark-bar {
+  width: 100%;
+  max-width: 12px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 1s var(--ease-spring);
+}
+.cal-spark-bar-wrap:hover .cal-spark-bar {
+  filter: brightness(1.2);
+}
+.cal-spark-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  background: var(--gray-900);
+  color: #fff;
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  z-index: 10;
+}
+.cal-spark-bar-wrap:hover .cal-spark-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-8px);
+}
+
 @media (max-width: 640px) {
+  .calendar-grid {
+    /* Hide weekly total column on mobile to save space */
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .calendar-cell.week-total, .calendar-weekday.week-total {
+    display: none;
+  }
   .calendar-cell {
     min-height: 60px;
     padding: 2px;
@@ -910,6 +1032,257 @@
   .calendar-day-spend {
     font-size: 8px;
     margin-top: 4px;
+  }
+  .cal-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .cal-view-toggle {
+    margin-left: 0;
+    width: 100%;
+  }
+  .cal-view-btn {
+    flex: 1;
+  }
+}
+
+/* ============================================================
+   RECEIPT ITEMS DROPDOWN
+   ============================================================ */
+.receipt-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.receipt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.receipt-badge i {
+  font-size: 10px;
+}
+
+.receipt-dropdown-wrapper:hover .receipt-badge {
+  background: var(--bg-primary);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.receipt-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xl);
+  width: 200px;
+  padding: var(--space-3);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-5px);
+  transition: all 0.2s ease;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.receipt-dropdown-wrapper:hover .receipt-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.rd-merchant {
+  font-size: 12px;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.rd-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rd-items li {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 2px 0;
+  display: flex;
+  position: relative;
+  padding-left: 10px;
+}
+
+.rd-items li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* ============================================================
+   AI CHAT ASSISTANT
+   ============================================================ */
+.ai-chat-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  cursor: pointer;
+  z-index: 999;
+  border: none;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.ai-chat-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+}
+
+.ai-chat-fab:active {
+  transform: scale(0.95);
+}
+
+.ai-chat-panel {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  width: 360px;
+  height: 500px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2xl);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.95);
+  transform-origin: bottom right;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ai-chat-panel.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.ai-chat-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.ai-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.ai-chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg-primary);
+}
+
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.chat-message.ai {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  word-wrap: break-word;
+}
+
+.chat-message.user .msg-bubble {
+  background: var(--accent);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-message.ai .msg-bubble {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+
+.ai-chat-input-area {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+@keyframes blink {
+  0% { opacity: 0.2; }
+  100% { opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  .ai-chat-panel {
+    width: calc(100% - 32px);
+    right: 16px;
+    bottom: 80px;
+    height: 60vh;
   }
 }
 
@@ -987,6 +1360,153 @@ body.dark .bottom-nav {
 .form-input     { transition: border-color var(--duration-fast) var(--ease),
                               box-shadow var(--duration-fast) var(--ease); }
 .form-toggle-thumb { transition: transform var(--duration-base) var(--ease-spring); }
+
+/* ============================================================
+   QUICK FILL — Templates & Recent Expenses
+   ============================================================ */
+
+.quick-fill-section {
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.quick-fill-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.quick-fill-tab {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.quick-fill-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.quick-fill-tab.active {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+  background: var(--bg-secondary);
+}
+
+.quick-fill-strip {
+  display: flex;
+  gap: 8px;
+  padding: var(--space-3);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.quick-fill-strip::-webkit-scrollbar {
+  height: 4px;
+}
+.quick-fill-strip::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.quick-fill-chip {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  max-width: 200px;
+  position: relative;
+}
+
+.quick-fill-chip:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(79, 126, 248, 0.15);
+  transform: translateY(-1px);
+}
+
+.quick-fill-chip-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.quick-fill-chip-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.quick-fill-chip-label {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.quick-fill-chip-amount {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.quick-fill-chip-delete {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  font-size: 9px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.quick-fill-chip:hover .quick-fill-chip-delete {
+  display: flex;
+}
+
+.quick-fill-empty {
+  width: 100%;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  padding: var(--space-3) 0;
+}
 
 /* ============================================================
    MODAL

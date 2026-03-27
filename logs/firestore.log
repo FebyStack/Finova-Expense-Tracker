@@ -331,3 +331,28 @@
   "fields": {
     "displayName": {
 
+[2026-03-27 06:11:08] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/20 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/20",
+  "fields": {
+    "_syncedAt": {
+   
+[2026-03-27 06:12:24] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/22 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/22",
+  "fields": {
+    "category": {
+    
+[2026-03-27 06:15:27] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/23 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/23",
+  "fields": {
+    "date": {
+      "s
+[2026-03-27 10:49:30] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/savings/1 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/savings/1",
+  "fields": {
+    "_syncedAt": {
+     
+[2026-03-27 11:39:51] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/24 → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/expenses/24",
+  "fields": {
+    "date": {
+      "s

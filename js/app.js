@@ -13,6 +13,7 @@ import { openIncomeModal } from './income.js';
 import { loadIncomeList, initIncomeListFilters } from './income-list.js';
 import { initSettings } from './settings.js';
 import { initNotifications } from './notifications.js';
+import { requestPushPermission } from './push-notifications.js';
 // budgets.js and budgets-list.js self-initialize via their own <script> tags
 
 // ══════════════════════════════════════════════════════════
@@ -37,8 +38,15 @@ const PAGES = {
 // ══════════════════════════════════════════════════════════
 
 function getCurrentPage() {
-  const hash = window.location.hash.replace('#', '') || 'dashboard';
-  return PAGES[hash] ? hash : 'dashboard';
+  const hash = window.location.hash.replace('#', '');
+  if (hash && PAGES[hash]) return hash;
+  
+  // If user opens calendar.html natively, default to the calendar view
+  if (window.location.pathname.includes('calendar.html')) {
+    return 'calendar';
+  }
+  
+  return 'dashboard';
 }
 
 window.navigateTo = function navigateTo(pageKey) {
@@ -264,6 +272,9 @@ onAuthStateChanged(auth, async (user) => {
     
     // Start listening for notifications
     initNotifications();
+    
+    // Request Native Push Notifications
+    setTimeout(() => requestPushPermission(user.uid), 2000);
 
     // Navigate to current hash
     navigateTo(getCurrentPage());

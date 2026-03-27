@@ -5,7 +5,7 @@
 const API_BASE = 'api';  // Relative path
 
 // ── Generic fetch wrapper ──────────────────────────────────
-async function apiFetch(endpoint, options = {}) {
+export async function apiFetch(endpoint, options = {}) {
   const res = await fetch(`${API_BASE}${endpoint}`, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
     ...options,
@@ -166,4 +166,21 @@ export async function updateUser(uid, updates) {
     method: 'PUT',
     body:   JSON.stringify({ uid, ...updates }),
   });
+}
+
+// ── AI Insights & Chat ─────────────────────────────────────
+export async function fetchAIInsights(uid, month, force = false) {
+  const params = new URLSearchParams({ uid });
+  if (month) params.set('month', month);
+  if (force) params.set('force', 'true');
+  const data = await apiFetch(`/ai-insights.php?${params}`);
+  return data;
+}
+
+export async function sendAIChatMessage(uid, message) {
+  const data = await apiFetch(`/ai-chat.php`, {
+    method: 'POST',
+    body: JSON.stringify({ uid, message })
+  });
+  return data;
 }

@@ -1,4 +1,5 @@
-import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavingsGoals } from './api.js';
+import { auth } from './firebase-config.js';
+import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavingsGoals, fetchAIInsights } from './api.js';
 import { convertItems, formatCurrency, warmRateCache } from './currency.js';
 import { getCategoryStyle } from './categories.js';
 
@@ -108,6 +109,7 @@ window.addEventListener('unhandledrejection', (e) => {
         renderRecentTransactions(expenses, currency);
         await loadBudgetOverview(uid, currency, now, expResult.items);
         await loadSavingsOverview(uid, currency);
+        loadAIInsights(uid, currency);
 
       } catch (err) {
         console.error('Dashboard load error:', err);
@@ -136,6 +138,25 @@ window.addEventListener('unhandledrejection', (e) => {
       let html = '<div class="transaction-list">';
       recent.forEach(d => {
         const style = getCategoryStyle(d.category);
+        let receiptHtml = '';
+        if (d.receipt_data) {
+          try {
+            const rData = typeof d.receipt_data === 'string' ? JSON.parse(d.receipt_data) : d.receipt_data;
+            if (rData && rData.items && rData.items.length) {
+              const itemsList = rData.items.map(i => `<li>${i}</li>`).join('');
+              receiptHtml = `
+                <div class="receipt-dropdown-wrapper">
+                  <span class="receipt-badge"><i class="fa-solid fa-receipt"></i> items</span>
+                  <div class="receipt-dropdown">
+                    <div class="rd-merchant">${rData.merchant || 'Unknown Merchant'}</div>
+                    <ul class="rd-items">${itemsList}</ul>
+                  </div>
+                </div>
+              `;
+            }
+          } catch(e) {}
+        }
+
         html += `
           <div class="transaction-item">
             <div class="transaction-icon" style="background:${style.bg}; color:${style.color};">
@@ -143,7 +164,10 @@ window.addEventListener('unhandledrejection', (e) => {
             </div>
             <div class="transaction-info">
               <div class="transaction-name">${d.note || d.category || 'Expense'}</div>
-              <div class="transaction-meta">${d.category} · ${formatDate(d.date)}</div>
+              <div class="transaction-meta" style="display:flex; align-items:center; gap:8px;">
+                ${d.category} · ${formatDate(d.date)}
+                ${receiptHtml}
+              </div>
             </div>
             <div class="transaction-amount expense">
               -${formatCurrency(d.amount, currency)}
@@ -248,3 +272,85 @@ window.addEventListener('unhandledrejection', (e) => {
         console.error('Savings overview error:', err);
       }
     }
+
+    // ── AI Insights (Day 26) ───────────────────────────────────
+    async function loadAIInsights(uid, currency, force = false) {
+      const container = document.getElementById('aiInsightsContent');
+      const btnRefresh = document.getElementById('btnRefreshInsights');
+      if (!container || !btnRefresh) return;
+
+      if (force) {
+        container.innerHTML = `
+          <div class="loading-state" style="padding:var(--space-4); margin:0;">
+            <i class="fa-solid fa-spinner fa-spin" style="margin-bottom:8px;"></i>
+            <p style="font-size:12px; margin:0;">Asking Gemini for new insights...</p>
+          </div>
+        `;
+        btnRefresh.classList.add('fa-spin');
+      }
+
+      try {
+        // Fetch insights (defaults to current month in PHP if not passed)
+        const response = await fetchAIInsights(uid, null, force);
+        if (!response || !response.summary) throw new Error('Invalid AI response');
+
+        const { summary, insights, topCategory, recommendations, warning, _cached } = response;
+
+        let html = `
+          <div style="padding:var(--space-4); display:flex; flex-direction:column; gap:var(--space-4);">
+            <div style="font-size:13px; color:var(--text-primary); line-height:1.5;">
+              <strong>Summary:</strong> ${summary}
+            </div>
+            
+            ${warning && warning !== 'null' ? `
+              <div class="alert danger" style="padding:var(--space-2) var(--space-3); font-size:11px; margin:0;">
+                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Warning:</strong> ${warning}
+              </div>
+            ` : ''}
+
+            <div style="font-size:12px; color:var(--text-secondary);">
+              <div style="font-weight:var(--weight-bold); color:var(--text-primary); margin-bottom:4px;">Key Insights:</div>
+              <ul style="margin:0; padding-left:16px;">
+                ${insights.map(i => `<li>${i}</li>`).join('')}
+              </ul>
+            </div>
+
+            ${topCategory && topCategory.name ? `
+              <div style="font-size:12px; background:var(--bg-secondary); padding:var(--space-3); border-radius:var(--radius-md); border:1px solid var(--border);">
+                <span style="font-weight:var(--weight-bold); color:var(--accent);">Top Category: ${topCategory.name}</span>
+                <p style="margin:4px 0 0 0; color:var(--text-muted);">${topCategory.reason}</p>
+              </div>
+            ` : ''}
+
+            <div style="font-size:12px; color:var(--text-secondary);">
+              <div style="font-weight:var(--weight-bold); color:var(--success); margin-bottom:4px;"><i class="fa-solid fa-lightbulb"></i> Saving Recommendations:</div>
+              <ul style="margin:0; padding-left:16px;">
+                ${recommendations.map(r => `<li>${r}</li>`).join('')}
+              </ul>
+            </div>
+            
+            ${_cached ? `<div style="font-size:9px; color:var(--text-muted); text-align:right;">⚡ Loaded from cache</div>` : ''}
+          </div>
+        `;
+        
+        container.innerHTML = html;
+
+      } catch (err) {
+        console.warn('AI Insights error:', err);
+        container.innerHTML = `
+          <div class="empty-state" style="padding:var(--space-4); margin:0; border:none;">
+            <i class="fa-solid fa-robot" style="color:var(--text-muted); font-size:24px; margin-bottom:8px;"></i>
+            <span class="empty-state-title" style="font-size:13px;">Waiting for data</span>
+            <span class="empty-state-sub" style="font-size:11px;">${err.message.includes('Not enough') ? 'Add some expenses to get insights.' : 'AI service temporarily unavailable.'}</span>
+          </div>
+        `;
+      } finally {
+        btnRefresh.classList.remove('fa-spin');
+      }
+    }
+
+    // Expose refresh function to window for the button onclick
+    window.refreshAIInsights = function() {
+      const user = auth.currentUser;
+      if (user) loadAIInsights(user.uid, window.userCurrency || 'PHP', true);
+    };

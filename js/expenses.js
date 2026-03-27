@@ -1,6 +1,8 @@
-import { addExpense, editExpense } from './api.js'
+import { addExpense, editExpense, fetchExpenses } from './api.js'
 import { auth }       from './firebase-config.js';
 import { loadCategories, bgFromColor } from './categories.js';
+import { getCategoryStyle } from './categories.js';
+import { formatCurrency } from './currency.js';
 
 // ── Category definitions are loaded dynamically ────────────
 // (from Firestore via categories.js)
@@ -14,6 +16,10 @@ const CURRENCY_SYMBOLS = {
 let selectedCategory   = null;
 let isSaving           = false;
 let editingExpenseId   = null;   // null = add mode, number = edit mode
+let currentQuickFillTab = 'recent';
+let cachedRecentExpenses = [];
+
+const TEMPLATES_KEY = 'finova_expense_templates';
 
 // ── Build category grid (async — loads from Firestore) ────
 async function buildCategoryGrid() {
@@ -93,6 +99,19 @@ export async function openExpenseModal(prefill = {}) {
 
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Quick Fill: show only in Add mode
+  const qfSection = document.getElementById('quickFillSection');
+  const templateBtn = document.getElementById('btnSaveAsTemplate');
+  if (editingExpenseId) {
+    if (qfSection) qfSection.style.display = 'none';
+    if (templateBtn) templateBtn.style.display = 'none';
+  } else {
+    if (qfSection) qfSection.style.display = '';
+    if (templateBtn) templateBtn.style.display = '';
+    currentQuickFillTab = 'recent';
+    loadQuickFillData();
+  }
 
   setTimeout(() => {
     document.getElementById('expAmount')?.focus();
@@ -208,7 +227,7 @@ async function saveExpense() {
       note:        note || '',
       recurring,
       frequency:   recurring ? frequency : null,
-      receiptPath: window._pendingReceiptPath || null,
+      receiptData: window._pendingReceiptData || null,
     };
 
     // ── Edit mode vs Add mode ──
@@ -221,7 +240,7 @@ async function saveExpense() {
       console.log('✅ Saved to PostgreSQL! ID:', saved.id);
     }
 
-    window._pendingReceiptPath = null;
+    window._pendingReceiptData = null;
 
     closeExpenseModal();
     showToast(
@@ -273,8 +292,189 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeExpenseModal();
 });
 
-// ── Save button ────────────────────────────────────────────
+// ── Save button ──────────────────────────────────────────
 document.getElementById('btnSaveExpense')?.addEventListener('click', saveExpense);
 
-// ── Initialize ─────────────────────────────────────────────
+// ── Save as Template button ──────────────────────────────
+// Pending template data while the name modal is open
+let pendingTemplateData = null;
+
+document.getElementById('btnSaveAsTemplate')?.addEventListener('click', () => {
+  const amount = document.getElementById('expAmount').value;
+  const currency = document.getElementById('expCurrency').value || 'PHP';
+  const note = document.getElementById('expNote').value.trim();
+
+  if (!selectedCategory) {
+    showExpenseError('Please select a category first before saving a template.');
+    return;
+  }
+
+  // Store data and open the naming modal
+  pendingTemplateData = { category: selectedCategory, amount: amount || '', currency, note };
+
+  const nameInput = document.getElementById('templateNameInput');
+  const overlay = document.getElementById('templateNameOverlay');
+  if (nameInput) nameInput.value = `${selectedCategory}${note ? ' - ' + note : ''}`;
+  if (overlay) overlay.classList.add('open');
+  setTimeout(() => nameInput?.focus(), 200);
+});
+
+// Confirm template name from the modal
+document.getElementById('btnConfirmTemplateName')?.addEventListener('click', () => {
+  const nameInput = document.getElementById('templateNameInput');
+  const templateName = nameInput?.value.trim();
+  if (!templateName) { nameInput?.focus(); return; }
+  if (!pendingTemplateData) return;
+
+  const templates = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+  templates.push({ name: templateName, ...pendingTemplateData });
+  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+
+  pendingTemplateData = null;
+  document.getElementById('templateNameOverlay')?.classList.remove('open');
+
+  showToast('Template saved!', 'success');
+
+  // Refresh to Templates tab
+  currentQuickFillTab = 'templates';
+  loadQuickFillData();
+});
+
+window.cancelTemplateName = function() {
+  pendingTemplateData = null;
+  document.getElementById('templateNameOverlay')?.classList.remove('open');
+};
+
+// Close template name modal on backdrop click
+document.getElementById('templateNameOverlay')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) window.cancelTemplateName();
+});
+
+// ── Quick Fill: Load Data ───────────────────────────────
+async function loadQuickFillData() {
+  // Update tab active states
+  document.getElementById('tabRecent')?.classList.toggle('active', currentQuickFillTab === 'recent');
+  document.getElementById('tabTemplates')?.classList.toggle('active', currentQuickFillTab === 'templates');
+
+  const list = document.getElementById('quickFillList');
+  if (!list) return;
+
+  if (currentQuickFillTab === 'recent') {
+    await loadRecentChips(list);
+  } else {
+    loadTemplateChips(list);
+  }
+}
+
+async function loadRecentChips(list) {
+  list.innerHTML = '<div class="quick-fill-empty">Loading…</div>';
+
+  try {
+    const user = auth.currentUser;
+    if (!user) { list.innerHTML = '<div class="quick-fill-empty">Not signed in.</div>'; return; }
+
+    // Fetch recent expenses (no month filter = all, take last 5)
+    if (cachedRecentExpenses.length === 0) {
+      const all = await fetchExpenses(user.uid);
+      all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      cachedRecentExpenses = all.slice(0, 5);
+    }
+
+    if (cachedRecentExpenses.length === 0) {
+      list.innerHTML = '<div class="quick-fill-empty">No recent expenses found.</div>';
+      return;
+    }
+
+    list.innerHTML = cachedRecentExpenses.map((exp, i) => {
+      const style = getCategoryStyle(exp.category);
+      const currency = exp.currency || window.userCurrency || 'PHP';
+      const amt = formatCurrency(parseFloat(exp.amount) || 0, currency);
+      return `
+        <div class="quick-fill-chip" onclick="window.applyQuickFill('recent', ${i})">
+          <div class="quick-fill-chip-icon" style="background:${style.bg}; color:${style.color};">
+            <i class="${style.icon}"></i>
+          </div>
+          <div class="quick-fill-chip-info">
+            <div class="quick-fill-chip-label">${exp.category}</div>
+            <div class="quick-fill-chip-amount">${amt}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.warn('Failed to load recent expenses:', err);
+    list.innerHTML = '<div class="quick-fill-empty">Could not load recent expenses.</div>';
+  }
+}
+
+function loadTemplateChips(list) {
+  const templates = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+
+  if (templates.length === 0) {
+    list.innerHTML = '<div class="quick-fill-empty"><i class="fa-solid fa-bookmark" style="margin-right:4px;"></i> No templates yet. Fill the form and click "Save as Template".</div>';
+    return;
+  }
+
+  list.innerHTML = templates.map((tpl, i) => {
+    const style = getCategoryStyle(tpl.category);
+    const currency = tpl.currency || window.userCurrency || 'PHP';
+    const amt = tpl.amount ? formatCurrency(parseFloat(tpl.amount) || 0, currency) : '';
+    return `
+      <div class="quick-fill-chip" onclick="window.applyQuickFill('template', ${i})">
+        <div class="quick-fill-chip-icon" style="background:${style.bg}; color:${style.color};">
+          <i class="${style.icon}"></i>
+        </div>
+        <div class="quick-fill-chip-info">
+          <div class="quick-fill-chip-label">${tpl.name}</div>
+          <div class="quick-fill-chip-amount">${amt}</div>
+        </div>
+        <button class="quick-fill-chip-delete" onclick="event.stopPropagation(); window.deleteTemplate(${i});" title="Delete template">&times;</button>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Quick Fill: Tab Switching ──────────────────────────
+window.switchQuickFillTab = function(tab) {
+  currentQuickFillTab = tab;
+  loadQuickFillData();
+};
+
+// ── Quick Fill: Apply ─────────────────────────────────
+window.applyQuickFill = function(source, index) {
+  let data;
+  if (source === 'recent') {
+    data = cachedRecentExpenses[index];
+  } else {
+    const templates = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+    data = templates[index];
+  }
+  if (!data) return;
+
+  // Prefill the form
+  if (data.amount) document.getElementById('expAmount').value = data.amount;
+  if (data.note)   document.getElementById('expNote').value   = data.note;
+  if (data.currency) {
+    const currSel = document.getElementById('expCurrency');
+    if (currSel) currSel.value = data.currency;
+    const sym = CURRENCY_SYMBOLS[data.currency] || data.currency;
+    const symEl = document.getElementById('expCurrencySymbol');
+    if (symEl) symEl.textContent = sym;
+  }
+  if (data.category) window.selectCategory(data.category);
+
+  // Keep today's date
+  showToast('Form filled from ' + (source === 'recent' ? 'recent expense' : 'template') + '!', 'success');
+};
+
+// ── Quick Fill: Delete Template ────────────────────────
+window.deleteTemplate = function(index) {
+  const templates = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+  templates.splice(index, 1);
+  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+  loadQuickFillData();
+  showToast('Template removed.', 'success');
+};
+
+// ── Initialize ─────────────────────────────────────────
 buildCategoryGrid();

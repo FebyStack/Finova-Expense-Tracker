@@ -52,7 +52,7 @@ window.openReceiptModal = async function () {
   // Reset everything
   selectedFile    = null;
   extractedData   = null;
-  window._pendingReceiptPath = null;
+  window._pendingReceiptData = null;
 
   resetReceiptUI();
   showReceiptStep('upload'); // Start at upload step
@@ -308,8 +308,8 @@ function populateReviewStep(data) {
 window.confirmReceiptAndAddExpense = async function () {
   if (!extractedData) return;
 
-  // Store receipt file path for saving with expense
-  window._pendingReceiptPath = null; // Will be set after PHP upload
+  // Store extracted receipt data for saving with expense
+  window._pendingReceiptData = extractedData;
 
   const prefill = {
     amount:   extractedData.total   || '',

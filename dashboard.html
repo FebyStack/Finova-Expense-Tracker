@@ -276,6 +276,22 @@
               </div>
             </div>
             <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+              <!-- Advanced AI Insights -->
+              <div class="dash-card ai-insights-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title"><i class="fa-solid fa-sparkles" style="color:var(--accent); margin-right:4px;"></i> AI Insights</span>
+                  <button class="btn btn-ghost btn-xs" id="btnRefreshInsights" onclick="window.refreshAIInsights()" title="Refresh Insights">
+                    <i class="fa-solid fa-rotate-right"></i>
+                  </button>
+                </div>
+                <div id="aiInsightsContent">
+                  <div class="loading-state" style="padding:var(--space-4); margin:0;">
+                    <i class="fa-solid fa-spinner fa-spin" style="margin-bottom:8px;"></i>
+                    <p style="font-size:12px; margin:0;">Analyzing spending patterns...</p>
+                  </div>
+                </div>
+              </div>
+
               <div class="dash-card">
                 <div class="dash-card-header">
                   <span class="dash-card-title">Budget Overview</span>
@@ -346,11 +362,7 @@
           </div>
         </section>
 
-        <!-- Calendar -->
-        <section class="page-view" id="page-calendar">
-          <div class="page-header"><div><h1 class="page-title">Calendar</h1><p class="page-subtitle">Your spending heat map.</p></div></div>
-          <div class="placeholder-content"><i class="fa-solid fa-calendar-days"></i><p>Calendar view coming on Day 22</p></div>
-        </section>
+
 
         <!-- Budgets -->
         <section class="page-view" id="page-budgets">
@@ -581,6 +593,21 @@
 
       <div class="modal-body">
 
+        <!-- Quick Fill Section (Day 23+) -->
+        <div class="quick-fill-section" id="quickFillSection">
+          <div class="quick-fill-tabs">
+            <button class="quick-fill-tab active" id="tabRecent" onclick="window.switchQuickFillTab('recent')">
+              <i class="fa-solid fa-clock-rotate-left"></i> Recent
+            </button>
+            <button class="quick-fill-tab" id="tabTemplates" onclick="window.switchQuickFillTab('templates')">
+              <i class="fa-solid fa-bookmark"></i> Templates
+            </button>
+          </div>
+          <div class="quick-fill-strip" id="quickFillList">
+            <div class="quick-fill-empty">Loading…</div>
+          </div>
+        </div>
+
         <div class="form-group">
           <label class="form-label" for="expAmount">Amount <span class="required">*</span></label>
           <div class="input-wrapper">
@@ -647,6 +674,9 @@
       </div>
 
       <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnSaveAsTemplate" title="Save current form as a reusable template" style="margin-right:auto;">
+          <i class="fa-solid fa-bookmark"></i> <span>Save as Template</span>
+        </button>
         <button class="btn btn-ghost" id="btnCancelExpense">Cancel</button>
         <button class="btn btn-danger" id="btnSaveExpense">
           <i class="fa-solid fa-plus"></i> <span>Save Expense</span>
@@ -1026,6 +1056,86 @@
     </div>
   </div>
 
+  <!-- Template Name Modal -->
+  <div class="modal-overlay" id="templateNameOverlay">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fa-solid fa-bookmark" style="color:var(--accent);"></i>
+          Name Your Template
+        </h2>
+        <button class="modal-close" onclick="window.cancelTemplateName()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="templateNameInput">Template Name <span class="required">*</span></label>
+          <input class="form-input" type="text" id="templateNameInput" placeholder="e.g. Daily Lunch" maxlength="50" required/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="window.cancelTemplateName()">Cancel</button>
+        <button class="btn btn-primary" id="btnConfirmTemplateName">
+          <i class="fa-solid fa-check"></i> Save Template
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Detail Modal (Day 23) -->
+  <div class="modal-overlay" id="dayDetailOverlay">
+    <div class="modal" style="max-width:420px; padding:0;">
+      <div class="modal-header" style="padding:var(--space-4); border-bottom:1px solid var(--border);">
+        <h2 class="modal-title" id="dayDetailTitle">Transactions</h2>
+        <button class="modal-close" onclick="window.closeDayDetail()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:var(--space-4); max-height:60vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:var(--space-3) 0; margin-bottom:var(--space-3); border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary); font-size:var(--text-sm);">Daily Total</span>
+          <span id="dayDetailTotal" style="font-size:var(--text-xl); font-weight:var(--weight-bold); color:var(--accent);">₱0.00</span>
+        </div>
+        <div id="dayDetailList">
+          <!-- Transactions populated via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       AI CHAT ASSISTANT
+  ════════════════════════════ -->
+  <button class="ai-chat-fab" id="aiChatFab" title="Chat with AI" onclick="window.toggleAIChat()">
+    <i class="fa-solid fa-sparkles"></i>
+  </button>
+
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <div class="ai-chat-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
+        <div>
+          <div style="font-weight:var(--weight-bold); font-size:14px; color:var(--text-primary);">Finova AI</div>
+          <div style="font-size:10px; color:var(--success);">Online</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="window.toggleAIChat()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="ai-chat-messages" id="aiChatMessages">
+      <div class="chat-message ai">
+        <div class="msg-bubble">Hello! I'm your Finova financial assistant. Ask me anything about your current budget or spending habits!</div>
+      </div>
+      <!-- Messages populate here -->
+    </div>
+    <div class="ai-chat-input-area">
+      <form id="aiChatForm" style="display:flex; gap:8px; width:100%;">
+        <input type="text" id="aiChatInput" class="form-input" placeholder="Type your message..." autocomplete="off" required>
+        <button type="submit" class="btn btn-primary" id="aiChatSubmit">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script type="module" src="js/firebase-config.js"></script>
   <script type="module" src="js/categories.js"></script>
@@ -1045,6 +1155,8 @@
   <script type="module" src="js/charts.js"></script>
   <script type="module" src="js/reports-export.js"></script>
   <script type="module" src="js/calendar.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+  <script type="module" src="js/chat.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/auth.js"></script>
 

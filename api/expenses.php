@@ -91,22 +91,22 @@ try {
         $note      = $body['note']      ?? null;
         $recurring = !empty($body['recurring']) ? 'true' : 'false';
         $frequency = !empty($body['recurring']) ? ($body['frequency'] ?? null) : null;
-        $receipt   = $body['receiptPath'] ?? null;
+        $receiptData = isset($body['receiptData']) ? json_encode($body['receiptData']) : null;
 
         if ($amount <= 0) fail('Amount must be greater than zero', 400);
 
         $db->beginTransaction();
         $stmt = $db->prepare("
             INSERT INTO finova.expenses
-                (user_id, firebase_uid, amount, currency, category, date, month, note, recurring, frequency, receipt_path)
+                (user_id, firebase_uid, amount, currency, category, date, month, note, recurring, frequency, receipt_data)
             VALUES
-                (:userId,:uid,:amount,:currency,:category,:date,:month,:note,:recurring,:frequency,:receipt)
+                (:userId,:uid,:amount,:currency,:category,:date,:month,:note,:recurring,:frequency,:receiptData)
             RETURNING *
         ");
         $stmt->execute([
             ':userId'=>$userId,':uid'=>$uid,':amount'=>$amount,':currency'=>$currency,
             ':category'=>$body['category'],':date'=>$body['date'],':month'=>$month,
-            ':note'=>$note,':recurring'=>$recurring,':frequency'=>$frequency,':receipt'=>$receipt,
+            ':note'=>$note,':recurring'=>$recurring,':frequency'=>$frequency,':receiptData'=>$receiptData,
         ]);
         $expense = $stmt->fetch();
         $db->commit();
@@ -123,6 +123,7 @@ try {
                 'note'      => $expense['note'],
                 'recurring' => (bool)  $expense['recurring'],
                 'frequency' => $expense['frequency'],
+                'receiptData' => isset($expense['receipt_data']) ? json_decode($expense['receipt_data'], true) : null,
             ]);
         } catch (Throwable $e) {}
 
@@ -138,6 +139,7 @@ try {
 
         $userId = getUserId($db, $uid);
         $month  = isset($body['date']) ? substr($body['date'], 0, 7) : null;
+        $receiptData = isset($body['receiptData']) ? json_encode($body['receiptData']) : null;
 
         $db->beginTransaction();
         $stmt = $db->prepare("
@@ -150,21 +152,23 @@ try {
                 note      = COALESCE(:note,      note),
                 recurring = COALESCE(:recurring, recurring),
                 frequency = COALESCE(:frequency, frequency),
+                receipt_data = COALESCE(:receiptData, receipt_data),
                 updated_at = NOW()
             WHERE id = :id AND user_id = :userId
             RETURNING *
         ");
         $stmt->execute([
-            ':amount'   => isset($body['amount'])    ? (float)$body['amount'] : null,
-            ':currency' => $body['currency']         ?? null,
-            ':category' => $body['category']         ?? null,
-            ':date'     => $body['date']             ?? null,
-            ':month'    => $month,
-            ':note'     => $body['note']             ?? null,
-            ':recurring'=> isset($body['recurring']) ? ($body['recurring'] ? 'true' : 'false') : null,
-            ':frequency'=> $body['frequency']        ?? null,
-            ':id'       => $id,
-            ':userId'   => $userId,
+            ':amount'      => isset($body['amount'])    ? (float)$body['amount'] : null,
+            ':currency'    => $body['currency']         ?? null,
+            ':category'    => $body['category']         ?? null,
+            ':date'        => $body['date']             ?? null,
+            ':month'       => $month,
+            ':note'        => $body['note']             ?? null,
+            ':recurring'   => isset($body['recurring']) ? ($body['recurring'] ? 'true' : 'false') : null,
+            ':frequency'   => $body['frequency']        ?? null,
+            ':receiptData' => $receiptData,
+            ':id'          => $id,
+            ':userId'      => $userId,
         ]);
         $expense = $stmt->fetch();
         if (!$expense) { $db->rollBack(); fail('Expense not found', 404); }
@@ -182,6 +186,7 @@ try {
                 'note'      => $expense['note'],
                 'recurring' => (bool)  $expense['recurring'],
                 'frequency' => $expense['frequency'],
+                'receiptData' => isset($expense['receipt_data']) ? json_decode($expense['receipt_data'], true) : null,
             ]);
         } catch (Throwable $e) {}
 
