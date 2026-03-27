@@ -34,7 +34,19 @@ export async function loadExpenseList(userDataCurrency = 'PHP') {
   const container = document.getElementById('expenseListContainer');
   if (!container) return;
 
-  container.innerHTML = '<div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading expenses...</div>';
+  container.innerHTML = `
+    <div class="skeleton-list">
+      ${Array(5).fill(`
+        <div class="skeleton-row">
+          <div class="skeleton-circle"></div>
+          <div class="skeleton-lines">
+            <div class="skeleton-line w-60"></div>
+            <div class="skeleton-line w-40"></div>
+          </div>
+          <div class="skeleton-amount"></div>
+        </div>
+      `).join('')}
+    </div>`;
 
   try {
     const monthFilter = document.getElementById('expListMonthFilter')?.value || undefined;
@@ -61,9 +73,12 @@ function renderExpenseList() {
   if (allExpenses.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <i class="fa-solid fa-arrow-trend-down"></i>
-        <span class="empty-state-title">No expenses found</span>
-        <span class="empty-state-sub">Try changing filters or add a new expense</span>
+        <i class="fa-solid fa-receipt"></i>
+        <span class="empty-state-title">No expenses yet</span>
+        <span class="empty-state-sub">Start tracking your spending by adding your first expense</span>
+        <button class="btn btn-primary" onclick="document.getElementById('btnAddExpense')?.click()">
+          <i class="fa-solid fa-plus"></i> Add Expense
+        </button>
       </div>`;
     return;
   }

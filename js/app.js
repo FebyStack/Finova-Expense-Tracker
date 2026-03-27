@@ -17,6 +17,39 @@ import { requestPushPermission } from './push-notifications.js';
 // budgets.js and budgets-list.js self-initialize via their own <script> tags
 
 // ══════════════════════════════════════════════════════════
+// LOADING SCREEN
+// ══════════════════════════════════════════════════════════
+
+const LOADING_TIPS = [
+  'Syncing your latest transactions...',
+  'Crunching your monthly totals...',
+  'Checking your budget limits...',
+  'Fetching your savings progress...',
+  'Preparing your financial overview...',
+  'Analyzing spending patterns...',
+];
+
+let tipIndex = 0;
+const tipEl = document.getElementById('loadingTip');
+const tipInterval = setInterval(() => {
+  if (!tipEl) return;
+  tipIndex = (tipIndex + 1) % LOADING_TIPS.length;
+  tipEl.style.animation = 'none';
+  tipEl.offsetHeight; // trigger reflow
+  tipEl.textContent = LOADING_TIPS[tipIndex];
+  tipEl.style.animation = 'tipFade 0.5s ease';
+}, 2200);
+
+function dismissLoadingScreen() {
+  clearInterval(tipInterval);
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    setTimeout(() => overlay.remove(), 600);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
 // PAGE MAP
 // ══════════════════════════════════════════════════════════
 
@@ -279,6 +312,9 @@ onAuthStateChanged(auth, async (user) => {
     // Navigate to current hash
     navigateTo(getCurrentPage());
 
+    // Dismiss loading screen after everything loaded
+    dismissLoadingScreen();
+
   } catch (err) {
     console.error('Error loading user profile:', err);
   }
@@ -289,25 +325,21 @@ onAuthStateChanged(auth, async (user) => {
 // LOGOUT
 // ══════════════════════════════════════════════════════════
 
-document.getElementById('btnLogout')?.addEventListener('click', async e => {
-  e.preventDefault();
+async function handleLogout() {
   try {
     await signOut(auth);
     window.location.replace('login.html');
   } catch (err) {
     console.error('Logout error:', err);
   }
+}
+
+document.getElementById('btnLogout')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  handleLogout();
 });
 
-// Sidebar quick-logout button
-document.getElementById('sidebarLogoutBtn')?.addEventListener('click', async () => {
-  try {
-    await signOut(auth);
-    window.location.replace('login.html');
-  } catch (err) {
-    console.error('Logout error:', err);
-  }
-});
+document.getElementById('sidebarLogoutBtn')?.addEventListener('click', () => handleLogout());
 
 
 // ══════════════════════════════════════════════════════════

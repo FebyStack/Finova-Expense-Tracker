@@ -1,5 +1,4 @@
 // js/push-notifications.js
-import { auth } from './firebase-config.js';
 import { apiFetch } from './api.js';
 
 // Convert base64 url-safe string to Uint8Array for Push API

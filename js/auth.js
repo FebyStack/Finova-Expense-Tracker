@@ -1,23 +1,12 @@
 // js/auth.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js"; 
 import { auth } from './firebase-config.js';
 import {
   signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  OAuthProvider,
   onAuthStateChanged,
-  sendPasswordResetEmail,
-  signOut
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
-console.log('auth.js loaded')
 
-// ── Providers ──────────────────────────────────────────────
-const googleProvider = new GoogleAuthProvider();
-const appleProvider  = new OAuthProvider('apple.com');
-appleProvider.addScope('email');
-appleProvider.addScope('name');
 
 // ── UI Helpers ─────────────────────────────────────────────
 function showError(message) {
@@ -48,11 +37,7 @@ function friendlyError(code) {
     'auth/user-disabled':            'This account has been disabled.',
     'auth/email-already-in-use':     'An account with this email already exists.',
     'auth/weak-password':            'Password is too weak. Use at least 8 characters.',
-    'auth/popup-closed-by-user':     'Sign-in popup was closed. Please try again.',
-    'auth/cancelled-popup-request':  'Only one sign-in popup can be open at a time.',
     'auth/network-request-failed':   'Network error. Check your internet connection.',
-    'auth/invalid-verification-code':'Invalid OTP code. Please check and try again.',
-    'auth/code-expired':             'OTP code has expired. Please request a new one.',
   };
   return errors[code] || 'Something went wrong. Please try again.';
 }
@@ -78,30 +63,6 @@ togglePasswordBtn?.addEventListener('click', () => {
     });
 });
 
-// ── Google Sign-In ─────────────────────────────────────────
-document.getElementById('btnGoogle')
-  ?.addEventListener('click', async () => {
-    setLoading('btnGoogle', true, `<img src=".\assets\google_logo.png" width="18" height="18"/> Continue with Google`);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      // Redirect handled by onAuthStateChanged
-    } catch (error) {
-      showError(friendlyError(error.code));
-      setLoading('btnGoogle', false, `<img src=".\assets\google_logo.png" width="18" height="18"/> Continue with Google`);
-    }
-  });
-
-// ── Apple Sign-In ──────────────────────────────────────────
-document.getElementById('btnApple')
-  ?.addEventListener('click', async () => {
-    setLoading('btnApple', true, `<i class="fa-brands fa-apple" style="font-size:18px;"></i> Continue with Apple`);
-    try {
-      await signInWithPopup(auth, appleProvider);
-    } catch (error) {
-      showError(friendlyError(error.code));
-      setLoading('btnApple', false, `<i class="fa-brands fa-apple" style="font-size:18px;"></i> Continue with Apple`);
-    }
-  });
 
 // ── Email / Password Sign-In ───────────────────────────────
 document.getElementById('btnEmailLogin')
@@ -157,7 +118,6 @@ document.getElementById('linkForgot')
 // ── Auth State Listener & Route Guard ─────────────────────
 // Only handles auth on login/signup pages — app.js manages dashboard auth
 onAuthStateChanged(auth, async (user) => {
-  console.log('Auth state changed:', user);
 
   // Skip on dashboard — app.js handles auth there
   const page = window.location.pathname;
@@ -184,10 +144,7 @@ onAuthStateChanged(auth, async (user) => {
       })
     });
 
-    const text = await res.text();
-console.log("API raw response:", text);
-
-const data = JSON.parse(text);
+    const data = await res.json();
 
 
     if (data.success) {
@@ -206,14 +163,4 @@ const data = JSON.parse(text);
   } else {
     showError('Could not sync user. Please try again.');
   }
-});
-
-// ── Logout ───────────────────────────────────────────────
-export async function logout() {
-  try {
-    await signOut(auth);
-    window.location.href = 'login.html';
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-}
+});

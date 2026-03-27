@@ -50,7 +50,19 @@ export async function loadIncomeList(userDataCurrency = 'PHP') {
   const container = document.getElementById('incomeListContainer');
   if (!container) return;
 
-  container.innerHTML = '<div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading income...</div>';
+  container.innerHTML = `
+    <div class="skeleton-list">
+      ${Array(5).fill(`
+        <div class="skeleton-row">
+          <div class="skeleton-circle"></div>
+          <div class="skeleton-lines">
+            <div class="skeleton-line w-60"></div>
+            <div class="skeleton-line w-40"></div>
+          </div>
+          <div class="skeleton-amount"></div>
+        </div>
+      `).join('')}
+    </div>`;
 
   try {
     const monthFilter = document.getElementById('incListMonthFilter')?.value || undefined;
@@ -83,9 +95,12 @@ function renderIncomeList() {
   if (allIncome.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <i class="fa-solid fa-arrow-trend-up"></i>
-        <span class="empty-state-title">No income found</span>
-        <span class="empty-state-sub">Try changing filters or add a new income entry</span>
+        <i class="fa-solid fa-wallet"></i>
+        <span class="empty-state-title">No income recorded</span>
+        <span class="empty-state-sub">Start tracking your earnings by adding your first income entry</span>
+        <button class="btn btn-primary" onclick="document.getElementById('btnAddIncome')?.click()">
+          <i class="fa-solid fa-plus"></i> Add Income
+        </button>
       </div>`;
     return;
   }

@@ -356,3 +356,7 @@
   "fields": {
     "date": {
       "s
+[2026-03-27 11:54:31] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "baseCurrency": {
