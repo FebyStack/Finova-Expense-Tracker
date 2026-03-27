@@ -43,6 +43,11 @@ export async function removeExpense(id, uid) {
   return apiFetch(`/expenses.php?id=${id}&uid=${uid}`, { method: 'DELETE' });
 }
 
+export async function fetchRecurringExpenses(uid) {
+  const data = await apiFetch(`/expenses.php?uid=${uid}&recurring=true`);
+  return data.expenses ?? [];
+}
+
 // ── Income ─────────────────────────────────────────────────
 export async function fetchIncome(uid, { month } = {}) {
   const params = new URLSearchParams({ uid });
@@ -100,7 +105,7 @@ export async function removeBudget(id, uid) {
 }
 
 // ── Savings goals ──────────────────────────────────────────
-export async function fetchSavings(uid) {
+export async function fetchSavingsGoals(uid) {
   const data = await apiFetch(`/savings.php?uid=${uid}`);
   return data.savings ?? [];
 }

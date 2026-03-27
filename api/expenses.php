@@ -66,6 +66,9 @@ try {
         $params = [':userId' => $userId];
         if (!empty($_GET['month']))    { $sql .= " AND month = :month";       $params[':month']    = $_GET['month']; }
         if (!empty($_GET['category'])) { $sql .= " AND category = :category"; $params[':category'] = $_GET['category']; }
+        if (!empty($_GET['recurring']) && $_GET['recurring'] === 'true') {
+            $sql .= " AND recurring = true";
+        }
         $sql .= " ORDER BY date DESC";
         $stmt = $db->prepare($sql);
         $stmt->execute($params);

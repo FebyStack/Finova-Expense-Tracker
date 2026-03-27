@@ -1,6 +1,15 @@
 import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavingsGoals } from './api.js';
 import { convertItems, formatCurrency, warmRateCache } from './currency.js';
-import { getCategoryStyle, getCategoryIcon } from './categories.js';
+import { getCategoryStyle } from './categories.js';
+
+// ── TEMPORARY ERROR LOGGING (remove after debugging) ──────
+console.log('[dashboard] ✅ Module imports resolved successfully');
+window.addEventListener('error', (e) => {
+  console.error('[dashboard] 🔴 RUNTIME ERROR:', e.message, '\n  File:', e.filename, '\n  Line:', e.lineno, ':', e.colno, '\n  Stack:', e.error?.stack);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('[dashboard] 🔴 UNHANDLED PROMISE REJECTION:', e.reason);
+});
 
     function formatDate(dateStr) {
       return new Date(dateStr).toLocaleDateString('en-PH', {

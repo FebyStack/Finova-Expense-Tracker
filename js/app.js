@@ -82,6 +82,18 @@ window.navigateTo = function navigateTo(pageKey) {
   if (pageKey === 'budgets') {
     window.dispatchEvent(new Event('budgetsUpdated'));
   }
+  if (pageKey === 'recurring') {
+    window.dispatchEvent(new Event('recurringUpdated'));
+  }
+  if (pageKey === 'calendar') {
+    window.dispatchEvent(new Event('calendarUpdated'));
+  }
+  if (pageKey === 'analytics') {
+    window.dispatchEvent(new Event('analyticsUpdated'));
+  }
+  if (pageKey === 'export') {
+    window.dispatchEvent(new Event('exportUpdated'));
+  }
 };
 
 window.addEventListener('hashchange', () => navigateTo(getCurrentPage()));
@@ -268,6 +280,16 @@ onAuthStateChanged(auth, async (user) => {
 
 document.getElementById('btnLogout')?.addEventListener('click', async e => {
   e.preventDefault();
+  try {
+    await signOut(auth);
+    window.location.replace('login.html');
+  } catch (err) {
+    console.error('Logout error:', err);
+  }
+});
+
+// Sidebar quick-logout button
+document.getElementById('sidebarLogoutBtn')?.addEventListener('click', async () => {
   try {
     await signOut(auth);
     window.location.replace('login.html');

@@ -19,6 +19,10 @@
   <link rel="stylesheet" href="css/dark.css"/>
   <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/upload.css"/>
+
+  <!-- Chart.js + html2pdf.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -81,6 +85,10 @@
 
         <div class="sidebar-section-label">Reports</div>
 
+        <a class="sidebar-item" data-page="calendar" href="#calendar" data-tooltip="Calendar">
+          <div class="sidebar-icon"><i class="fa-solid fa-calendar-alt"></i></div>
+          <span class="sidebar-label">Calendar</span>
+        </a>
         <a class="sidebar-item" data-page="analytics" href="#analytics" data-tooltip="Analytics">
           <div class="sidebar-icon"><i class="fa-solid fa-chart-line"></i></div>
           <span class="sidebar-label">Analytics</span>
@@ -107,9 +115,14 @@
             <div class="sidebar-user-email" id="sidebarUserEmail"></div>
           </div>
         </div>
-        <button class="sidebar-theme-btn" id="sidebarThemeBtn" title="Toggle theme">
-          <i class="fa-solid fa-moon" id="sidebarThemeIcon"></i>
-        </button>
+        <div style="display:flex; gap:4px;">
+          <button class="sidebar-theme-btn" id="sidebarThemeBtn" title="Toggle theme">
+            <i class="fa-solid fa-moon" id="sidebarThemeIcon"></i>
+          </button>
+          <button class="sidebar-theme-btn" id="sidebarLogoutBtn" title="Log out" style="color:var(--danger, #ef4444);">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
       </div>
 
     </aside>
@@ -372,20 +385,57 @@
 
         <!-- Recurring -->
         <section class="page-view" id="page-recurring">
-          <div class="page-header"><div><h1 class="page-title">Recurring</h1><p class="page-subtitle">Manage your subscriptions and bills.</p></div></div>
-          <div class="placeholder-content"><i class="fa-solid fa-repeat"></i><p>Recurring expenses coming on Day 18</p></div>
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Recurring Expenses</h1>
+              <p class="page-subtitle">Manage your subscriptions and recurring bills.</p>
+            </div>
+          </div>
+          <div id="recurringListContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading subscriptions…</div>
+          </div>
         </section>
 
         <!-- Analytics -->
         <section class="page-view" id="page-analytics">
-          <div class="page-header"><div><h1 class="page-title">Analytics</h1><p class="page-subtitle">Charts and spending insights.</p></div></div>
-          <div class="placeholder-content"><i class="fa-solid fa-chart-line"></i><p>Analytics and charts coming on Day 19</p></div>
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Analytics</h1>
+              <p class="page-subtitle">Charts and spending insights.</p>
+            </div>
+          </div>
+          <div id="analyticsChartsContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading charts…</div>
+          </div>
         </section>
 
-        <!-- Export -->
+        <!-- Calendar View (Day 22) -->
+        <section class="page-view" id="page-calendar">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Calendar View</h1>
+              <p class="page-subtitle">Track your daily spending patterns.</p>
+            </div>
+          </div>
+          <div id="calendarValidationBanner" class="alert info" style="margin-bottom: var(--space-4); display: none;">
+            <!-- Postgres vs Firestore validation status goes here -->
+          </div>
+          <div id="calendarPageContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading calendar…</div>
+          </div>
+        </section>
+
+        <!-- Export / Reports -->
         <section class="page-view" id="page-export">
-          <div class="page-header"><div><h1 class="page-title">Export</h1><p class="page-subtitle">Download your financial data.</p></div></div>
-          <div class="placeholder-content"><i class="fa-solid fa-file-export"></i><p>Export feature coming on Day 21</p></div>
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Reports & Export</h1>
+              <p class="page-subtitle">View summaries and download your financial data.</p>
+            </div>
+          </div>
+          <div id="exportPageContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</div>
+          </div>
         </section>
 
         <!-- Settings -->
@@ -991,6 +1041,10 @@
   <script type="module" src="js/budgets-list.js?v=2"></script>
   <script type="module" src="js/savings.js"></script>
   <script type="module" src="js/savings-list.js"></script>
+  <script type="module" src="js/recurring-list.js"></script>
+  <script type="module" src="js/charts.js"></script>
+  <script type="module" src="js/reports-export.js"></script>
+  <script type="module" src="js/calendar.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/auth.js"></script>
 

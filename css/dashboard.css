@@ -52,7 +52,7 @@
 /* ── Mobile Bottom Navigation ────────────────────────────── */
 .bottom-nav {
   display: none;
-  position: fixed;
+  position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
@@ -143,14 +143,14 @@
 
 /* Center add button */
 .bottom-nav-add {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   background: var(--accent);
   border-radius: var(--radius-full);
   color: #fff !important;
-  margin-top: -16px;
+  margin-top: -12px;
   box-shadow: 0 4px 16px rgba(79,126,248,0.5);
-  flex: 0 0 56px;
+  flex: 0 0 48px;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
               box-shadow 0.25s ease !important;
 }
@@ -170,7 +170,7 @@
 }
 
 .bottom-nav-add i {
-  font-size: 20px !important;
+  font-size: 18px !important;
 }
 
 /* Show bottom nav and adjust layout on mobile */
@@ -178,10 +178,6 @@
   .bottom-nav {
     display: flex;
     align-items: center;
-  }
-
-  .page-content {
-    padding-bottom: calc(64px + var(--space-4)) !important;
   }
 }
 
@@ -534,8 +530,399 @@
 }
 
 /* ============================================================
+   ANALYTICS PAGE — Charts grid (Day 19/20)
+   ============================================================ */
+
+.analytics-filter {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.analytics-filter label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--space-1);
+}
+
+.analytics-filter .form-input {
+  max-width: 220px;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
+
+@media (max-width: 900px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  .analytics-grid .dash-card[style*="grid-column"] {
+    grid-column: auto !important;
+  }
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+/* ============================================================
+   REPORTS & EXPORT PAGE (Day 21)
+   ============================================================ */
+
+.report-controls {
+  margin-bottom: var(--space-6);
+}
+
+.report-date-range {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.report-date-range .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.report-date-range .form-input {
+  min-width: 160px;
+}
+
+.report-period {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  width: fit-content;
+}
+
+.report-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.report-summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.report-summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.report-summary-card.income::before  { background: var(--success); }
+.report-summary-card.expense::before { background: var(--danger); }
+.report-summary-card.positive::before { background: var(--accent); }
+.report-summary-card.negative::before { background: var(--danger); }
+
+.report-summary-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.report-summary-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  font-feature-settings: "tnum" 1;
+}
+
+.report-summary-card.income .report-summary-value  { color: var(--success); }
+.report-summary-card.expense .report-summary-value { color: var(--danger); }
+.report-summary-card.positive .report-summary-value { color: var(--accent); }
+.report-summary-card.negative .report-summary-value { color: var(--danger); }
+
+.report-summary-count {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+}
+
+/* Category breakdown list */
+.report-cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.report-cat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.report-cat-item:last-child { border-bottom: none; }
+
+.report-cat-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.report-cat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.report-cat-name {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.report-cat-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.report-cat-amount {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--danger);
+  font-feature-settings: "tnum" 1;
+}
+
+.report-cat-pct {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Export button bar */
+.report-export-bar {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.report-export-bar .btn {
+  min-width: 140px;
+}
+
+/* ── Reports responsive ── */
+@media (max-width: 768px) {
+  .report-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-summary-value {
+    font-size: var(--text-xl);
+  }
+
+  .report-date-range {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .report-date-range .form-input {
+    min-width: 100%;
+  }
+}
+
+/* ============================================================
+   CALENDAR VIEW (DAY 22) Heatmap
+   ============================================================ */
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  background: var(--bg-secondary);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.calendar-title {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-grid.weekdays {
+  margin-bottom: var(--space-2);
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: var(--tracking-wider);
+  padding: var(--space-2) 0;
+}
+
+.calendar-cell {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  min-height: 80px;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.calendar-cell.empty {
+  background: transparent;
+  border-color: transparent;
+}
+
+.calendar-day-num {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: auto;
+}
+
+.calendar-cell.today .calendar-day-num {
+  color: var(--accent);
+  font-weight: var(--weight-bold);
+  background: rgba(79, 126, 248, 0.1);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  margin-top: -4px;
+  margin-left: -4px;
+}
+
+.calendar-day-spend {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  text-align: right;
+  word-break: break-all;
+}
+
+/* Heatmap Colors (Light Theme Defaults) */
+.heat-0 { background: var(--bg-secondary); }
+.heat-1 { background: #bae6fd; border-color: #bae6fd; }
+.heat-2 { background: #7dd3fc; border-color: #7dd3fc; }
+.heat-3 { background: #38bdf8; border-color: #38bdf8; }
+.heat-4 { background: #0ea5e9; border-color: #0ea5e9; }
+.heat-5 { background: #0284c7; border-color: #0284c7; }
+
+.legend-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-block;
+  margin: 0 2px;
+}
+.legend-box.heat-0 {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+}
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: var(--space-6);
+  background: var(--bg-secondary);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .calendar-cell {
+    min-height: 60px;
+    padding: 2px;
+  }
+  .calendar-day-spend {
+    font-size: 8px;
+    margin-top: 4px;
+  }
+}
+
+/* ============================================================
    DARK MODE — Dashboard specific overrides
    ============================================================ */
+
+/* Dark Mode Heatmap Colors (Deep Reds) */
+body.dark .heat-1 { background: #fee2e2; border-color: #fee2e2; }
+body.dark .heat-2 { background: #fca5a5; border-color: #fca5a5; }
+body.dark .heat-3 { background: #ef4444; border-color: #ef4444; }
+body.dark .heat-4 { background: #dc2626; border-color: #dc2626; }
+body.dark .heat-5 { background: #991b1b; border-color: #991b1b; }
 
 body.dark .summary-card {
   background: var(--bg-secondary);

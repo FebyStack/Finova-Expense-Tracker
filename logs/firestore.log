@@ -316,3 +316,18 @@
     "_syncedAt": {
   
 [2026-03-26 06:15:46] ERROR  token → 0 | Token exchange failed: null
+[2026-03-26 07:19:42] PATCH  users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/16v4WBKWCcVnTrVMSZiitF6N3hL2/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-27 03:04:37] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "_syncedAt": {
+  
+[2026-03-27 03:13:39] PATCH  users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data → 200 | {
+  "name": "projects/finova-8594c/databases/(default)/documents/users/fnB3AyBwYcRcymWhBNYMsQ4wItD3/profile/data",
+  "fields": {
+    "displayName": {
+
