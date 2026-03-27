@@ -3,7 +3,7 @@
 
 import { auth } from './firebase-config.js';
 import { fetchRecurringExpenses, editExpense } from './api.js';
-import { formatCurrency } from './currency.js';
+import { formatCurrency, convertItems, warmRateCache } from './currency.js';
 import { getCategoryStyle } from './categories.js';
 
 const container = document.getElementById('recurringListContainer');
@@ -64,8 +64,11 @@ export async function loadRecurringList() {
   try {
     container.innerHTML = '<div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading subscriptions…</div>';
 
-    const expenses = await fetchRecurringExpenses(user.uid);
+    const rawExpenses = await fetchRecurringExpenses(user.uid);
     const currency = window.userCurrency || 'PHP';
+
+    await warmRateCache(currency);
+    const { items: expenses } = await convertItems(rawExpenses, currency);
 
     if (!expenses.length) {
       container.innerHTML = `
@@ -94,7 +97,7 @@ export async function loadRecurringList() {
       // Calculate monthly equivalent total
       let monthlyTotal = 0;
       items.forEach(e => {
-        const amt = parseFloat(e.amount) || 0;
+        const amt = parseFloat(e.convertedAmount || e.amount) || 0;
         switch (freq) {
           case 'daily':   monthlyTotal += amt * 30; break;
           case 'weekly':  monthlyTotal += amt * 4.33; break;
@@ -120,7 +123,7 @@ export async function loadRecurringList() {
     // Summary banner
     let totalMonthly = 0;
     expenses.forEach(e => {
-      const amt = parseFloat(e.amount) || 0;
+      const amt = parseFloat(e.convertedAmount || e.amount) || 0;
       const freq = e.frequency || 'monthly';
       switch (freq) {
         case 'daily':   totalMonthly += amt * 30; break;
@@ -172,7 +175,7 @@ function buildRecurringCard(exp, currency) {
         </div>
       </div>
       <div class="recurring-card-right">
-        <div class="recurring-card-amount">${formatCurrency(parseFloat(exp.amount), currency)}</div>
+        <div class="recurring-card-amount">${formatCurrency(parseFloat(exp.convertedAmount || exp.amount), currency)}</div>
         <div class="recurring-card-next">${formatNextDate(nextDate)}</div>
       </div>
       <div class="recurring-card-actions">

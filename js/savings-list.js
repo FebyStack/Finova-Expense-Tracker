@@ -3,7 +3,7 @@
 
 import { auth } from './firebase-config.js';
 import { fetchSavingsGoals, removeSavingsGoal } from './api.js';
-import { formatCurrency } from './currency.js';
+import { formatCurrency, convertSync, warmRateCache } from './currency.js';
 
 const container = document.getElementById('savingsListContainer');
 
@@ -14,8 +14,8 @@ export async function loadSavingsList() {
   try {
     container.innerHTML = '<div class="list-empty">Loading savings goals...</div>';
     
-    // Convert to User's Currency context? For simplicity here, we assume 
-    // savings are logged in the user's base currency directly.
+    // Convert to User's Currency context
+    await warmRateCache(window.userCurrency || 'PHP');
     const goals = await fetchSavingsGoals(user.uid);
 
     if (goals.length === 0) {
@@ -37,10 +37,14 @@ export async function loadSavingsList() {
 }
 
 function buildSavingsCardHTML(goal) {
-  const { id, name, target_amount, current_amount, deadline } = goal;
+  const { id, name, target_amount, current_amount, deadline, currency } = goal;
+  const baseCurrency = window.userCurrency || 'PHP';
+
+  const rawTarget  = parseFloat(target_amount) || 1; // avoid /0
+  const rawCurrent = parseFloat(current_amount) || 0;
   
-  const target = parseFloat(target_amount) || 1; // avoid /0
-  const current = parseFloat(current_amount) || 0;
+  const target  = convertSync(rawTarget, currency || 'PHP', baseCurrency);
+  const current = convertSync(rawCurrent, currency || 'PHP', baseCurrency);
   
   let percentage = (current / target) * 100;
   if (percentage > 100) percentage = 100;

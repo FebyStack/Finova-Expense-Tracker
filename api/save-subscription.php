@@ -23,12 +23,28 @@ try {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
 
-    // Get user id
+    // Get user id, or create if not found
     $stmt = $pdo->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
     $stmt->execute([':uid' => $payload['uid']]);
-    $userId = $stmt->fetchColumn();
-    if (!$userId) throw new Exception("User not found");
-
+    $row = $stmt->fetch();
+    
+    if ($row) {
+        $userId = (int) $row['id'];
+    } else {
+        // Auto-create missing user for Firebase Auth compatibility
+        $stmt = $pdo->prepare("
+            INSERT INTO finova.users (firebase_uid, email, display_name, base_currency, created_at) 
+            VALUES (:uid, :email, :name, 'PHP', NOW())
+            RETURNING id
+        ");
+        $stmt->execute([
+            ':uid' => $payload['uid'], 
+            ':email' => $payload['uid'] . '@placeholder.com', 
+            ':name' => 'Imported User'
+        ]);
+        $userId = (int) $stmt->fetchColumn();
+    }
+    
     $sub = $payload['subscription'];
     $endpoint = $sub['endpoint'];
     $p256dh = $sub['keys']['p256dh'];

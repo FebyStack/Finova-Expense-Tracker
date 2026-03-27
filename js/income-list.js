@@ -4,6 +4,7 @@
 import { auth } from './firebase-config.js';
 import { fetchIncome, removeIncome } from './api.js';
 import { showIncomeToast, openIncomeModal } from './income.js';
+import { convertItems } from './currency.js';
 
 const SOURCE_STYLES = {
   'Salary':      { icon: 'fa-solid fa-briefcase',      bg: '#e8f5e9', color: '#22c55e' },
@@ -68,7 +69,9 @@ export async function loadIncomeList(userDataCurrency = 'PHP') {
     const monthFilter = document.getElementById('incListMonthFilter')?.value || undefined;
     const srcFilter   = document.getElementById('incListSourceFilter')?.value || undefined;
 
-    allIncome = await fetchIncome(user.uid, { month: monthFilter });
+    const rawIncome = await fetchIncome(user.uid, { month: monthFilter });
+    const { items: converted } = await convertItems(rawIncome, currentCurrency);
+    allIncome = converted;
 
     // Client-side source filter
     if (srcFilter) {
@@ -106,7 +109,7 @@ function renderIncomeList() {
   }
 
   // Calculate total
-  const total = allIncome.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+  const total = allIncome.reduce((sum, i) => sum + parseFloat(i.convertedAmount || i.amount || 0), 0);
 
   const html = allIncome.map(inc => {
     const style = getSourceStyle(inc.source);
@@ -124,7 +127,7 @@ function renderIncomeList() {
         
         <div style="display:flex; align-items:center; gap:var(--space-4);">
           <div class="transaction-amount income">
-            +${formatCurrency(inc.amount, inc.currency || currentCurrency)}
+            +${formatCurrency(inc.convertedAmount || inc.amount, currentCurrency)}
           </div>
           <div class="expense-actions">
             <button class="expense-action-btn edit" onclick="editIncomeHandler(${inc.id})" title="Edit">

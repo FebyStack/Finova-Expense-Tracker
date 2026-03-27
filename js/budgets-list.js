@@ -1,7 +1,7 @@
 import { auth } from './firebase-config.js';
 import { fetchBudgets, fetchExpenses, editBudget, removeBudget } from './api.js';
 import { getCategoryStyle } from './categories.js';
-import { convertItems, formatCurrency, warmRateCache } from './currency.js';
+import { convertItems, formatCurrency, warmRateCache, convertSync } from './currency.js';
 import { addNotification } from './notifications.js';
 // openBudgetModal accessed via window.openBudgetModal (set by budgets.js)
 
@@ -98,10 +98,12 @@ async function loadBudgets() {
     const updatePromises = [];
     currentBudgets.forEach(b => {
       const actualSpent = spentByCategory[b.category] || 0;
-      const limit = parseFloat(b.limit_amount) || 1;
+      
+      const rawLimit = parseFloat(b.limit_amount) || 1;
+      const limit    = convertSync(rawLimit, b.currency || 'PHP', window.userCurrency || 'PHP');
       
       // Compare ignoring tiny float differences
-      if (Math.abs(parseFloat(b.spent) - actualSpent) > 0.02) {
+      if (Math.abs(parseFloat(b.spent || 0) - actualSpent) > 0.02) {
         b.spent = actualSpent; // Update local memory immediately
         updatePromises.push(editBudget(b.id, user.uid, { spent: actualSpent }));
       }
@@ -154,11 +156,15 @@ function renderBudgets() {
 }
 
 function buildBudgetCardHTML(budget) {
-  const { category, limit_amount, spent, id } = budget;
+  const { category, limit_amount, spent, id, currency } = budget;
   const style = getCategoryStyle(category);
   
-  const limit = parseFloat(limit_amount) || 0;
-  const currentSpent = parseFloat(spent) || 0;
+  const baseCurrency = window.userCurrency || 'PHP';
+
+  const rawLimit = parseFloat(limit_amount) || 0;
+  const limit    = convertSync(rawLimit, currency || 'PHP', baseCurrency);
+  
+  const currentSpent = parseFloat(spent) || 0; // Note: spent was updated to userCurrency logic above
   
   let percentage = limit > 0 ? (currentSpent / limit) * 100 : 0;
   if (percentage > 100) percentage = 100;
@@ -180,8 +186,6 @@ function buildBudgetCardHTML(budget) {
     statusClass = 'warning';
   }
 
-  const baseCurrency = window.userCurrency || 'PHP';
-
   return `
     <div class="budget-card ${dangerClass}">
       <div class="budget-header">
@@ -200,18 +204,18 @@ function buildBudgetCardHTML(budget) {
           </button>
         </div>
       </div>
-
-      <div class="budget-amounts">
-        <div class="budget-spent">${formatCurrency(currentSpent, baseCurrency)}</div>
-        <div class="budget-limit">/ ${formatCurrency(limit, baseCurrency)}</div>
+      <div class="budget-meta">
+         <span class="budget-amounts">
+           <strong>${formatCurrency(currentSpent, baseCurrency)}</strong> / ${formatCurrency(limit, baseCurrency)}
+         </span>
+         <span class="budget-status ${statusClass}">${statusText}</span>
       </div>
-
+      
       <div class="budget-progress-container">
         <div class="budget-progress-bar ${progressClass}" style="width: ${percentage}%"></div>
       </div>
 
       <div class="budget-meta">
-        <span class="budget-meta-status ${statusClass}">${statusText}</span>
         <span class="budget-meta-percent">${Math.round(percentage)}%</span>
       </div>
     </div>

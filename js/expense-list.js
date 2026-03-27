@@ -5,6 +5,7 @@ import { auth } from './firebase-config.js';
 import { fetchExpenses, removeExpense } from './api.js';
 import { showToast, openExpenseModal } from './expenses.js';
 import { getCategoryStyle, loadCategories } from './categories.js';
+import { convertItems } from './currency.js';
 
 
 function formatCurrency(amount, currency = 'PHP') {
@@ -52,7 +53,10 @@ export async function loadExpenseList(userDataCurrency = 'PHP') {
     const monthFilter = document.getElementById('expListMonthFilter')?.value || undefined;
     const catFilter   = document.getElementById('expListCategoryFilter')?.value || undefined;
 
-    allExpenses = await fetchExpenses(user.uid, { month: monthFilter, category: catFilter });
+    const rawExpenses = await fetchExpenses(user.uid, { month: monthFilter, category: catFilter });
+    const { items: converted } = await convertItems(rawExpenses, currentCurrency);
+    allExpenses = converted;
+
     renderExpenseList();
   } catch (err) {
     console.error('Failed to load expenses:', err);
@@ -99,7 +103,7 @@ function renderExpenseList() {
         
         <div style="display:flex; align-items:center; gap:var(--space-4);">
           <div class="transaction-amount expense">
-            -${formatCurrency(exp.amount, exp.currency || currentCurrency)}
+            -${formatCurrency(exp.convertedAmount || exp.amount, currentCurrency)}
           </div>
           <div class="expense-actions">
             <button class="expense-action-btn edit" onclick="editExpenseHandler(${exp.id})" title="Edit">

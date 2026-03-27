@@ -1,6 +1,6 @@
 import { auth } from './firebase-config.js';
 import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavingsGoals, fetchAIInsights } from './api.js';
-import { convertItems, formatCurrency, warmRateCache } from './currency.js';
+import { convertItems, formatCurrency, warmRateCache, convertSync } from './currency.js';
 import { getCategoryStyle } from './categories.js';
 
 // ── TEMPORARY ERROR LOGGING (remove after debugging) ──────
@@ -106,7 +106,7 @@ window.addEventListener('unhandledrejection', (e) => {
         }
 
         // ── Sections ──────────────────────────────────────────
-        renderRecentTransactions(expenses, currency);
+        renderRecentTransactions(expResult.items, currency);
         await loadBudgetOverview(uid, currency, now, expResult.items);
         await loadSavingsOverview(uid, currency);
         loadAIInsights(uid, currency);
@@ -170,7 +170,7 @@ window.addEventListener('unhandledrejection', (e) => {
               </div>
             </div>
             <div class="transaction-amount expense">
-              -${formatCurrency(d.amount, currency)}
+              -${formatCurrency(d.convertedAmount || d.amount, currency)}
             </div>
           </div>`;
       });
@@ -208,9 +208,13 @@ window.addEventListener('unhandledrejection', (e) => {
 
         container.innerHTML = budgets.map(b => {
           let spent = spentByCategory[b.category];
-          if (spent === undefined) spent = parseFloat(b.spent) || 0;
+          if (spent === undefined) {
+             const rawSpent = parseFloat(b.spent) || 0;
+             spent = convertSync(rawSpent, b.currency || 'PHP', currency);
+          }
           
-          const lim   = parseFloat(b.limit_amount) || 1;
+          const rawLim = parseFloat(b.limit_amount) || 1;
+          const lim    = convertSync(rawLim, b.currency || 'PHP', currency);
           const pct   = Math.min(Math.round((spent / lim) * 100), 100);
           const level = pct >= 100 ? 'exceeded' : pct >= 80 ? 'warning' : 'safe';
           return `
@@ -251,8 +255,10 @@ window.addEventListener('unhandledrejection', (e) => {
         }
 
         container.innerHTML = goals.map(s => {
-          const curr = parseFloat(s.current_amount) || 0;
-          const tgt  = parseFloat(s.target_amount)  || 1;
+          const rawCurr = parseFloat(s.current_amount) || 0;
+          const rawTgt  = parseFloat(s.target_amount)  || 1;
+          const curr = convertSync(rawCurr, s.currency || 'PHP', currency);
+          const tgt  = convertSync(rawTgt,  s.currency || 'PHP', currency);
           const pct  = Math.min(Math.round((curr / tgt) * 100), 100);
           return `
             <div class="budget-item">
@@ -336,7 +342,9 @@ window.addEventListener('unhandledrejection', (e) => {
         container.innerHTML = html;
 
       } catch (err) {
-        console.warn('AI Insights error:', err);
+        if (!err.message.includes('Not enough')) {
+          console.warn('AI Insights error:', err);
+        }
         container.innerHTML = `
           <div class="empty-state" style="padding:var(--space-4); margin:0; border:none;">
             <i class="fa-solid fa-robot" style="color:var(--text-muted); font-size:24px; margin-bottom:8px;"></i>

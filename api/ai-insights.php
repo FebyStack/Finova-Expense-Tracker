@@ -42,8 +42,15 @@ function getUserId(PDO $db, string $uid): int {
     $stmt = $db->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
     $stmt->execute([':uid' => $uid]);
     $row = $stmt->fetch();
-    if (!$row) fail('User not found in Postgres', 404);
-    return (int) $row['id'];
+    if ($row) return (int) $row['id'];
+    
+    $stmt = $db->prepare("
+        INSERT INTO finova.users (firebase_uid, email, display_name, base_currency, created_at) 
+        VALUES (:uid, :email, :name, 'PHP', NOW())
+        RETURNING id
+    ");
+    $stmt->execute([':uid' => $uid, ':email' => $uid . '@placeholder.com', ':name' => 'Imported User']);
+    return (int) $stmt->fetchColumn();
 }
 
 // ── MAIN LOGIC ─────────────────────────────
@@ -82,7 +89,7 @@ try {
     $summary = $aiService->getUserFinancialSummary($month);
 
     if (!$summary['hasData']) {
-        fail('Not enough data to generate insights yet.', 400);
+        fail('Not enough data to generate insights yet.', 200);
     }
 
     // 3. Construct Prompt

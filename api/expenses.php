@@ -12,6 +12,7 @@ header('Content-Type: application/json; charset=UTF-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/../services/firestore.php';
+require_once 'auth_middleware.php';
 
 function ok(mixed $data, int $code = 200): void {
     http_response_code($code);
@@ -34,25 +35,20 @@ function getDb(): PDO {
     }
     return $pdo;
 }
-function getUserId(PDO $db, string $uid): int {
-    $stmt = $db->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
-    $stmt->execute([':uid' => $uid]);
-    $row = $stmt->fetch();
-    if (!$row) fail('User not found', 404);
-    return (int) $row['id'];
-}
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int) $_GET['id'] : null;
+$RAW_BODY = file_get_contents('php://input');
 
 try {
     $db = getDb();
+    $userId = requireAuth($db); // Auto-fetches and creates if missing!
 
     // GET
     if ($method === 'GET') {
-        $uid = $_GET['uid'] ?? null;
-        if (!$uid) fail('uid is required', 400);
-        $userId = getUserId($db, $uid);
+        // $uid is no longer needed as userId is obtained from auth_middleware
+        // if (!$uid) fail('uid is required', 400); // Removed
 
         if ($id) {
             $stmt = $db->prepare("SELECT * FROM finova.expenses WHERE id = :id AND user_id = :userId");
@@ -77,14 +73,15 @@ try {
 
     // POST
     if ($method === 'POST') {
-        $body = json_decode(file_get_contents('php://input'), true);
-        $uid  = $body['uid'] ?? null;
-        if (!$uid)                    fail('uid is required', 400);
+        $body = json_decode($RAW_BODY, true);
+        $uid  = $body['uid'] ?? null; // Keep uid for Firestore mirroring, but not for auth
+        if (!$uid) fail('uid is required', 400); // Still needed for Firestore
         if (empty($body['amount']))   fail('amount is required', 400);
         if (empty($body['category'])) fail('category is required', 400);
         if (empty($body['date']))     fail('date is required', 400);
 
-        $userId    = getUserId($db, $uid);
+        // $userId is already set by requireAuth($db) at the top of the try block.
+        // $userId    = getUserId($db, $uid); // Removed
         $amount    = (float) $body['amount'];
         $month     = substr($body['date'], 0, 7);
         $currency  = $body['currency']  ?? 'PHP';
@@ -132,12 +129,13 @@ try {
 
     // PUT
     if ($method === 'PUT') {
-        if (!$id) fail('id is required', 400);
-        $body = json_decode(file_get_contents('php://input'), true);
-        $uid  = $body['uid'] ?? null;
-        if (!$uid) fail('uid is required', 400);
+        if (!$id) fail('Missing expense id', 400);
+        $body = json_decode($RAW_BODY, true);
+        $uid  = $body['uid'] ?? null; // Keep uid for Firestore mirroring, but not for auth
+        if (!$uid) fail('Missing uid in body', 400); // Still needed for Firestore
 
-        $userId = getUserId($db, $uid);
+        // $userId is already set by requireAuth($db) at the top of the try block.
+        // $userId = getUserId($db, $uid); // Removed
         $month  = isset($body['date']) ? substr($body['date'], 0, 7) : null;
         $receiptData = isset($body['receiptData']) ? json_encode($body['receiptData']) : null;
 
@@ -196,10 +194,11 @@ try {
     // DELETE
     if ($method === 'DELETE') {
         if (!$id) fail('id is required', 400);
-        $uid = $_GET['uid'] ?? null;
-        if (!$uid) fail('uid is required', 400);
+        $uid = $_GET['uid'] ?? null; // Keep uid for Firestore mirroring, but not for auth
+        if (!$uid) fail('uid is required', 400); // Still needed for Firestore
 
-        $userId = getUserId($db, $uid);
+        // $userId is already set by requireAuth($db) at the top of the try block.
+        // $userId = getUserId($db, $uid); // Removed
         $stmt = $db->prepare("DELETE FROM finova.expenses WHERE id = :id AND user_id = :userId RETURNING id");
         $stmt->execute([':id' => $id, ':userId' => $userId]);
         if (!$stmt->fetch()) fail('Expense not found', 404);
