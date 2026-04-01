@@ -1,4 +1,4 @@
-import { auth } from './firebase-config.js';
+
 import { sendAIChatMessage } from './api.js';
 
 window.toggleAIChat = function() {
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const user = auth.currentUser;
+    const user = window.currentUser;
     if (!user) return;
 
     const message = chatInput.value.trim();

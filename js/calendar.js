@@ -1,7 +1,5 @@
 // js/calendar.js
 // Day 22-23: Calendar View, Heatmap & Day Detail
-import { auth, db } from './firebase-config.js';
-import { collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js';
 import { fetchExpenses, fetchIncome } from './api.js';
 import { getCategoryStyle } from './categories.js';
 import { formatCurrency } from './currency.js';
@@ -16,7 +14,7 @@ const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 // ── Main Render Function ─────────────────────────────────────
 export async function renderCalendar() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   const container = document.getElementById('calendarPageContainer');
   if (!user || !container) return;
 
@@ -341,5 +339,5 @@ window.addEventListener('hashchange', () => {
 });
 
 if (window.location.hash === '#calendar') {
-  auth.onAuthStateChanged(user => { if (user) renderCalendar(); });
+  if (window.currentUser) renderCalendar();
 }

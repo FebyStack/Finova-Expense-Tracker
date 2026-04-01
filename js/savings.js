@@ -1,7 +1,7 @@
 // js/savings.js
 // Handles Savings Goals Modals (Create/Edit Goal, Add Contribution)
 
-import { auth } from './firebase-config.js';
+
 import { addSavingsGoal, editSavingsGoal, fetchSavingsGoals } from './api.js';
 
 // Elements: Goal Modal
@@ -41,7 +41,7 @@ window.openSavingsModal = async (goalId = null) => {
     document.getElementById('modalSavingsTitle').innerHTML = '<i class="fa-solid fa-piggy-bank" style="color:var(--accent);"></i> Edit Savings Goal';
     try {
       // Find goal
-      const user = auth.currentUser;
+      const user = window.currentUser;
       if (!user) return;
       const goals = await fetchSavingsGoals(user.uid);
       const goal = goals.find(g => g.id === goalId);
@@ -99,7 +99,7 @@ window.addEventListener('click', (e) => {
 if (btnSaveSavings) {
   btnSaveSavings.addEventListener('click', async () => {
     savingsError.style.display = 'none';
-    const user = auth.currentUser;
+    const user = window.currentUser;
     if (!user) return;
 
     const name = inputName.value.trim();
@@ -150,7 +150,7 @@ if (btnSaveSavings) {
 if (btnSaveContrib) {
   btnSaveContrib.addEventListener('click', async () => {
     contribError.style.display = 'none';
-    const user = auth.currentUser;
+    const user = window.currentUser;
     if (!user) return;
 
     const goalId = contribGoalId.value;

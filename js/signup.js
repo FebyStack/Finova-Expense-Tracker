@@ -179,46 +179,8 @@ function validateForm() {
 
 
 // ── Sign up button handler ─────────────────────────────────
-// ── Sign up button handler — Full Firebase version ─────────
-import { auth, db } from './firebase-config.js';
-
-// ── Temporary debug — remove after fixing ──
-console.log('auth:', auth);
-console.log('db:', db);
-
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  signInWithPopup,
-  GoogleAuthProvider,
-  OAuthProvider,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-import {
-  doc,
-  setDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-const googleProvider = new GoogleAuthProvider();
-const appleProvider  = new OAuthProvider('apple.com');
-appleProvider.addScope('email');
-appleProvider.addScope('name');
 
 let isSigningUp = false;    
-
-function friendlyError(code) {
-  switch (code) {
-    case 'auth/email-already-in-use':   return 'An account with this email already exists.';
-    case 'auth/invalid-email':          return 'Please enter a valid email address.';
-    case 'auth/weak-password':          return 'Password must be at least 6 characters.';
-    case 'auth/network-request-failed': return 'Network error. Check your connection.';
-    case 'auth/popup-blocked':          return 'Popup was blocked. Please allow popups and try again.';
-    case 'auth/account-exists-with-different-credential':
-      return 'An account already exists with this email using a different sign-in method.';
-    default: return 'Something went wrong. Please try again.';
-  }
-}
 
 function setLoading(btnId, isLoading) {
   const btn = document.getElementById(btnId);
@@ -227,28 +189,6 @@ function setLoading(btnId, isLoading) {
   btn.innerHTML = isLoading
     ? `<i class="fa-solid fa-spinner fa-spin"></i> Creating account…`
     : `<span class="btn-label">Create Account</span> <i class="fa-solid fa-arrow-right"></i>`;
-}
-
-// Save user profile to Firestore after account creation
-async function saveUserProfile(user, extraData = {}) {
-  console.log('💾 Attempting Firestore write...');
-  console.log('User UID:', user.uid);
-  console.log('DB instance:', db);
-
-  try {
-    await setDoc(doc(db, 'users', user.uid), {
-      uid:          user.uid,
-      email:        user.email,
-      displayName:  user.displayName || extraData.displayName || '',
-      baseCurrency: extraData.baseCurrency || 'PHP',
-      theme:        'light',
-      createdAt:    serverTimestamp(),
-      updatedAt:    serverTimestamp(),
-    });
-    console.log('✅ Firestore write successful!');
-  } catch (error) {
-    console.error('❌ Firestore write failed:', error.code, error.message);
-  }
 }
 
 // Email / Password sign-up
@@ -261,73 +201,48 @@ document.getElementById('btnSignup')
     const firstName = document.getElementById('inputFirstName').value.trim();
     const lastName  = document.getElementById('inputLastName').value.trim();
     const email     = document.getElementById('inputEmail').value.trim();
-    const currency  = document.getElementById('inputCurrency').value;
+    // const currency  = document.getElementById('inputCurrency').value; // Ignored for signup right now as base is PHP
     const password  = document.getElementById('inputPassword').value;
     const fullName  = `${firstName} ${lastName}`;
 
     setLoading('btnSignup', true);
 
     try {
-      // 1. Create Firebase Auth account
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user           = userCredential.user;
-
-      // 2. Set display name in Firebase Auth
-      await updateProfile(user, { displayName: fullName });
-
-      // 3. Save profile to Firestore
-      await saveUserProfile(user, {
-        displayName:  fullName,
-        baseCurrency: currency
+      const resp = await fetch('api/signup.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password, displayName: fullName })
       });
+      const data = await resp.json();
 
-      // 4. Redirect to dashboard
+      if (!data.success) {
+          throw new Error(data.error || 'Failed to create account');
+      }
+
+      // Automatically redirect to dashboard after successful session creation
       isSigningUp = false;
       window.location.href = 'dashboard.html';
 
     } catch (error) {
-        isSigningUp = false;
-      showError(friendlyError(error.code));
+      isSigningUp = false;
+      showError(error.message);
       setLoading('btnSignup', false);
     }
   });
 
-// Google sign-up
-btnGoogle?.addEventListener('click', async () => {
-  try {
-    isSigningUp = true;
-    const result = await signInWithPopup(auth, googleProvider);
-    const user   = result.user;
-
-    // Only save profile if it's a brand new user
-    const isNewUser = result._tokenResponse?.isNewUser;
-    if (isNewUser) {
-      await saveUserProfile(user, {
-        name:  user.displayName || '',
-        email: user.email || '',
-      });
-    }
-
-    window.location.href = 'dashboard.html';
-
-  } catch (error) {
-    isSigningUp = false;
-
-    // Ignore popup closed by user — not a real error
-    if (error.code === 'auth/popup-closed-by-user' ||
-        error.code === 'auth/cancelled-popup-request') {
-      return;
-    }
-
-    console.error('Google sign-in error:', error.code, error.message);
-    showError(friendlyError(error.code));
-  }
-});
-
 
 // Route guard — redirect logged-in users away from signup
-onAuthStateChanged(auth, (user) => {
-  if (user && !isSigningUp) {
-    window.location.href = 'dashboard.html';
-  }
-});     
+async function checkAuth() {
+    try {
+        const resp = await fetch('api/me.php', { credentials: 'include' });
+        const data = await resp.json();
+        if (data.success && !isSigningUp) {
+            window.location.href = 'dashboard.html';
+        }
+    } catch(err) {
+        // Not logged in, stay on page
+    }
+}
+
+checkAuth();     

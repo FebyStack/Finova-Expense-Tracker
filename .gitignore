@@ -16,6 +16,26 @@ error_log
 # OS generated files
 .DS_Store
 .DS_Store?
+# Credentials & API Keys
+.env
+serviceAccountKey.json
+*.json.key
+secrets.php
+
+# Composer / Backend Dependencies
+vendor/
+
+# Node / Frontend Dependencies
+node_modules/
+npm-debug.log
+
+# Logs
+*.log
+error_log
+
+# OS generated files
+.DS_Store
+.DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
@@ -27,3 +47,28 @@ Thumbs.db
 .vscode/
 *.swp
 *~
+
+# User Uploads & Media
+uploads/
+temp/
+
+# Sync & Migration Diagnostics (PHP/JS scripts)
+cleanup_errors.py
+cleanup_workspace.php
+count_db.php
+create-chat.php
+create-table.php
+diagnose.php
+discover.php
+export-firebase.js
+firebase-export/
+generate-vapid.php
+inspect_db.php
+migrate-to-postges.js
+schema-check.php
+test2.php
+test_insert_jsonb.php
+upload.php
+setup-push.php
+create_user.php
+migrate.php

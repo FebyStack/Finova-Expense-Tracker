@@ -1,8 +1,8 @@
 // js/income.js
-// Add / Edit Income modal — UI + PostgreSQL save (mirrors to Firebase automatically)
+// Add / Edit Income modal — UI + PostgreSQL save
 
 import { addIncome, editIncome } from './api.js';
-import { auth } from './firebase-config.js';
+
 
 // ── Source definitions ─────────────────────────────────────
 const SOURCES = [
@@ -175,7 +175,7 @@ async function saveIncome() {
   if (!validateIncomeForm()) return;
   if (isSaving) return;
 
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   isSaving     = true;

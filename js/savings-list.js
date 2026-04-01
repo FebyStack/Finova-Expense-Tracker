@@ -1,14 +1,14 @@
 // js/savings-list.js
 // Fetches and renders Savings Goals on the Dashboard
 
-import { auth } from './firebase-config.js';
+
 import { fetchSavingsGoals, removeSavingsGoal } from './api.js';
 import { formatCurrency, convertSync, warmRateCache } from './currency.js';
 
 const container = document.getElementById('savingsListContainer');
 
 export async function loadSavingsList() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user || !container) return;
 
   try {
@@ -110,8 +110,13 @@ function buildSavingsCardHTML(goal) {
 
 // Global Del Function
 window.deleteSavingsGoal = async (id) => {
-  if (!confirm('Are you sure you want to delete this savings goal?')) return;
-  const user = auth.currentUser;
+  const confirmed = await window.showConfirm(
+    'Are you sure you want to delete this savings goal?',
+    'Delete Goal'
+  );
+  if (!confirmed) return;
+
+  const user = window.currentUser;
   if (!user) return;
   try {
     await removeSavingsGoal(id, user.uid);
@@ -136,5 +141,5 @@ const onHashChange = () => {
 window.addEventListener('hashchange', onHashChange);
 // Initial load if starting on page
 if (window.location.hash === '#savings') {
-  auth.onAuthStateChanged(user => { if (user) loadSavingsList(); });
+  if (window.currentUser) loadSavingsList();
 }

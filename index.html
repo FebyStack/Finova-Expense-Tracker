@@ -150,17 +150,22 @@
     }
   </script>
 
-  <script type="module">
-    import { auth }               from './js/firebase-config.js';
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = 'dashboard.html';
-      } else {
+  <script>
+    async function checkSession() {
+      try {
+        const resp = await fetch('api/me.php', { credentials: 'include' });
+        const resData = await resp.json();
+        
+        if (resData.success) {
+          window.location.href = 'dashboard.html';
+        } else {
+          window.location.href = 'login.html';
+        }
+      } catch (err) {
         window.location.href = 'login.html';
       }
-    });
+    }
+    checkSession();
   </script>
 
 </body>

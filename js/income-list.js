@@ -1,7 +1,7 @@
 // js/income-list.js
 // Logic for displaying, filtering, editing, and deleting income entries
 
-import { auth } from './firebase-config.js';
+
 import { fetchIncome, removeIncome } from './api.js';
 import { showIncomeToast, openIncomeModal } from './income.js';
 import { convertItems } from './currency.js';
@@ -43,7 +43,7 @@ let currentCurrency = 'PHP';
 
 // ── Load Income ────────────────────────────────────────────
 export async function loadIncomeList(userDataCurrency = 'PHP') {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   currentCurrency = userDataCurrency;
@@ -151,68 +151,32 @@ function renderIncomeList() {
   `;
 }
 
-// ── Styled Confirmation Dialog ─────────────────────────────
-function showConfirmDialog(message, onConfirm) {
-  document.getElementById('confirmDialogOverlay')?.remove();
+// showConfirmDialog removed — redirected to confirm.js
 
-  const overlay = document.createElement('div');
-  overlay.id = 'confirmDialogOverlay';
-  overlay.className = 'confirm-dialog-overlay';
-  overlay.innerHTML = `
-    <div class="confirm-dialog">
-      <div class="confirm-dialog-icon">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-      </div>
-      <h3 class="confirm-dialog-title">Confirm Delete</h3>
-      <p class="confirm-dialog-message">${message}</p>
-      <div class="confirm-dialog-actions">
-        <button class="btn btn-ghost" id="confirmDialogCancel">Cancel</button>
-        <button class="btn btn-danger" id="confirmDialogConfirm">
-          <i class="fa-solid fa-trash"></i> Delete
-        </button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add('open'));
-
-  const close = () => {
-    overlay.classList.remove('open');
-    setTimeout(() => overlay.remove(), 250);
-  };
-
-  document.getElementById('confirmDialogCancel').addEventListener('click', close);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-
-  document.getElementById('confirmDialogConfirm').addEventListener('click', () => {
-    close();
-    onConfirm();
-  });
-}
 
 // ── Delete Handler ─────────────────────────────────────────
-window.deleteIncomeHandler = function(id) {
+window.deleteIncomeHandler = async function(id) {
   const inc = allIncome.find(i => i.id == id);
   const label = inc ? (inc.note || inc.source || 'this income') : 'this income';
 
-  showConfirmDialog(
-    `Are you sure you want to delete <strong>"${label}"</strong>? This action cannot be undone.`,
-    async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      try {
-        await removeIncome(id, user.uid);
-        showIncomeToast('Income deleted', 'success');
-        loadIncomeList(currentCurrency);
-        if (window.refreshDashboard) window.refreshDashboard();
-      } catch (err) {
-        console.error('Delete income failed:', err);
-        showIncomeToast('Failed to delete income', 'error');
-      }
-    }
+  const confirmed = await window.showConfirm(
+    `Are you sure you want to delete <strong>"${label}"</strong>? This action cannot be undone.`
   );
+
+  if (!confirmed) return;
+
+  const user = window.currentUser;
+  if (!user) return;
+
+  try {
+    await removeIncome(id, user.uid);
+    showIncomeToast('Income deleted', 'success');
+    loadIncomeList(currentCurrency);
+    if (window.refreshDashboard) window.refreshDashboard();
+  } catch (err) {
+    console.error('Delete income failed:', err);
+    showIncomeToast('Failed to delete income', 'error');
+  }
 };
 
 // ── Edit Handler ───────────────────────────────────────────

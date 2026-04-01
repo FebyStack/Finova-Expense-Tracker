@@ -1,7 +1,7 @@
 // js/expense-list.js
 // Logic for displaying, filtering, editing, and deleting expenses
 
-import { auth } from './firebase-config.js';
+
 import { fetchExpenses, removeExpense } from './api.js';
 import { showToast, openExpenseModal } from './expenses.js';
 import { getCategoryStyle, loadCategories } from './categories.js';
@@ -27,7 +27,7 @@ let currentCurrency = 'PHP';
 
 // ── Load Expenses ──────────────────────────────────────────
 export async function loadExpenseList(userDataCurrency = 'PHP') {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   currentCurrency = userDataCurrency;
@@ -121,69 +121,32 @@ function renderExpenseList() {
   container.innerHTML = `<div class="transaction-list">${html}</div>`;
 }
 
-// ── Styled Confirmation Dialog ─────────────────────────────
-function showConfirmDialog(message, onConfirm) {
-  // Remove any existing dialog
-  document.getElementById('confirmDialogOverlay')?.remove();
+// showConfirmDialog removed — redirected to confirm.js
 
-  const overlay = document.createElement('div');
-  overlay.id = 'confirmDialogOverlay';
-  overlay.className = 'confirm-dialog-overlay';
-  overlay.innerHTML = `
-    <div class="confirm-dialog">
-      <div class="confirm-dialog-icon">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-      </div>
-      <h3 class="confirm-dialog-title">Confirm Delete</h3>
-      <p class="confirm-dialog-message">${message}</p>
-      <div class="confirm-dialog-actions">
-        <button class="btn btn-ghost" id="confirmDialogCancel">Cancel</button>
-        <button class="btn btn-danger" id="confirmDialogConfirm">
-          <i class="fa-solid fa-trash"></i> Delete
-        </button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add('open'));
-
-  const close = () => {
-    overlay.classList.remove('open');
-    setTimeout(() => overlay.remove(), 250);
-  };
-
-  document.getElementById('confirmDialogCancel').addEventListener('click', close);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-
-  document.getElementById('confirmDialogConfirm').addEventListener('click', () => {
-    close();
-    onConfirm();
-  });
-}
 
 // ── Delete Handler ─────────────────────────────────────────
-window.deleteExpenseHandler = function(id) {
+window.deleteExpenseHandler = async function(id) {
   const exp = allExpenses.find(e => e.id == id);
   const label = exp ? (exp.note || exp.category || 'this expense') : 'this expense';
 
-  showConfirmDialog(
-    `Are you sure you want to delete <strong>"${label}"</strong>? This action cannot be undone.`,
-    async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      try {
-        await removeExpense(id, user.uid);
-        showToast('Expense deleted', 'success');
-        loadExpenseList(currentCurrency);
-        if (window.refreshDashboard) window.refreshDashboard();
-      } catch (err) {
-        console.error('Delete failed:', err);
-        showToast('Failed to delete expense', 'error');
-      }
-    }
+  const confirmed = await window.showConfirm(
+    `Are you sure you want to delete <strong>"${label}"</strong>? This action cannot be undone.`
   );
+
+  if (!confirmed) return;
+
+  const user = window.currentUser;
+  if (!user) return;
+
+  try {
+    await removeExpense(id, user.uid);
+    showToast('Expense deleted', 'success');
+    loadExpenseList(currentCurrency);
+    if (window.refreshDashboard) window.refreshDashboard();
+  } catch (err) {
+    console.error('Delete failed:', err);
+    showToast('Failed to delete expense', 'error');
+  }
 };
 
 // ── Edit Handler ───────────────────────────────────────────

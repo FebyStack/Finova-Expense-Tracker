@@ -1,4 +1,3 @@
-import { auth } from './firebase-config.js';
 import { fetchExpenses, fetchIncome, fetchBudgets, fetchSavingsGoals, fetchAIInsights } from './api.js';
 import { convertItems, formatCurrency, warmRateCache, convertSync } from './currency.js';
 import { getCategoryStyle } from './categories.js';
@@ -359,6 +358,13 @@ window.addEventListener('unhandledrejection', (e) => {
 
     // Expose refresh function to window for the button onclick
     window.refreshAIInsights = function() {
-      const user = auth.currentUser;
+      const user = window.currentUser;
       if (user) loadAIInsights(user.uid, window.userCurrency || 'PHP', true);
     };
+
+    // ── Auto-reload on navigation ──────────────────────────────
+    window.addEventListener('dashboardUpdated', () => {
+      const user = window.currentUser;
+      const userData = window.userData; // usually provided via some global
+      if (user) loadDashboard(user, userData);
+    });

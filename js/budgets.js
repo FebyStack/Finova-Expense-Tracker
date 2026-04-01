@@ -1,5 +1,5 @@
 // js/budgets.js — Add / Edit Budget Modal
-import { auth } from './firebase-config.js';
+
 import { loadCategories } from './categories.js';
 import { addBudget, editBudget } from './api.js';
 
@@ -71,7 +71,7 @@ export async function openBudgetModal(budget = null) {
   if (!budgetModal) { console.error('[budgets] ❌ #budgetModalContainer missing'); alert('Budget modal not found — please hard-refresh.'); return; }
   if (!budgetBackdrop) { console.error('[budgets] ❌ #budgetModalBackdrop missing'); return; }
 
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) { console.error('[budgets] ❌ No authenticated user'); return; }
 
   isEditMode = !!budget;

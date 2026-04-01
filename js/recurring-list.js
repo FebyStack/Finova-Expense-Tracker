@@ -1,7 +1,7 @@
 // js/recurring-list.js
 // Displays and manages recurring (subscription) expenses
 
-import { auth } from './firebase-config.js';
+
 import { fetchRecurringExpenses, editExpense } from './api.js';
 import { formatCurrency, convertItems, warmRateCache } from './currency.js';
 import { getCategoryStyle } from './categories.js';
@@ -58,7 +58,7 @@ function freqBadge(frequency) {
 
 // ── Render ──────────────────────────────────────────────────
 export async function loadRecurringList() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user || !container) return;
 
   try {
@@ -188,8 +188,13 @@ function buildRecurringCard(exp, currency) {
 
 // ── Cancel recurring ────────────────────────────────────────
 window.cancelRecurring = async (expenseId) => {
-  if (!confirm('Stop this expense from recurring? The original expense will remain in your records.')) return;
-  const user = auth.currentUser;
+  const confirmed = await window.showConfirm(
+    'Stop this expense from recurring? The original expense will remain in your records.',
+    'Cancel Recurring'
+  );
+  
+  if (!confirmed) return;
+  const user = window.currentUser;
   if (!user) return;
 
   try {
@@ -209,5 +214,5 @@ const onHash = () => {
 };
 window.addEventListener('hashchange', onHash);
 if (window.location.hash === '#recurring') {
-  auth.onAuthStateChanged(user => { if (user) loadRecurringList(); });
+  if (window.currentUser) loadRecurringList();
 }

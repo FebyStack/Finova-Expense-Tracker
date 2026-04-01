@@ -9,7 +9,7 @@ try {
     $result = ['users' => [], 'expenses' => [], 'income' => []];
     
     // Get all users
-    $stmt = $db->query("SELECT id, firebase_uid, email FROM finova.users");
+    $stmt = $db->query("SELECT id, email FROM finova.users");
     $result['users'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Get all expenses

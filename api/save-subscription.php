@@ -1,50 +1,21 @@
 <?php
-// api/save-subscription.php
-ini_set('display_errors', 0); error_reporting(0);
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
+require_once 'config.php';
+require_once 'auth_middleware.php';
 
 $raw = file_get_contents('php://input');
 $payload = json_decode($raw, true);
 
-if (!$payload || !isset($payload['uid']) || !isset($payload['subscription'])) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Invalid payload']);
-    exit;
+if (!$payload || !isset($payload['subscription'])) {
+    fail('Invalid payload', 400);
 }
 
 try {
-    $pdo = new PDO('pgsql:host=localhost;port=5432;dbname=finova_db', 'postgres', 'bingbong321', [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    ]);
+    $pdo = getDb();
 
-    // Get user id, or create if not found
-    $stmt = $pdo->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
-    $stmt->execute([':uid' => $payload['uid']]);
-    $row = $stmt->fetch();
-    
-    if ($row) {
-        $userId = (int) $row['id'];
-    } else {
-        // Auto-create missing user for Firebase Auth compatibility
-        $stmt = $pdo->prepare("
-            INSERT INTO finova.users (firebase_uid, email, display_name, base_currency, created_at) 
-            VALUES (:uid, :email, :name, 'PHP', NOW())
-            RETURNING id
-        ");
-        $stmt->execute([
-            ':uid' => $payload['uid'], 
-            ':email' => $payload['uid'] . '@placeholder.com', 
-            ':name' => 'Imported User'
-        ]);
-        $userId = (int) $stmt->fetchColumn();
-    }
-    
+
+    // Get authenticated user ID
+    $userId = requireAuth($pdo);
+
     $sub = $payload['subscription'];
     $endpoint = $sub['endpoint'];
     $p256dh = $sub['keys']['p256dh'];

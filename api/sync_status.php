@@ -1,22 +1,10 @@
 <?php
-// api/sync_status.php
-// Returns pending sync queue count and online status
-// GET /api/sync_status.php
-
-ini_set('display_errors', 0);
-error_reporting(0);
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
-
+require_once 'config.php';
 require_once __DIR__ . '/../services/firestore.php';
 
+
 try {
-    $db = _fs_db();
+    $db = getDb();
 
     // Count pending items
     $pending = (int) $db->query("

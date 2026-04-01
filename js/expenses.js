@@ -1,5 +1,5 @@
 import { addExpense, editExpense, fetchExpenses } from './api.js'
-import { auth }       from './firebase-config.js';
+
 import { loadCategories, bgFromColor } from './categories.js';
 import { getCategoryStyle } from './categories.js';
 import { formatCurrency } from './currency.js';
@@ -163,8 +163,14 @@ function validateExpenseForm() {
     return false;
   }
   if (!selectedCategory) {
-    showExpenseError('Please select a category.');
-    return false;
+    // Fallback: check the hidden input value (handles instance desync)
+    const hiddenCat = document.getElementById('expCategory')?.value;
+    if (hiddenCat) {
+      selectedCategory = hiddenCat;
+    } else {
+      showExpenseError('Please select a category.');
+      return false;
+    }
   }
   if (!date) {
     showExpenseError('Please select a date.');
@@ -199,7 +205,7 @@ async function saveExpense() {
   if (!validateExpenseForm()) return;
   if (isSaving) return;
 
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   isSaving      = true;
@@ -215,7 +221,8 @@ async function saveExpense() {
     const recurring = document.getElementById('expRecurring').checked;
     const frequency = document.getElementById('expFrequency')?.value || null;
 
-    const dateObj = new Date(date);
+    let dateObj = new Date(date);
+    if (isNaN(dateObj)) dateObj = new Date(); // fallback if date was completely invalid
     const month   = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
 
     const payload = {
@@ -230,15 +237,19 @@ async function saveExpense() {
       receiptData: window._pendingReceiptData || null,
     };
 
+    console.group('🚀 [Expense Save Debug]');
+    console.log('Payload:', payload);
+
     // ── Edit mode vs Add mode ──
     let saved;
     if (editingExpenseId) {
       saved = await editExpense(editingExpenseId, user.uid, payload);
-      console.log('✅ Updated in PostgreSQL! ID:', editingExpenseId);
+      console.log('✅ Updated in PostgreSQL! Result:', saved);
     } else {
       saved = await addExpense(user.uid, payload);
-      console.log('✅ Saved to PostgreSQL! ID:', saved.id);
+      console.log('✅ Saved to PostgreSQL! Result:', saved);
     }
+    console.groupEnd();
 
     window._pendingReceiptData = null;
 
@@ -252,7 +263,8 @@ async function saveExpense() {
     if (window.refreshDashboard) window.refreshDashboard();
 
   } catch (err) {
-    console.error('❌ Save expense error:', err.message);
+    console.error('❌ [Expense Save Error]:', err);
+    console.groupEnd();
     showExpenseError(
       editingExpenseId
         ? 'Failed to update expense. Please try again.'
@@ -305,8 +317,14 @@ document.getElementById('btnSaveAsTemplate')?.addEventListener('click', () => {
   const note = document.getElementById('expNote').value.trim();
 
   if (!selectedCategory) {
-    showExpenseError('Please select a category first before saving a template.');
-    return;
+    // Fallback: check the hidden input value (handles instance desync)
+    const hiddenCat = document.getElementById('expCategory')?.value;
+    if (hiddenCat) {
+      selectedCategory = hiddenCat;
+    } else {
+      showExpenseError('Please select a category first before saving a template.');
+      return;
+    }
   }
 
   // Store data and open the naming modal
@@ -370,7 +388,7 @@ async function loadRecentChips(list) {
   list.innerHTML = '<div class="quick-fill-empty">Loading…</div>';
 
   try {
-    const user = auth.currentUser;
+    const user = window.currentUser;
     if (!user) { list.innerHTML = '<div class="quick-fill-empty">Not signed in.</div>'; return; }
 
     // Fetch recent expenses (no month filter = all, take last 5)

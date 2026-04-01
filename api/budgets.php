@@ -1,68 +1,17 @@
 <?php
-// api/budgets.php — standalone + Firestore mirror
+require_once 'config.php';
+require_once 'auth_middleware.php';
 
-ini_set('display_errors', 0);
-error_reporting(0);
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Firebase-UID');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
-
-require_once __DIR__ . '/../services/firestore.php';
-require_once __DIR__ . '/../config/database.php';
-
-function ok(mixed $data, int $code = 200): void {
-    http_response_code($code);
-    echo json_encode(['success' => true, 'data' => $data]);
-    exit;
-}
-function fail(string $msg, int $code = 400): void {
-    http_response_code($code);
-    echo json_encode(['success' => false, 'error' => $msg]);
-    exit;
-}
-function getDb(): PDO {
-    static $pdo = null;
-    if ($pdo === null) {
-        $pdo = new PDO('pgsql:host=localhost;port=5432;dbname=finova_db', 'postgres', 'bingbong321', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
-        $pdo->exec("SET search_path TO finova, public");
-    }
-    return $pdo;
-}
-function getUserId(PDO $db, string $uid): int {
-    $stmt = $db->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
-    $stmt->execute([':uid' => $uid]);
-    $row = $stmt->fetch();
-    if ($row) return (int) $row['id'];
-    
-    // Auto-create missing user for Firebase Auth compatibility
-    $stmt = $db->prepare("
-        INSERT INTO finova.users (firebase_uid, email, display_name, base_currency, created_at) 
-        VALUES (:uid, :email, :name, 'PHP', NOW())
-        RETURNING id
-    ");
-    $stmt->execute([':uid' => $uid, ':email' => $uid . '@placeholder.com', ':name' => 'Imported User']);
-    return (int) $stmt->fetchColumn();
-}
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int) $_GET['id'] : null;
 
 try {
     $db = getDb();
+    $userId = requireAuth($db);
 
     // GET
     if ($method === 'GET') {
-        $uid = $_GET['uid'] ?? null;
-        if (!$uid) fail('uid is required', 400);
-        $userId = getUserId($db, $uid);
-
         if ($id) {
             $stmt = $db->prepare("SELECT * FROM finova.budgets WHERE id = :id AND user_id = :userId");
             $stmt->execute([':id' => $id, ':userId' => $userId]);
@@ -84,19 +33,15 @@ try {
     // POST
     if ($method === 'POST') {
         $body = json_decode(file_get_contents('php://input'), true);
-        $uid  = $body['uid'] ?? null;
-        if (!$uid)                      fail('uid is required', 400);
         if (empty($body['category']))    fail('category is required', 400);
         if (empty($body['limitAmount'])) fail('limitAmount is required', 400);
         if (empty($body['month']))       fail('month is required', 400);
         if (empty($body['year']))        fail('year is required', 400);
 
-        $userId = getUserId($db, $uid);
-
         $db->beginTransaction();
         $stmt = $db->prepare("
-            INSERT INTO finova.budgets (user_id, firebase_uid, category, limit_amount, spent, month, year)
-            VALUES (:userId,:uid,:category,:limit,:spent,:month,:year)
+            INSERT INTO finova.budgets (user_id, category, limit_amount, spent, month, year)
+            VALUES (:userId,:category,:limit,:spent,:month,:year)
             ON CONFLICT (user_id, category, month, year) DO UPDATE SET
                 limit_amount = EXCLUDED.limit_amount,
                 updated_at   = NOW()
@@ -104,7 +49,6 @@ try {
         ");
         $stmt->execute([
             ':userId'  => $userId,
-            ':uid'     => $uid,
             ':category'=> $body['category'],
             ':limit'   => (float)$body['limitAmount'],
             ':spent'   => (float)($body['spent'] ?? 0),
@@ -114,17 +58,6 @@ try {
         $budget = $stmt->fetch();
         $db->commit();
 
-        try {
-            firestore_upsert($uid, 'budgets', (string)$budget['id'], [
-                'pgId'        => (int)   $budget['id'],
-                'category'    => $budget['category'],
-                'limitAmount' => (float) $budget['limit_amount'],
-                'spent'       => (float) $budget['spent'],
-                'month'       => (int)   $budget['month'],
-                'year'        => (int)   $budget['year'],
-            ]);
-        } catch (Throwable $e) {}
-
         ok($budget, 201);
     }
 
@@ -132,10 +65,6 @@ try {
     if ($method === 'PUT') {
         if (!$id) fail('id is required', 400);
         $body = json_decode(file_get_contents('php://input'), true);
-        $uid  = $body['uid'] ?? null;
-        if (!$uid) fail('uid is required', 400);
-
-        $userId = getUserId($db, $uid);
 
         $db->beginTransaction();
         $stmt = $db->prepare("
@@ -156,32 +85,17 @@ try {
         if (!$budget) { $db->rollBack(); fail('Budget not found', 404); }
         $db->commit();
 
-        try {
-            firestore_upsert($uid, 'budgets', (string)$id, [
-                'pgId'        => (int)   $budget['id'],
-                'category'    => $budget['category'],
-                'limitAmount' => (float) $budget['limit_amount'],
-                'spent'       => (float) $budget['spent'],
-                'month'       => (int)   $budget['month'],
-                'year'        => (int)   $budget['year'],
-            ]);
-        } catch (Throwable $e) {}
-
         ok($budget);
     }
 
     // DELETE
     if ($method === 'DELETE') {
         if (!$id) fail('id is required', 400);
-        $uid = $_GET['uid'] ?? null;
-        if (!$uid) fail('uid is required', 400);
 
-        $userId = getUserId($db, $uid);
         $stmt = $db->prepare("DELETE FROM finova.budgets WHERE id = :id AND user_id = :userId RETURNING id");
         $stmt->execute([':id' => $id, ':userId' => $userId]);
         if (!$stmt->fetch()) fail('Budget not found', 404);
 
-        try { firestore_delete($uid, 'budgets', (string)$id); } catch (Throwable $e) {}
         ok(['deleted' => true, 'id' => $id]);
     }
 

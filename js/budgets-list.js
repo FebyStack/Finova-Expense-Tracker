@@ -1,4 +1,4 @@
-import { auth } from './firebase-config.js';
+
 import { fetchBudgets, fetchExpenses, editBudget, removeBudget } from './api.js';
 import { getCategoryStyle } from './categories.js';
 import { convertItems, formatCurrency, warmRateCache, convertSync } from './currency.js';
@@ -58,15 +58,16 @@ export async function initBudgetsList() {
   window.openEditBudget = openEditBudget;
 
   // Initial load if auth is ready, else wait
-  if (auth.currentUser) {
+  if (window.currentUser) {
     loadBudgets();
   } else {
-    auth.onAuthStateChanged(user => { if(user) loadBudgets(); });
+    // Rely on app.js to call initBudgetsList or trigger an event if not already loaded when app starts
+    // For now just wait for custom event if defined, or assume auth is ready
   }
 }
 
 async function loadBudgets() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   if (budgetListContainer) budgetListContainer.innerHTML = '<div class="list-empty">Loading budgets...</div>';
@@ -228,32 +229,20 @@ function openEditBudget(id) {
   if (budget) window.openBudgetModal(budget);
 }
 
-window.confirmDeleteBudget = function(id) {
-  // We can reuse the confirm-dialog overlay already in index/dashboard HTML
-  const overlay = document.getElementById('confirmDialogOverlay');
-  if (!overlay) {
-    if (confirm("Delete this budget?")) executeDeleteBudget(id);
-    return;
-  }
-  
-  document.getElementById('confirmDialogTitle').textContent = 'Delete Budget?';
-  document.getElementById('confirmDialogMessage').textContent = 'Are you sure you want to delete this budget constraint? Your expenses will remain unaffected.';
-  
-  const confirmBtn = document.getElementById('confirmDialogActionBtn');
-  confirmBtn.textContent = 'Delete Budget';
-  confirmBtn.onclick = () => {
-    overlay.classList.remove('open');
-    setTimeout(() => { overlay.style.display = 'none'; }, 250);
+window.confirmDeleteBudget = async function(id) {
+  const confirmed = await window.showConfirm(
+    "Are you sure you want to delete this budget constraint? Your expenses will remain unaffected.",
+    "Delete Budget?"
+  );
+
+  if (confirmed) {
     executeDeleteBudget(id);
-  };
-  
-  overlay.style.display = 'flex';
-  setTimeout(() => overlay.classList.add('open'), 10);
+  }
 };
 
 async function executeDeleteBudget(id) {
   try {
-    const user = auth.currentUser;
+    const user = window.currentUser;
     await removeBudget(id, user.uid);
     budgetToast('Budget deleted successfully', 'success');
     window.dispatchEvent(new Event('budgetsUpdated'));

@@ -1,40 +1,6 @@
 <?php
-// api/expenses.php — standalone + Firestore mirror
-
-ini_set('display_errors', 0);
-error_reporting(0);
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Firebase-UID');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
-
-require_once __DIR__ . '/../services/firestore.php';
+require_once 'config.php';
 require_once 'auth_middleware.php';
-
-function ok(mixed $data, int $code = 200): void {
-    http_response_code($code);
-    echo json_encode(['success' => true, 'data' => $data]);
-    exit;
-}
-function fail(string $msg, int $code = 400): void {
-    http_response_code($code);
-    echo json_encode(['success' => false, 'error' => $msg]);
-    exit;
-}
-function getDb(): PDO {
-    static $pdo = null;
-    if ($pdo === null) {
-        $pdo = new PDO('pgsql:host=localhost;port=5432;dbname=finova_db', 'postgres', 'bingbong321', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
-        $pdo->exec("SET search_path TO finova, public");
-    }
-    return $pdo;
-}
 
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -43,13 +9,10 @@ $RAW_BODY = file_get_contents('php://input');
 
 try {
     $db = getDb();
-    $userId = requireAuth($db); // Auto-fetches and creates if missing!
+    $userId = requireAuth($db);
 
     // GET
     if ($method === 'GET') {
-        // $uid is no longer needed as userId is obtained from auth_middleware
-        // if (!$uid) fail('uid is required', 400); // Removed
-
         if ($id) {
             $stmt = $db->prepare("SELECT * FROM finova.expenses WHERE id = :id AND user_id = :userId");
             $stmt->execute([':id' => $id, ':userId' => $userId]);
@@ -74,16 +37,21 @@ try {
     // POST
     if ($method === 'POST') {
         $body = json_decode($RAW_BODY, true);
-        $uid  = $body['uid'] ?? null; // Keep uid for Firestore mirroring, but not for auth
-        if (!$uid) fail('uid is required', 400); // Still needed for Firestore
+        
+        // --- START DEBUG LOGGING ---
+        $logDir = __DIR__ . '/logs';
+        if (!is_dir($logDir)) mkdir($logDir, 0777, true);
+        $logMsg = date('[Y-m-d H:i:s] ') . "POST /expenses.php | User: $userId | Payload: " . $RAW_BODY . "\n";
+        file_put_contents($logDir . '/api_debug.log', $logMsg, FILE_APPEND);
+        // --- END DEBUG LOGGING ---
+
         if (empty($body['amount']))   fail('amount is required', 400);
         if (empty($body['category'])) fail('category is required', 400);
         if (empty($body['date']))     fail('date is required', 400);
 
-        // $userId is already set by requireAuth($db) at the top of the try block.
-        // $userId    = getUserId($db, $uid); // Removed
         $amount    = (float) $body['amount'];
-        $month     = substr($body['date'], 0, 7);
+        $dateRaw   = $body['date'];
+        $month     = date_create($dateRaw)->format('Y-m'); // Standardized YYYY-MM
         $currency  = $body['currency']  ?? 'PHP';
         $note      = $body['note']      ?? null;
         $recurring = !empty($body['recurring']) ? 'true' : 'false';
@@ -93,118 +61,144 @@ try {
         if ($amount <= 0) fail('Amount must be greater than zero', 400);
 
         $db->beginTransaction();
-        $stmt = $db->prepare("
-            INSERT INTO finova.expenses
-                (user_id, firebase_uid, amount, currency, category, date, month, note, recurring, frequency, receipt_data)
-            VALUES
-                (:userId,:uid,:amount,:currency,:category,:date,:month,:note,:recurring,:frequency,:receiptData)
-            RETURNING *
-        ");
-        $stmt->execute([
-            ':userId'=>$userId,':uid'=>$uid,':amount'=>$amount,':currency'=>$currency,
-            ':category'=>$body['category'],':date'=>$body['date'],':month'=>$month,
-            ':note'=>$note,':recurring'=>$recurring,':frequency'=>$frequency,':receiptData'=>$receiptData,
-        ]);
-        $expense = $stmt->fetch();
-        $db->commit();
-
-        // Mirror to Firestore
         try {
-            firestore_upsert($uid, 'expenses', (string)$expense['id'], [
-                'pgId'      => (int)   $expense['id'],
-                'amount'    => (float) $expense['amount'],
-                'currency'  => $expense['currency'],
-                'category'  => $expense['category'],
-                'date'      => $expense['date'],
-                'month'     => $expense['month'],
-                'note'      => $expense['note'],
-                'recurring' => (bool)  $expense['recurring'],
-                'frequency' => $expense['frequency'],
-                'receiptData' => isset($expense['receipt_data']) ? json_decode($expense['receipt_data'], true) : null,
+            $stmt = $db->prepare("
+                INSERT INTO finova.expenses
+                    (user_id, amount, currency, category, date, month, note, recurring, frequency, receipt_data)
+                VALUES
+                    (:userId,:amount,:currency,:category,:date,:month,:note,:recurring,:frequency,:receiptData)
+                RETURNING *
+            ");
+            $stmt->execute([
+                ':userId'=>$userId,':amount'=>$amount,':currency'=>$currency,
+                ':category'=>$body['category'],':date'=>$body['date'],':month'=>$month,
+                ':note'=>$note,':recurring'=>$recurring,':frequency'=>$frequency,':receiptData'=>$receiptData,
             ]);
-        } catch (Throwable $e) {}
-
-        ok($expense, 201);
+            $expense = $stmt->fetch();
+            $db->commit();
+            ok($expense, 201);
+        } catch (PDOException $e) {
+            $db->rollBack();
+            if (strpos($e->getMessage(), 'receipt_data') !== false) {
+                // Column missing! Add it dynamically
+                $db->exec("ALTER TABLE finova.expenses ADD COLUMN IF NOT EXISTS receipt_data JSONB");
+                // Retry insertion
+                $db->beginTransaction();
+                $stmt = $db->prepare("
+                    INSERT INTO finova.expenses
+                        (user_id, amount, currency, category, date, month, note, recurring, frequency, receipt_data)
+                    VALUES
+                        (:userId,:amount,:currency,:category,:date,:month,:note,:recurring,:frequency,:receiptData)
+                    RETURNING *
+                ");
+                $stmt->execute([
+                    ':userId'=>$userId,':amount'=>$amount,':currency'=>$currency,
+                    ':category'=>$body['category'],':date'=>$body['date'],':month'=>$month,
+                    ':note'=>$note,':recurring'=>$recurring,':frequency'=>$frequency,':receiptData'=>$receiptData,
+                ]);
+                $expense = $stmt->fetch();
+                $db->commit();
+                ok($expense, 201);
+            } else {
+                fail('Database error: ' . $e->getMessage(), 500);
+            }
+        }
     }
 
     // PUT
     if ($method === 'PUT') {
         if (!$id) fail('Missing expense id', 400);
         $body = json_decode($RAW_BODY, true);
-        $uid  = $body['uid'] ?? null; // Keep uid for Firestore mirroring, but not for auth
-        if (!$uid) fail('Missing uid in body', 400); // Still needed for Firestore
 
-        // $userId is already set by requireAuth($db) at the top of the try block.
-        // $userId = getUserId($db, $uid); // Removed
-        $month  = isset($body['date']) ? substr($body['date'], 0, 7) : null;
+        $month  = isset($body['date']) ? date_create($body['date'])->format('Y-m') : null;
         $receiptData = isset($body['receiptData']) ? json_encode($body['receiptData']) : null;
 
         $db->beginTransaction();
-        $stmt = $db->prepare("
-            UPDATE finova.expenses SET
-                amount    = COALESCE(:amount,    amount),
-                currency  = COALESCE(:currency,  currency),
-                category  = COALESCE(:category,  category),
-                date      = COALESCE(:date,      date),
-                month     = COALESCE(:month,     month),
-                note      = COALESCE(:note,      note),
-                recurring = COALESCE(:recurring, recurring),
-                frequency = COALESCE(:frequency, frequency),
-                receipt_data = COALESCE(:receiptData, receipt_data),
-                updated_at = NOW()
-            WHERE id = :id AND user_id = :userId
-            RETURNING *
-        ");
-        $stmt->execute([
-            ':amount'      => isset($body['amount'])    ? (float)$body['amount'] : null,
-            ':currency'    => $body['currency']         ?? null,
-            ':category'    => $body['category']         ?? null,
-            ':date'        => $body['date']             ?? null,
-            ':month'       => $month,
-            ':note'        => $body['note']             ?? null,
-            ':recurring'   => isset($body['recurring']) ? ($body['recurring'] ? 'true' : 'false') : null,
-            ':frequency'   => $body['frequency']        ?? null,
-            ':receiptData' => $receiptData,
-            ':id'          => $id,
-            ':userId'      => $userId,
-        ]);
-        $expense = $stmt->fetch();
-        if (!$expense) { $db->rollBack(); fail('Expense not found', 404); }
-        $db->commit();
-
-        // Mirror to Firestore
         try {
-            firestore_upsert($uid, 'expenses', (string)$id, [
-                'pgId'      => (int)   $expense['id'],
-                'amount'    => (float) $expense['amount'],
-                'currency'  => $expense['currency'],
-                'category'  => $expense['category'],
-                'date'      => $expense['date'],
-                'month'     => $expense['month'],
-                'note'      => $expense['note'],
-                'recurring' => (bool)  $expense['recurring'],
-                'frequency' => $expense['frequency'],
-                'receiptData' => isset($expense['receipt_data']) ? json_decode($expense['receipt_data'], true) : null,
+            $stmt = $db->prepare("
+                UPDATE finova.expenses SET
+                    amount    = COALESCE(:amount,    amount),
+                    currency  = COALESCE(:currency,  currency),
+                    category  = COALESCE(:category,  category),
+                    date      = COALESCE(:date,      date),
+                    month     = COALESCE(:month,     month),
+                    note      = COALESCE(:note,      note),
+                    recurring = COALESCE(:recurring, recurring),
+                    frequency = COALESCE(:frequency, frequency),
+                    receipt_data = COALESCE(:receiptData, receipt_data),
+                    updated_at = NOW()
+                WHERE id = :id AND user_id = :userId
+                RETURNING *
+            ");
+            $stmt->execute([
+                ':amount'      => isset($body['amount'])    ? (float)$body['amount'] : null,
+                ':currency'    => $body['currency']         ?? null,
+                ':category'    => $body['category']         ?? null,
+                ':date'        => $body['date']             ?? null,
+                ':month'       => $month,
+                ':note'        => $body['note']             ?? null,
+                ':recurring'   => isset($body['recurring']) ? ($body['recurring'] ? 'true' : 'false') : null,
+                ':frequency'   => $body['frequency']        ?? null,
+                ':receiptData' => $receiptData,
+                ':id'          => $id,
+                ':userId'      => $userId,
             ]);
-        } catch (Throwable $e) {}
-
-        ok($expense);
+            $expense = $stmt->fetch();
+            if (!$expense) { $db->rollBack(); fail('Expense not found', 404); }
+            $db->commit();
+            ok($expense);
+        } catch (PDOException $e) {
+            $db->rollBack();
+            if (strpos($e->getMessage(), 'receipt_data') !== false) {
+                // Column missing! Add it dynamically
+                $db->exec("ALTER TABLE finova.expenses ADD COLUMN IF NOT EXISTS receipt_data JSONB");
+                // Retry
+                $db->beginTransaction();
+                $stmt = $db->prepare("
+                    UPDATE finova.expenses SET
+                        amount    = COALESCE(:amount,    amount),
+                        currency  = COALESCE(:currency,  currency),
+                        category  = COALESCE(:category,  category),
+                        date      = COALESCE(:date,      date),
+                        month     = COALESCE(:month,     month),
+                        note      = COALESCE(:note,      note),
+                        recurring = COALESCE(:recurring, recurring),
+                        frequency = COALESCE(:frequency, frequency),
+                        receipt_data = COALESCE(:receiptData, receipt_data),
+                        updated_at = NOW()
+                    WHERE id = :id AND user_id = :userId
+                    RETURNING *
+                ");
+                $stmt->execute([
+                    ':amount'      => isset($body['amount'])    ? (float)$body['amount'] : null,
+                    ':currency'    => $body['currency']         ?? null,
+                    ':category'    => $body['category']         ?? null,
+                    ':date'        => $body['date']             ?? null,
+                    ':month'       => $month,
+                    ':note'        => $body['note']             ?? null,
+                    ':recurring'   => isset($body['recurring']) ? ($body['recurring'] ? 'true' : 'false') : null,
+                    ':frequency'   => $body['frequency']        ?? null,
+                    ':receiptData' => $receiptData,
+                    ':id'          => $id,
+                    ':userId'      => $userId,
+                ]);
+                $expense = $stmt->fetch();
+                if (!$expense) { $db->rollBack(); fail('Expense not found', 404); }
+                $db->commit();
+                ok($expense);
+            } else {
+                fail('Database error: ' . $e->getMessage(), 500);
+            }
+        }
     }
 
     // DELETE
     if ($method === 'DELETE') {
         if (!$id) fail('id is required', 400);
-        $uid = $_GET['uid'] ?? null; // Keep uid for Firestore mirroring, but not for auth
-        if (!$uid) fail('uid is required', 400); // Still needed for Firestore
 
-        // $userId is already set by requireAuth($db) at the top of the try block.
-        // $userId = getUserId($db, $uid); // Removed
         $stmt = $db->prepare("DELETE FROM finova.expenses WHERE id = :id AND user_id = :userId RETURNING id");
         $stmt->execute([':id' => $id, ':userId' => $userId]);
         if (!$stmt->fetch()) fail('Expense not found', 404);
-
-        // Mirror delete to Firestore
-        try { firestore_delete($uid, 'expenses', (string)$id); } catch (Throwable $e) {}
 
         ok(['deleted' => true, 'id' => $id]);
     }

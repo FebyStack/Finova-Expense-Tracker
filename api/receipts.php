@@ -1,134 +1,110 @@
 <?php
-// api/receipts.php
-// GET    /api/receipts.php?uid=xxx
-// GET    /api/receipts.php?id=1&uid=xxx
-// POST   /api/receipts.php
-// PUT    /api/receipts.php?id=1
-// DELETE /api/receipts.php?id=1&uid=xxx
+require_once 'config.php';
+require_once 'auth_middleware.php';
 
-require_once __DIR__ . '/../services/BaseApi.php';
 
-class ReceiptsApi extends BaseApi {
+$method = $_SERVER['REQUEST_METHOD'];
+$id     = isset($_GET['id']) ? (int) $_GET['id'] : null;
 
-    protected function index(): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+try {
+    $db     = getDb();
+    $userId = requireAuth($db);
 
-        $sql    = 'SELECT * FROM finova.receipts WHERE user_id = $1';
-        $params = [$userId];
-
-        if (!empty($_GET['expense_id'])) {
-            $params[] = (int) $_GET['expense_id'];
-            $sql     .= ' AND expense_id = $' . count($params);
+    // GET
+    if ($method === 'GET') {
+        if ($id) {
+            $stmt = $db->prepare("SELECT * FROM finova.receipts WHERE id = :id AND user_id = :userId");
+            $stmt->execute([':id' => $id, ':userId' => $userId]);
+            $row = $stmt->fetch();
+            if (!$row) fail('Receipt not found', 404);
+            ok($row);
         }
 
-        $sql .= ' ORDER BY created_at DESC';
-        $stmt = $this->db->prepare($sql);
+        $sql    = "SELECT * FROM finova.receipts WHERE user_id = :userId";
+        $params = [':userId' => $userId];
+        if (!empty($_GET['expense_id'])) {
+            $sql .= " AND expense_id = :expenseId";
+            $params[':expenseId'] = (int) $_GET['expense_id'];
+        }
+        $sql .= " ORDER BY created_at DESC";
+        $stmt = $db->prepare($sql);
         $stmt->execute($params);
-        jsonSuccess(['receipts' => $stmt->fetchAll()]);
+        ok(['receipts' => $stmt->fetchAll()]);
     }
 
-    protected function show(int $id): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+    // POST
+    if ($method === 'POST') {
+        $body = json_decode(file_get_contents('php://input'), true);
+        if (empty($body['fileName'])) fail('fileName is required', 400);
+        if (empty($body['filePath'])) fail('filePath is required', 400);
 
-        $stmt = $this->db->prepare(
-            'SELECT * FROM finova.receipts WHERE id = $1 AND user_id = $2'
-        );
-        $stmt->execute([$id, $userId]);
-        $row = $stmt->fetch();
-        if (!$row) jsonError('Receipt not found', 404);
-        jsonSuccess($row);
-    }
-
-    protected function store(): void {
-        $body = getRequestBody();
-        $uid  = $body['uid'] ?? requireUID();
-        $this->requireFields($body, ['fileName', 'filePath']);
-
-        $userId = $this->getUserId($uid);
-
-        $this->db->beginTransaction();
-        $stmt = $this->db->prepare('
+        $db->beginTransaction();
+        $stmt = $db->prepare("
             INSERT INTO finova.receipts (user_id, expense_id, file_name, file_path, note, upload_date)
-            VALUES ($1,$2,$3,$4,$5,CURRENT_DATE)
+            VALUES (:userId,:expenseId,:fileName,:filePath,:note,CURRENT_DATE)
             RETURNING *
-        ');
+        ");
         $stmt->execute([
-            $userId,
-            !empty($body['expenseId']) ? (int) $body['expenseId'] : null,
-            $body['fileName'],
-            $body['filePath'],
-            $body['note'] ?? null,
+            ':userId'    => $userId,
+            ':expenseId' => !empty($body['expenseId']) ? (int) $body['expenseId'] : null,
+            ':fileName'  => $body['fileName'],
+            ':filePath'  => $body['filePath'],
+            ':note'      => $body['note'] ?? null,
         ]);
         $receipt = $stmt->fetch();
-        $this->db->commit();
+        $db->commit();
 
-        $this->firestore->upsert($uid, 'receipts', (string) $receipt['id'], [
-            'pgId'       => (int) $receipt['id'],
-            'fileName'   => $receipt['file_name'],
-            'filePath'   => $receipt['file_path'],
-            'expenseId'  => $receipt['expense_id'],
-            'note'       => $receipt['note'],
-            'uploadDate' => $receipt['upload_date'],
-        ]);
-
-        jsonSuccess($receipt, 201);
+        ok($receipt, 201);
     }
 
-    protected function update(int $id): void {
-        $body   = getRequestBody();
-        $uid    = $body['uid'] ?? requireUID();
-        $userId = $this->getUserId($uid);
+    // PUT
+    if ($method === 'PUT') {
+        if (!$id) fail('id is required', 400);
+        $body = json_decode(file_get_contents('php://input'), true);
 
-        $this->db->beginTransaction();
-        $stmt = $this->db->prepare('
+        $db->beginTransaction();
+        $stmt = $db->prepare("
             UPDATE finova.receipts SET
-                expense_id = COALESCE($1, expense_id),
-                note       = COALESCE($2, note)
-            WHERE id = $3 AND user_id = $4
+                expense_id = COALESCE(:expenseId, expense_id),
+                note       = COALESCE(:note, note)
+            WHERE id = :id AND user_id = :userId
             RETURNING *
-        ');
+        ");
         $stmt->execute([
-            !empty($body['expenseId']) ? (int) $body['expenseId'] : null,
-            $body['note'] ?? null,
-            $id, $userId,
+            ':expenseId' => !empty($body['expenseId']) ? (int)$body['expenseId'] : null,
+            ':note'      => $body['note'] ?? null,
+            ':id'        => $id,
+            ':userId'    => $userId,
         ]);
         $receipt = $stmt->fetch();
-        if (!$receipt) { $this->db->rollBack(); jsonError('Receipt not found', 404); }
-        $this->db->commit();
+        if (!$receipt) { $db->rollBack(); fail('Receipt not found', 404); }
+        $db->commit();
 
-        $this->firestore->upsert($uid, 'receipts', (string) $id, [
-            'pgId'      => (int) $receipt['id'],
-            'fileName'  => $receipt['file_name'],
-            'filePath'  => $receipt['file_path'],
-            'expenseId' => $receipt['expense_id'],
-            'note'      => $receipt['note'],
-        ]);
-
-        jsonSuccess($receipt);
+        ok($receipt);
     }
 
-    protected function destroy(int $id): void {
-        $uid    = requireUID();
-        $userId = $this->getUserId($uid);
+    // DELETE
+    if ($method === 'DELETE') {
+        if (!$id) fail('id is required', 400);
 
-        $stmt = $this->db->prepare(
-            'DELETE FROM finova.receipts WHERE id = $1 AND user_id = $2 RETURNING id, file_path'
-        );
-        $stmt->execute([$id, $userId]);
+        $stmt = $db->prepare("DELETE FROM finova.receipts WHERE id = :id AND user_id = :userId RETURNING id, file_path");
+        $stmt->execute([':id' => $id, ':userId' => $userId]);
         $row = $stmt->fetch();
-        if (!$row) jsonError('Receipt not found', 404);
+        if (!$row) fail('Receipt not found', 404);
 
-        // Optionally clean up the physical file
+        // Remove physical file
         if (!empty($row['file_path'])) {
             $full = __DIR__ . '/../' . $row['file_path'];
             if (file_exists($full)) unlink($full);
         }
 
-        $this->firestore->delete($uid, 'receipts', (string) $id);
-        jsonSuccess(['deleted' => true, 'id' => $id]);
+        ok(['deleted' => true, 'id' => $id]);
     }
-}
 
-(new ReceiptsApi())->dispatch();
+    fail('Method not allowed', 405);
+
+} catch (PDOException $e) {
+    fail('Database error: ' . $e->getMessage(), 500);
+} catch (Throwable $e) {
+    if (!headers_sent()) fail('Server error: ' . $e->getMessage(), 500);
+}

@@ -1,9 +1,7 @@
 // js/categories.js
 // Central category management — Firestore-backed with defaults
 
-import { auth, db } from './firebase-config.js';
-import { doc, getDoc, setDoc }
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+// No longer using Firebase. Uses localStorage for basic category persistence until backend API is built.
 
 // ── Icon palette (FA icons users can pick from) ────────────
 export const ICON_OPTIONS = [
@@ -64,20 +62,20 @@ export function bgFromColor(hex) {
 export async function loadCategories(forceRefresh = false) {
   if (cachedCategories && !forceRefresh) return cachedCategories;
 
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return DEFAULT_CATEGORIES;
 
   try {
-    const snap = await getDoc(doc(db, 'users', user.uid, 'categories', 'list'));
-    if (snap.exists() && Array.isArray(snap.data().items) && snap.data().items.length > 0) {
-      cachedCategories = snap.data().items;
+    const saved = localStorage.getItem('finova_categories_' + user.uid);
+    if (saved) {
+      cachedCategories = JSON.parse(saved);
     } else {
-      // First time — seed defaults to Firestore
+      // First time — seed defaults
       cachedCategories = [...DEFAULT_CATEGORIES];
       await saveCategories(cachedCategories);
     }
   } catch (err) {
-    console.warn('Failed to load categories from Firestore, using defaults:', err);
+    console.warn('Failed to load categories from local storage, using defaults:', err);
     cachedCategories = [...DEFAULT_CATEGORIES];
   }
 
@@ -86,16 +84,13 @@ export async function loadCategories(forceRefresh = false) {
 
 // ── Save categories to Firestore ───────────────────────────
 export async function saveCategories(categories) {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   cachedCategories = categories;
 
   try {
-    await setDoc(doc(db, 'users', user.uid, 'categories', 'list'), {
-      items: categories,
-      updatedAt: new Date().toISOString(),
-    });
+    localStorage.setItem('finova_categories_' + user.uid, JSON.stringify(categories));
   } catch (err) {
     console.error('Failed to save categories:', err);
     throw err;

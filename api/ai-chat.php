@@ -1,57 +1,9 @@
 <?php
-// api/ai-chat.php
-// Interactive AI Chat Assistant Endpoint (Gemini API)
-
-ini_set('display_errors', 0);
-error_reporting(0);
-
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Firebase-UID');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
-
+require_once 'config.php';
+require_once 'auth_middleware.php';
 require_once __DIR__ . '/../services/aiService.php';
 
-function ok(mixed $data, int $code = 200): void {
-    http_response_code($code);
-    echo json_encode(['success' => true, 'data' => $data]);
-    exit;
-}
-function fail(string $msg, int $code = 400): void {
-    http_response_code($code);
-    echo json_encode(['success' => false, 'error' => $msg]);
-    exit;
-}
 
-// ── Database ───────────────────────────────
-function getDb(): PDO {
-    static $pdo = null;
-    if ($pdo === null) {
-        $pdo = new PDO('pgsql:host=localhost;port=5432;dbname=finova_db', 'postgres', 'bingbong321', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
-        $pdo->exec("SET search_path TO finova, public");
-    }
-    return $pdo;
-}
-
-function getUserId(PDO $db, string $uid): int {
-    $stmt = $db->prepare("SELECT id FROM finova.users WHERE firebase_uid = :uid");
-    $stmt->execute([':uid' => $uid]);
-    $row = $stmt->fetch();
-    if ($row) return (int) $row['id'];
-    
-    $stmt = $db->prepare("
-        INSERT INTO finova.users (firebase_uid, email, display_name, base_currency, created_at) 
-        VALUES (:uid, :email, :name, 'PHP', NOW())
-        RETURNING id
-    ");
-    $stmt->execute([':uid' => $uid, ':email' => $uid . '@placeholder.com', ':name' => 'Imported User']);
-    return (int) $stmt->fetchColumn();
-}
 
 // ── MAIN LOGIC ─────────────────────────────
 try {
@@ -61,14 +13,13 @@ try {
     $raw = file_get_contents('php://input');
     $payload = json_decode($raw, true);
 
-    $uid = $payload['uid'] ?? null;
     $message = $payload['message'] ?? null;
-    if (!$uid || !$message) fail('uid and message are required', 400);
+    if (!$message) fail('message is required', 400);
 
     $month = date('Y-m'); // Default chat context to current month
 
     $db = getDb();
-    $userId = getUserId($db, $uid);
+    $userId = requireAuth($db);
     $aiService = new AIService($db, $userId);
 
     // 1. Fetch Chat History (Last 5 messages)

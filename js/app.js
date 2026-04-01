@@ -1,11 +1,6 @@
 // js/app.js
 // Main app logic — routing, auth state, sidebar, theme
 
-import { auth, db }       from './firebase-config.js';
-import { onAuthStateChanged, signOut }
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-import { doc, getDoc, updateDoc }
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 import { loadDashboard }  from './dashboard.js';
 import { openExpenseModal } from './expenses.js';
 import { loadExpenseList, initExpenseListFilters } from './expense-list.js';
@@ -15,6 +10,9 @@ import { initSettings } from './settings.js';
 import { initNotifications } from './notifications.js';
 import { requestPushPermission } from './push-notifications.js';
 // budgets.js and budgets-list.js self-initialize via their own <script> tags
+
+// Globally store the authenticated user so other functions can access it
+window.currentUser = null;
 
 // ══════════════════════════════════════════════════════════
 // LOADING SCREEN
@@ -74,7 +72,6 @@ function getCurrentPage() {
   const hash = window.location.hash.replace('#', '');
   if (hash && PAGES[hash]) return hash;
   
-  // If user opens calendar.html natively, default to the calendar view
   if (window.location.pathname.includes('calendar.html')) {
     return 'calendar';
   }
@@ -105,10 +102,12 @@ window.navigateTo = function navigateTo(pageKey) {
 
   document.getElementById('pageContent')?.scrollTo(0, 0);
 
-  // Close sidebar drawer on mobile after navigating
   if (window.innerWidth <= 768) closeMobileSidebar();
 
-  // Route-specific loading
+  if (pageKey === 'dashboard') {
+    window.dispatchEvent(new Event('dashboardUpdated'));
+  }
+
   if (pageKey === 'expenses') {
     initExpenseListFilters();
     loadExpenseList(window.userCurrency || 'PHP');
@@ -153,11 +152,8 @@ document.querySelectorAll('.bottom-nav-item[data-page]').forEach(item => {
   });
 });
 
-
 // ══════════════════════════════════════════════════════════
-// SIDEBAR — two separate modes
-//   Desktop (> 768px): .collapsed  = icon-only, labels hidden
-//   Mobile  (≤ 768px): .mobile-open = drawer slides in
+// SIDEBAR
 // ══════════════════════════════════════════════════════════
 
 const sidebar = document.getElementById('sidebar');
@@ -165,8 +161,6 @@ const overlay = document.getElementById('sidebarOverlay');
 
 function isMobile() { return window.innerWidth <= 768; }
 
-// Desktop hover-expand is now handled purely in CSS.
-// ── Mobile drawer ─────────────────────────────────────────
 function openMobileSidebar() {
   sidebar.classList.add('mobile-open');
   if (overlay) {
@@ -183,7 +177,6 @@ function closeMobileSidebar() {
   }
 }
 
-// ── Main toggle (hamburger button) ───────────────────────
 document.getElementById('navbarToggle')?.addEventListener('click', () => {
   if (isMobile()) {
     sidebar.classList.contains('mobile-open')
@@ -192,13 +185,10 @@ document.getElementById('navbarToggle')?.addEventListener('click', () => {
   }
 });
 
-// Close drawer when overlay is tapped on mobile
 overlay?.addEventListener('click', closeMobileSidebar);
 
-// Handle resize — clean up states when switching breakpoints
 window.addEventListener('resize', () => {
   if (!isMobile()) {
-    // Going back to desktop — close mobile drawer
     sidebar.classList.remove('mobile-open');
     if (overlay) {
       overlay.style.display  = 'none';
@@ -206,7 +196,6 @@ window.addEventListener('resize', () => {
     }
   }
 });
-
 
 // ══════════════════════════════════════════════════════════
 // DARK MODE
@@ -236,11 +225,14 @@ async function toggleTheme() {
   applyTheme(isDark, true);
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
 
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (user) {
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
-        theme: isDark ? 'dark' : 'light'
+      await fetch('api/users.php?id=0', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ theme: isDark ? 'dark' : 'light' })
       });
     } catch (err) {
       console.warn('Theme save failed:', err);
@@ -248,7 +240,6 @@ async function toggleTheme() {
   }
 }
 
-// Apply saved theme immediately (no flash)
 (function () {
   const saved = localStorage.getItem('theme');
   if (saved === 'dark') applyTheme(true);
@@ -257,69 +248,71 @@ async function toggleTheme() {
 document.getElementById('btnTheme')?.addEventListener('click', toggleTheme);
 document.getElementById('sidebarThemeBtn')?.addEventListener('click', toggleTheme);
 
-
 // ══════════════════════════════════════════════════════════
 // AUTH STATE
 // ══════════════════════════════════════════════════════════
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = 'login.html';
-    return;
-  }
+async function initApp() {
+    try {
+        const resp = await fetch('api/me.php', { credentials: 'include' });
+        const resData = await resp.json();
+        
+        if (!resData.success) {
+            window.location.replace('login.html');
+            return;
+        }
 
-  try {
-    const userDoc  = await getDoc(doc(db, 'users', user.uid));
-    const userData = userDoc.exists() ? userDoc.data() : null;
+        const userData = resData.data;
+        window.currentUser = userData; // Store user globally
+        // Provide mapping for old firebase references
+        const user = { 
+            uid: userData.id.toString(), 
+            email: userData.email, 
+            displayName: userData.display_name 
+        };
 
-    window.userCurrency = userData?.baseCurrency || 'PHP';
+        window.userCurrency = userData?.base_currency || 'PHP';
 
-    const displayName = userData?.displayName || user.displayName || user.email || 'User';
-    const email       = user.email || '';
-    const initials    = displayName
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+        const displayName = userData?.display_name || user.email || 'User';
+        const email       = user.email || '';
+        const initials    = displayName
+          .split(' ')
+          .map(n => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
 
-    // Populate sidebar user info
-    const sidebarAvatar = document.getElementById('sidebarAvatar');
-    const sidebarName   = document.getElementById('sidebarUserName');
-    const sidebarEmail  = document.getElementById('sidebarUserEmail');
-    const navbarAvatar  = document.getElementById('navbarAvatar');
+        const sidebarAvatar = document.getElementById('sidebarAvatar');
+        const sidebarName   = document.getElementById('sidebarUserName');
+        const sidebarEmail  = document.getElementById('sidebarUserEmail');
+        const navbarAvatar  = document.getElementById('navbarAvatar');
 
-    if (sidebarAvatar) sidebarAvatar.textContent = initials;
-    if (sidebarName)   sidebarName.textContent   = displayName;
-    if (sidebarEmail)  sidebarEmail.textContent  = email;
-    if (navbarAvatar)  navbarAvatar.textContent  = initials;
+        if (sidebarAvatar) sidebarAvatar.textContent = initials;
+        if (sidebarName)   sidebarName.textContent   = displayName;
+        if (sidebarEmail)  sidebarEmail.textContent  = email;
+        if (navbarAvatar)  navbarAvatar.textContent  = initials;
 
-    // Sync theme from Firestore or localStorage
-    const savedTheme = userData?.theme || localStorage.getItem('theme');
-    const isDark     = savedTheme === 'dark';
-    applyTheme(isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        const savedTheme = userData?.theme || localStorage.getItem('theme');
+        const isDark     = savedTheme === 'dark';
+        applyTheme(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
 
-    // Load dashboard data
-    await loadDashboard(user, userData);
-    
-    // Start listening for notifications
-    initNotifications();
-    
-    // Request Native Push Notifications
-    setTimeout(() => requestPushPermission(user.uid), 2000);
+        await loadDashboard(user, userData);
+        initNotifications();
+        
+        // Push notification logic might error due to VAPID check, but we pass user
+        setTimeout(() => requestPushPermission(user.uid), 2000);
 
-    // Navigate to current hash
-    navigateTo(getCurrentPage());
+        navigateTo(getCurrentPage());
+        dismissLoadingScreen();
 
-    // Dismiss loading screen after everything loaded
-    dismissLoadingScreen();
+    } catch (err) {
+        console.error('Error loading user profile:', err);
+        window.location.replace('login.html');
+    }
+}
 
-  } catch (err) {
-    console.error('Error loading user profile:', err);
-  }
-});
-
+initApp();
 
 // ══════════════════════════════════════════════════════════
 // LOGOUT
@@ -327,7 +320,7 @@ onAuthStateChanged(auth, async (user) => {
 
 async function handleLogout() {
   try {
-    await signOut(auth);
+    await fetch('api/logout.php', { credentials: 'include' });
     window.location.replace('login.html');
   } catch (err) {
     console.error('Logout error:', err);
@@ -338,66 +331,45 @@ document.getElementById('btnLogout')?.addEventListener('click', (e) => {
   e.preventDefault();
   handleLogout();
 });
-
 document.getElementById('sidebarLogoutBtn')?.addEventListener('click', () => handleLogout());
-
 
 // ══════════════════════════════════════════════════════════
 // EXPENSE MODAL TRIGGERS
 // ══════════════════════════════════════════════════════════
 
-document.getElementById('btnQuickAdd')
-  ?.addEventListener('click', () => openExpenseModal());
-
-document.getElementById('btnDashAddExpense')
-  ?.addEventListener('click', () => openExpenseModal());
-
-document.getElementById('btnAddExpense')
-  ?.addEventListener('click', () => openExpenseModal());
-
-document.getElementById('bottomNavAdd')
-  ?.addEventListener('click', e => { e.preventDefault(); openExpenseModal(); });
-
+document.getElementById('btnQuickAdd')?.addEventListener('click', () => openExpenseModal());
+document.getElementById('btnDashAddExpense')?.addEventListener('click', () => openExpenseModal());
+document.getElementById('btnAddExpense')?.addEventListener('click', () => openExpenseModal());
+document.getElementById('bottomNavAdd')?.addEventListener('click', e => { e.preventDefault(); openExpenseModal(); });
 
 // ══════════════════════════════════════════════════════════
 // INCOME MODAL TRIGGERS
 // ══════════════════════════════════════════════════════════
 
-document.getElementById('btnAddIncome')
-  ?.addEventListener('click', () => openIncomeModal());
-
-// Budget modal triggers are handled by budgets.js self-init
-
+document.getElementById('btnAddIncome')?.addEventListener('click', () => openIncomeModal());
 
 // ══════════════════════════════════════════════════════════
-// DASHBOARD REFRESH (called from expenses.js after saving)
+// DASHBOARD REFRESH
 // ══════════════════════════════════════════════════════════
 
 window.refreshDashboard = async () => {
-  const user = auth.currentUser;
-  if (!user) return;
+  if (!window.currentUser) return;
   try {
-    const userDoc  = await getDoc(doc(db, 'users', user.uid));
-    const userData = userDoc.exists() ? userDoc.data() : null;
+    const resp = await fetch('api/me.php', { credentials: 'include' });
+    const resData = await resp.json();
+    if (!resData.success) return;
+    
+    const userData = resData.data;
+    const user = { uid: userData.id, email: userData.email, displayName: userData.display_name };
+
     await loadDashboard(user, userData);
     
-    // Notify other components (like budgets-list.js) that expenses changed
-    // so they can recalculate limits and sync with the database immediately.
     window.dispatchEvent(new Event('expensesUpdated'));
 
     const page = window.location.hash.replace('#', '');
-    // Also refresh expense list if currently on expenses page
-    if (page === 'expenses') {
-      loadExpenseList(userData?.baseCurrency || 'PHP');
-    }
-    // Also refresh income list if currently on income page
-    if (page === 'income') {
-      loadIncomeList(userData?.baseCurrency || 'PHP');
-    }
-    // Refresh budgets if on budgets page
-    if (page === 'budgets') {
-      window.dispatchEvent(new Event('budgetsUpdated'));
-    }
+    if (page === 'expenses') loadExpenseList(userData?.base_currency || 'PHP');
+    if (page === 'income') loadIncomeList(userData?.base_currency || 'PHP');
+    if (page === 'budgets') window.dispatchEvent(new Event('budgetsUpdated'));
   } catch (err) {
     console.error('Refresh error:', err);
   }

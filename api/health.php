@@ -1,27 +1,21 @@
 <?php
-// api/health.php
-// GET /api/health.php — verify DB + Firestore config are reachable
+require_once 'config.php';
 
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../config/cors.php';
+$status = [
+    'db' => false, 
+    'firebase_config' => file_exists(__DIR__ . '/../serviceAccountKey.json'), 
+    'timestamp' => date('c')
+];
 
-setCorsHeaders();
-
-$status = ['db' => false, 'firebase_config' => false, 'timestamp' => date('c')];
-
-// Check PostgreSQL
+// Check PostgreSQL using the centralized getDb()
 try {
-    $db = Database::connect();
+    $db = getDb();
     $db->query('SELECT 1');
     $status['db'] = true;
 } catch (Throwable $e) {
     $status['db_error'] = $e->getMessage();
 }
 
-// Check serviceAccountKey.json exists
-$keyPath = __DIR__ . '/../serviceAccountKey.json';
-$status['firebase_config'] = file_exists($keyPath);
+$allOk = $status['db']; // firebase config is optional/deprecated
+ok(['health' => $allOk, 'status' => $status]);
 
-$allOk = $status['db'] && $status['firebase_config'];
-http_response_code($allOk ? 200 : 503);
-echo json_encode(['success' => $allOk, 'status' => $status]);

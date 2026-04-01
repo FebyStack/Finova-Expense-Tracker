@@ -2,7 +2,7 @@
 // Reusable Chart.js helper functions for Finova dashboard
 // Depends on Chart.js loaded via CDN
 
-import { auth } from './firebase-config.js';
+
 import { fetchExpenses, fetchIncome } from './api.js';
 import { getCategoryStyle } from './categories.js';
 import { formatCurrency } from './currency.js';
@@ -98,11 +98,14 @@ function getLast6Months() {
 //  Dashboard mini chart (monthly spending bar)
 // ══════════════════════════════════════════════════════════════
 export async function renderDashboardChart() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   const el = document.getElementById('chartMonthly');
   if (!user || !el) return;
 
   try {
+    el.innerHTML = '<div class="loading-state" style="height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px;"><i class="fa-solid fa-spinner fa-spin"></i><span style="font-size:12px; color:var(--text-muted);">Fetching data if still not done loading...</span></div>';
+    el.classList.remove('chart-placeholder');
+    el.style.height = '240px';
     const expenses = await fetchExpenses(user.uid);
     const byMonth = aggregateByMonth(expenses);
     const months = getLast6Months();
@@ -110,8 +113,6 @@ export async function renderDashboardChart() {
     const currency = window.userCurrency || 'PHP';
 
     el.innerHTML = '<canvas id="canvasMonthly" style="width:100%;height:220px;"></canvas>';
-    el.classList.remove('chart-placeholder');
-    el.style.height = '240px';
     const ctx = document.getElementById('canvasMonthly').getContext('2d');
 
     destroyChart('monthly');
@@ -156,13 +157,13 @@ export async function renderDashboardChart() {
 //  Analytics page — all charts
 // ══════════════════════════════════════════════════════════════
 export async function renderAnalyticsCharts(selectedMonth) {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
   const container = document.getElementById('analyticsChartsContainer');
   if (!container) return;
 
   try {
-    container.innerHTML = '<div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Generating charts…</div>';
+    container.innerHTML = '<div class="loading-state" style="height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px;"><i class="fa-solid fa-spinner fa-spin"></i><span style="font-size:12px; color:var(--text-muted);">Fetching data if still not done loading...</span></div>';
 
     const [allExpenses, allIncome] = await Promise.all([
       fetchExpenses(user.uid),
@@ -276,13 +277,13 @@ export async function renderAnalyticsCharts(selectedMonth) {
 
 // ── Auto-load ───────────────────────────────────────────────
 window.addEventListener('analyticsUpdated', () => renderAnalyticsCharts());
+window.addEventListener('dashboardUpdated', () => renderDashboardChart());
 
 const onHash = () => {
-  if (window.location.hash === '#dashboard') renderDashboardChart();
+  if (window.location.hash === '#dashboard' || window.location.hash === '') renderDashboardChart();
   if (window.location.hash === '#analytics') renderAnalyticsCharts();
 };
 window.addEventListener('hashchange', onHash);
 
-auth.onAuthStateChanged(user => {
-  if (user) setTimeout(() => renderDashboardChart(), 500);
-});
+// We no longer rely on firebase onAuthStateChanged.
+// app.js handles the initial rendering when session is validated.

@@ -1,9 +1,6 @@
 // js/settings.js
 // Settings page — Category management + Base currency
 
-import { auth, db } from './firebase-config.js';
-import { doc, updateDoc }
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 import {
   loadCategories, saveCategories, invalidateCache,
   ICON_OPTIONS, COLOR_OPTIONS, bgFromColor
@@ -18,7 +15,7 @@ let editingIndex = null;
 // ══════════════════════════════════════════════════════════
 
 async function saveBaseCurrency() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   const select  = document.getElementById('settingsBaseCurrency');
@@ -39,8 +36,7 @@ async function saveBaseCurrency() {
     });
     if (!res.ok) throw new Error('API error');
 
-    // Update Firestore
-    await updateDoc(doc(db, 'users', user.uid), { baseCurrency: newCurrency });
+    // Backend already handles PostgreSQL. No more Firestore needed.
 
     // Update global
     window.userCurrency = newCurrency;
@@ -213,35 +209,18 @@ window.deleteCategory = async function(index) {
   const cat = categories[index];
   if (!cat) return;
 
-  const overlay = document.createElement('div');
-  overlay.id = 'confirmDialogOverlay';
-  overlay.className = 'confirm-dialog-overlay';
-  overlay.innerHTML = `
-    <div class="confirm-dialog">
-      <div class="confirm-dialog-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-      <h3 class="confirm-dialog-title">Delete Category</h3>
-      <p class="confirm-dialog-message">Delete <strong>"${cat.name}"</strong>? Existing expenses using this category will keep their label.</p>
-      <div class="confirm-dialog-actions">
-        <button class="btn btn-ghost" id="confirmDialogCancel">Cancel</button>
-        <button class="btn btn-danger" id="confirmDialogConfirm"><i class="fa-solid fa-trash"></i> Delete</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add('open'));
+  const confirmed = await window.showConfirm(
+    `Delete <strong>"${cat.name}"</strong>? Existing expenses using this category will keep their label.`,
+    "Delete Category"
+  );
 
-  const close = () => { overlay.classList.remove('open'); setTimeout(() => overlay.remove(), 250); };
-  document.getElementById('confirmDialogCancel').addEventListener('click', close);
-  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  if (!confirmed) return;
 
-  document.getElementById('confirmDialogConfirm').addEventListener('click', async () => {
-    close();
-    categories.splice(index, 1);
-    await saveCategories(categories);
-    invalidateCache();
-    renderCategoryList();
-    showCatToast('Category deleted');
-  });
+  categories.splice(index, 1);
+  await saveCategories(categories);
+  invalidateCache();
+  renderCategoryList();
+  showCatToast('Category deleted');
 };
 
 // ── Edit ───────────────────────────────────────────────────

@@ -11,13 +11,22 @@ class AIService {
     }
 
     public static function getEnvVar(string $key): ?string {
+        // Use system environment variables first
+        $val = getenv($key);
+        if ($val !== false) return $val;
+
+        // Fallback for cases where putenv() isn't available or .env isn't loaded globally
         $path = __DIR__ . '/../.env';
         if (!file_exists($path)) return null;
         $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
             if (strpos(trim($line), '#') === 0) continue;
-            [$k, $v] = explode('=', $line, 2) + [NULL, NULL];
-            if (trim($k) === $key) return trim($v, " \t\n\r\0\x0B\"'");
+            $parts = explode('=', $line, 2);
+            if (count($parts) === 2) {
+                if (trim($parts[0]) === $key) {
+                    return trim($parts[1], " \t\n\r\0\x0B\"'");
+                }
+            }
         }
         return null;
     }

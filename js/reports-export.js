@@ -1,7 +1,7 @@
 // js/reports-export.js
 // Reports page with date range, summary, CSV & PDF export
 
-import { auth } from './firebase-config.js';
+
 import { fetchExpenses, fetchIncome } from './api.js';
 import { formatCurrency } from './currency.js';
 import { getCategoryStyle } from './categories.js';
@@ -10,7 +10,7 @@ const container = document.getElementById('exportPageContainer');
 
 // ── Render reports page ─────────────────────────────────────
 export async function loadReportsPage() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user || !container) return;
 
   // Default: current month
@@ -46,7 +46,7 @@ export async function loadReportsPage() {
 }
 
 async function generateReport() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   const from = document.getElementById('reportFrom')?.value;
@@ -299,5 +299,5 @@ const onHash = () => {
 window.addEventListener('hashchange', onHash);
 
 if (window.location.hash === '#export') {
-  auth.onAuthStateChanged(user => { if (user) loadReportsPage(); });
+  if (window.currentUser) loadReportsPage();
 }

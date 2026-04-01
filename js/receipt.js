@@ -2,16 +2,7 @@
 // Smart Receipt Upload — Claude AI extracts date + amount
 // then pre-fills the Add Expense modal for user confirmation
 
-import { db, auth }       from './firebase-config.js';
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  serverTimestamp,
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { fetchExpenses } from './api.js';
 import { openExpenseModal } from './expenses.js';
 import { showToast }        from './expenses.js';
 
@@ -180,56 +171,22 @@ window.scanReceipt = async function () {
     const base64 = await fileToBase64(selectedFile);
     const mediaType = selectedFile.type;
 
-    // Call Claude API
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Call local PHP proxy
+    const response = await fetch('api/scan-receipt.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: base64,
-              }
-            },
-            {
-              type: 'text',
-              text: `Analyze this receipt image and extract the following information. Respond ONLY with a valid JSON object, no markdown, no explanation.
-
-{
-  "merchant": "store or restaurant name",
-  "date": "YYYY-MM-DD format, or null if not found",
-  "total": number (the final total amount paid, as a number only),
-  "currency": "PHP, USD, EUR, etc — detect from symbols like ₱ = PHP, $ = USD",
-  "items": ["list", "of", "items", "purchased"],
-  "tax": number or null,
-  "confidence": "high, medium, or low"
-}
-
-Rules:
-- total must be the FINAL amount paid (after tax, after discounts)
-- If you see ₱ symbol, currency is PHP
-- date must be YYYY-MM-DD format
-- If any field cannot be determined, use null
-- items should be actual product names, max 5 items`
-            }
-          ]
-        }]
+        image_base64: base64,
+        mime_type: mediaType
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || `API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const text = data.data?.text || '';
 
     // Parse JSON from response
     let parsed;
@@ -388,7 +345,7 @@ function resetReceiptUI() {
 }
 
 async function loadRecentExpenses() {
-  const user = auth.currentUser;
+  const user = window.currentUser;
   if (!user) return;
 
   const select = document.getElementById('receiptExpenseLink');
@@ -396,16 +353,10 @@ async function loadRecentExpenses() {
   select.innerHTML = '<option value="">— Select an expense —</option>';
 
   try {
-    const q    = query(
-      collection(db, 'users', user.uid, 'expenses'),
-      orderBy('createdAt', 'desc'),
-      limit(20)
-    );
-    const snap = await getDocs(q);
-    snap.forEach((doc) => {
-      const d      = doc.data();
+    const expenses = await fetchExpenses(user.uid);
+    expenses.slice(0, 20).forEach((d) => {
       const option = document.createElement('option');
-      option.value = doc.id;
+      option.value = d.id;
       option.textContent = `${d.category || 'Expense'} — ${d.currency || '₱'}${parseFloat(d.amount || 0).toFixed(2)} (${d.date || ''})`;
       select.appendChild(option);
     });
