@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="description" content="Create your SpendWise account — Free expense tracker"/>
+  <title>Sign Up — Finova</title>
+
+  <!-- PWA Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f7ef8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Finova">
+  <link rel="shortcut icon" href="assets/fivano.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/fivano.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Merriweather -->
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
+<!-- JetBrains Mono -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dark.css"/>
+  <link rel="stylesheet" href="css/auth.css"/>
+</head>
+<body>
+
+  <canvas id="canvas"></canvas>
+  <div class="auth-shell">
+
+    <!-- ── LEFT PANEL — Branding ── -->
+    <div class="auth-panel-left">
+      <div class="auth-brand">
+        <div class="auth-brand-img">
+          <img src="assets/fivano.png" alt="Finova logo "/>
+        </div>
+        <div>
+          <span class="auth-brand-name">Finova</span>
+        </div>
+      </div>
+
+      <div class="auth-hero">
+        <h1 class="auth-hero-title">Your financial journey starts here.</h1>
+        <p class="auth-hero-sub">Join thousands of people who track smarter, spend better, and save more with Finova.</p>
+      </div>
+
+      <!-- Feature list -->
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+          <div class="auth-feature-text">
+            <span class="auth-feature-title">Smart Budgeting</span>
+            <span class="auth-feature-desc">Set limits per category and get alerted before you overspend</span>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <i class="fa-solid fa-calendar-days"></i>
+          </div>
+          <div class="auth-feature-text">
+            <span class="auth-feature-title">Calendar View</span>
+            <span class="auth-feature-desc">See your spending as a heat map — spot heavy days at a glance</span>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <i class="fa-solid fa-piggy-bank"></i>
+          </div>
+          <div class="auth-feature-text">
+            <span class="auth-feature-title">Savings Goals</span>
+            <span class="auth-feature-desc">Set targets, track progress, and celebrate every milestone</span>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <i class="fa-solid fa-globe"></i>
+          </div>
+          <div class="auth-feature-text">
+            <span class="auth-feature-title">Multi-Currency</span>
+            <span class="auth-feature-desc">Track expenses in any currency with live exchange rates</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL — Sign Up Form ── -->
+    <div class="auth-panel-right">
+      <div class="auth-form-wrap">
+
+        <!-- Header -->
+        <div class="auth-form-header">
+          <h2 class="auth-form-title">Create your account</h2>
+          <p class="auth-form-sub">It's free — no credit card required</p>
+        </div>
+
+
+        <!-- Registration form -->
+        <div class="auth-form" id="formSignup">
+
+          <!-- Name row -->
+          <div class="form-row" style="gap: 12px;">
+            <div class="form-group">
+              <label class="form-label" for="inputFirstName">
+                First Name <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <span class="input-prefix">
+                  <i class="fa-solid fa-user"></i>
+                </span>
+                <input
+                  class="form-input has-prefix"
+                  type="text"
+                  id="inputFirstName"
+                  placeholder="Juan"
+                  autocomplete="given-name"
+                  required
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inputLastName">
+                Last Name <span class="required">*</span>
+              </label>
+              <input
+                class="form-input"
+                type="text"
+                id="inputLastName"
+                placeholder="dela Cruz"
+                autocomplete="family-name"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="inputEmail">
+              Email Address <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-envelope"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="email"
+                id="inputEmail"
+                placeholder="juan@email.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+            <span class="form-help" id="emailHelp"></span>
+          </div>
+
+          <!-- Base currency -->
+          <div class="form-group">
+            <label class="form-label" for="inputCurrency">
+              Base Currency <span class="required">*</span>
+            </label>
+            <select class="form-select" id="inputCurrency">
+              <option value="PHP" selected>🇵🇭 PHP — Philippine Peso</option>
+              <option value="USD">🇺🇸 USD — US Dollar</option>
+              <option value="EUR">🇪🇺 EUR — Euro</option>
+              <option value="GBP">🇬🇧 GBP — British Pound</option>
+              <option value="JPY">🇯🇵 JPY — Japanese Yen</option>
+              <option value="SGD">🇸🇬 SGD — Singapore Dollar</option>
+              <option value="AUD">🇦🇺 AUD — Australian Dollar</option>
+              <option value="CAD">🇨🇦 CAD — Canadian Dollar</option>
+            </select>
+            <span class="form-help">You can change this later in Settings</span>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="inputPassword">
+              Password <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="password"
+                id="inputPassword"
+                placeholder="Create a strong password"
+                autocomplete="new-password"
+                required
+              />
+              <button class="input-action" id="togglePassword" type="button" tabindex="-1">
+                <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+              </button>
+            </div>
+            <!-- Password strength bar -->
+            <div class="password-strength" id="passwordStrength" style="display:none;">
+              <div class="strength-bar">
+                <div class="strength-fill" id="strengthFill"></div>
+              </div>
+              <span class="strength-label" id="strengthLabel"></span>
+            </div>
+          </div>
+
+          <!-- Confirm password -->
+          <div class="form-group">
+            <label class="form-label" for="inputConfirmPassword">
+              Confirm Password <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="password"
+                id="inputConfirmPassword"
+                placeholder="Repeat your password"
+                autocomplete="new-password"
+                required
+              />
+              <button class="input-action" id="toggleConfirmPassword" type="button" tabindex="-1">
+                <i class="fa-solid fa-eye" id="toggleConfirmIcon"></i>
+              </button>
+            </div>
+            <span class="form-help" id="confirmHelp"></span>
+          </div>
+
+          <!-- Terms checkbox -->
+          <div class="form-group">
+            <label class="form-check">
+              <input class="form-check-input" type="checkbox" id="checkTerms"/>
+              <span class="form-check-label">
+                I agree to the
+                <a href="#" class="auth-link">Terms of Service</a>
+                and
+                <a href="#" class="auth-link">Privacy Policy</a>
+              </span>
+            </label>
+          </div>
+
+          <!-- Error message -->
+          <div class="auth-error" id="authError" style="display:none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="authErrorText">Something went wrong.</span>
+          </div>
+
+          <!-- Submit -->
+          <button class="btn btn-primary btn-block auth-submit" id="btnSignup" type="button">
+            <span class="btn-label " data-text="SIGN UP">Create Account</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+        </div>
+
+        <!-- Login link -->
+        <p class="auth-switch">
+          Already have an account?
+          <a href="login.html" class="auth-link">Log in</a>
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Success Modal ── -->
+  <div class="signup-modal-overlay" id="signupSuccessModal">
+    <div class="signup-modal">
+      <div class="signup-modal-icon">
+        <svg viewBox="0 0 52 52" class="signup-modal-checkmark">
+          <circle cx="26" cy="26" r="25" fill="none" class="checkmark-circle"/>
+          <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" class="checkmark-check"/>
+        </svg>
+      </div>
+      <h3 class="signup-modal-title">Account Created!</h3>
+      <p class="signup-modal-message">
+        We've sent a confirmation link to your email address.
+        <strong>You must verify your email</strong> before you can log in.
+      </p>
+      <div class="signup-modal-steps">
+        <div class="signup-modal-step">
+          <span class="step-num">1</span>
+          <span>Check your inbox (or spam folder)</span>
+        </div>
+        <div class="signup-modal-step">
+          <span class="step-num">2</span>
+          <span>Click the confirmation link</span>
+        </div>
+        <div class="signup-modal-step">
+          <span class="step-num">3</span>
+          <span>Return here and log in</span>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block signup-modal-btn" id="btnModalGoLogin">
+        <i class="fa-solid fa-right-to-bracket"></i> Go to Login
+      </button>
+    </div>
+  </div>
+
+  <!-- Capacitor Bridge -->
+  <script src="js/capacitor-config.js"></script>
+  <!-- Supabase Config Bridge -->
+  <script src="api/config-js"></script>
+  <script type="module" src="js/signup.js"></script>
+  <script src="js/animation.js"></script>
+  <!-- Instant theme load — prevents flash of wrong theme -->
+  <script type="module">
+    import { initPWA } from './js/pwa.js';
+    initPWA();
+
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark');
+    }
+  </script>
+</body>
+</html>

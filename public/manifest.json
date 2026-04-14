@@ -1,0 +1,23 @@
+{
+  "name": "Finova - Premium Expense Tracker",
+  "short_name": "Finova",
+  "description": "Smart, offline-first personal finance management with AI insights.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f7ef8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/fivano.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/fivano.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

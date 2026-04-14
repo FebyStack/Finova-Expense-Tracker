@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="description" content="Expense Tracker — Manage your finances" />
+  <title>Login — Finova</title>
+
+  <!-- PWA Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f7ef8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Finova">
+  <link rel="shortcut icon" href="assets/fivano.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/fivano.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
+
+<!-- Merriweather -->
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
+<!-- JetBrains Mono -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dark.css"/>
+  <link rel="stylesheet" href="css/auth.css"/>
+</head>
+<body>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="auth-shell">
+
+    <!-- ── LEFT PANEL — Branding ── -->
+    <div class="auth-panel-left">
+      <div class="auth-brands">
+            <img src="assets/fivano.png" alt="Finova logo "/>
+      </div>
+
+      <div class="auth-hero">
+        <h1 class="auth-hero-title">Take control of your finances.</h1>
+        <p class="auth-hero-sub">Track expenses, set budgets, and reach your savings goals — all in one place.</p>
+      </div>
+
+      <div class="auth-stats">
+        <div class="auth-stat">
+          <span class="auth-stat-value">₱0</span>
+          <span class="auth-stat-label">Hidden fees</span>
+        </div>
+        <div class="auth-stat-divider"></div>
+        <div class="auth-stat">
+          <span class="auth-stat-value">100%</span>
+          <span class="auth-stat-label">Protection of your data</span>
+        </div>
+        <div class="auth-stat-divider"></div>
+        <div class="auth-stat">
+          <span class="auth-stat-value">24/7</span>
+          <span class="auth-stat-label">Access</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL — Login Form ── -->
+    <div class="auth-panel-right">
+      <div class="auth-form-wrap">
+
+        <!-- Header -->
+        <div class="auth-form-header">
+          <h2 class="auth-form-title">Welcome back</h2>
+          <p class="auth-form-sub">Sign in to your Finova account</p>
+        </div>
+
+        <!-- Email / Password form -->
+        <div class="auth-form" id="formEmail">
+
+          <div class="form-group">
+            <label class="form-label" for="inputEmail">
+              Email address <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-envelope"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="email"
+                id="inputEmail"
+                placeholder="you@email.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputPassword">
+              Password <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input
+                class="form-input has-prefix"
+                type="password"
+                id="inputPassword"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              />
+              <button class="input-action" id="togglePassword" type="button" tabindex="-1">
+                <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Forgot password -->
+          <div class="auth-forgot">
+            <a href="#" class="auth-link" id="linkForgot">Forgot password?</a>
+          </div>
+
+          <!-- Error message (hidden by default) -->
+          <div class="auth-error" id="authError" style="display:none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="authErrorText">Invalid email or password.</span>
+          </div>
+
+          <!-- Submit button -->
+          <button class="btn btn-primary btn-block auth-submit" id="btnEmailLogin" type="button">
+            <span class="btn-label" data-type="SIGN IN">Sign In</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+        </div>
+
+        <!-- Sign up link -->
+        <p class="auth-switch">
+          Don't have an account?
+          <a href="signup.html" class="auth-link">Create one free</a>
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Capacitor Bridge -->
+  <script src="js/capacitor-config.js"></script>
+  <!-- Supabase Config Bridge -->
+  <script src="api/config-js"></script>
+  <script type="module" src="js/auth.js"></script>
+  <script src="js/animation.js"></script>
+  <!-- Instant theme load — prevents flash of wrong theme -->
+  <script type="module">
+    import { initPWA } from './js/pwa.js';
+    initPWA();
+
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark');
+    }
+  </script>
+
+</body>
+</html>

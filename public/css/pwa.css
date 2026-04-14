@@ -1,0 +1,79 @@
+/* ── PWA Status Indicator ────────────────────────────────── */
+.pwa-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: help;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  margin-right: var(--space-2);
+}
+
+.pwa-status:hover {
+  border-color: var(--accent);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.pwa-status i {
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+/* Offline / Caching Status */
+.pwa-status.ready i {
+  color: var(--success);
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.4));
+}
+
+.pwa-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--text-muted);
+  border: 2px solid var(--bg-secondary);
+  transition: all 0.3s ease;
+}
+
+.pwa-status.ready .pwa-dot {
+  background: var(--success);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  animation: pwa-pulse 2s infinite;
+}
+
+@keyframes pwa-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Tooltip on hover */
+.pwa-status::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -32px;
+    right: 0;
+    background: var(--sidebar-bg);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+.pwa-status:hover::after {
+    opacity: 1;
+}

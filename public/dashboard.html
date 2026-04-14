@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#4f7ef8" id="themeColorMeta"/>
+  <title>Dashboard — Finova</title>
+
+  <!-- PWA Meta -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f7ef8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Finova">
+  <link rel="shortcut icon" href="assets/fivano.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/fivano.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet"/>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/dark.css"/>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+  <link rel="stylesheet" href="css/sync.css"/>
+  <link rel="stylesheet" href="css/upload.css"/>
+  <link rel="stylesheet" href="css/pwa.css"/>
+
+  <!-- Chart.js + html2pdf.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+
+  <!-- Capacitor Bridge -->
+  <script src="js/capacitor-config.js"></script>
+  <!-- Supabase Config Bridge (from .env) -->
+  <script src="api/config-js"></script>
+</head>
+<body>
+
+  <!-- ── Dashboard Loading Screen ── -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="loading-logo">
+        <img src="assets/fivano.png" alt="Finova" />
+      </div>
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+      </div>
+      <p class="loading-text">Loading your finances<span class="loading-dots"></span></p>
+      <p class="loading-tip" id="loadingTip">Syncing your latest transactions...</p>
+    </div>
+  </div>
+
+  <!-- ── Mobile Sidebar Overlay ── -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="app-shell">
+
+    <!-- ════════════════════════════
+         SIDEBAR
+    ════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+
+      <a class="sidebar-brand" href="#dashboard">
+        <div class="sidebar-brand-icon">
+          <img src="assets/fivano.png" alt="Finova logo"/>
+        </div>
+        <div class="sidebar-brand-text">
+          <span class="sidebar-brand-name">Finova</span>
+          <span class="sidebar-brand-tagline">Expense Tracker</span>
+        </div>
+      </a>
+
+      <nav class="sidebar-nav" id="sidebarNav">
+
+        <div class="sidebar-section-label">Main</div>
+
+        <a class="sidebar-item active" data-page="dashboard" href="#dashboard" data-tooltip="Dashboard">
+          <div class="sidebar-icon"><i class="fa-solid fa-gauge-high"></i></div>
+          <span class="sidebar-label">Dashboard</span>
+        </a>
+        <a class="sidebar-item" data-page="expenses" href="#expenses" data-tooltip="Expenses">
+          <div class="sidebar-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+          <span class="sidebar-label">Expenses</span>
+          <span class="sidebar-badge" id="badgeExpenses" style="display:none;">0</span>
+        </a>
+        <a class="sidebar-item" data-page="income" href="#income" data-tooltip="Income">
+          <div class="sidebar-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+          <span class="sidebar-label">Income</span>
+        </a>
+        <a class="sidebar-item" data-page="calendar" href="#calendar" data-tooltip="Calendar">
+          <div class="sidebar-icon"><i class="fa-solid fa-calendar-days"></i></div>
+          <span class="sidebar-label">Calendar</span>
+        </a>
+
+        <div class="sidebar-section-label">Planning</div>
+
+        <a class="sidebar-item" data-page="budgets" href="#budgets" data-tooltip="Budgets">
+          <div class="sidebar-icon"><i class="fa-solid fa-chart-pie"></i></div>
+          <span class="sidebar-label">Budgets</span>
+        </a>
+        <a class="sidebar-item" data-page="savings" href="#savings" data-tooltip="Savings">
+          <div class="sidebar-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+          <span class="sidebar-label">Savings Goals</span>
+        </a>
+        <a class="sidebar-item" data-page="recurring" href="#recurring" data-tooltip="Recurring">
+          <div class="sidebar-icon"><i class="fa-solid fa-repeat"></i></div>
+          <span class="sidebar-label">Recurring</span>
+        </a>
+
+        <div class="sidebar-section-label">Reports</div>
+
+        <a class="sidebar-item" data-page="calendar" href="#calendar" data-tooltip="Calendar">
+          <div class="sidebar-icon"><i class="fa-solid fa-calendar-alt"></i></div>
+          <span class="sidebar-label">Calendar</span>
+        </a>
+        <a class="sidebar-item" data-page="analytics" href="#analytics" data-tooltip="Analytics">
+          <div class="sidebar-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <span class="sidebar-label">Analytics</span>
+        </a>
+        <a class="sidebar-item" data-page="export" href="#export" data-tooltip="Export">
+          <div class="sidebar-icon"><i class="fa-solid fa-file-export"></i></div>
+          <span class="sidebar-label">Export</span>
+        </a>
+
+        <div class="sidebar-section-label">Account</div>
+
+        <a class="sidebar-item" data-page="settings" href="#settings" data-tooltip="Settings">
+          <div class="sidebar-icon"><i class="fa-solid fa-gear"></i></div>
+          <span class="sidebar-label">Settings</span>
+        </a>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebarUser">
+          <div class="sidebar-avatar" id="sidebarAvatar">?</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebarUserName">Loading…</div>
+            <div class="sidebar-user-email" id="sidebarUserEmail"></div>
+          </div>
+        </div>
+        <div style="display:flex; gap:4px; margin-top: 12px; align-items: center;">
+          <button class="sidebar-theme-btn" id="sidebarThemeBtn" title="Toggle theme">
+            <i class="fa-solid fa-moon" id="sidebarThemeIcon"></i>
+          </button>
+          
+          <!-- Sync Indicator (Moved from Navbar) -->
+          <div class="sidebar-status-item sync-indicator" id="syncIndicator" title="Synced with Supabase" style="display:none;">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span class="status-label">Synced</span>
+          </div>
+
+          <!-- PWA Status (Moved from Navbar) -->
+          <div class="sidebar-status-item pwa-status" id="pwaStatus" title="Offline Mode: Ready">
+            <i class="fa-solid fa-cloud-check pwa-icon-online" id="pwaIcon"></i>
+            <span class="pwa-dot" id="pwaDot"></span>
+            <span class="status-label">Offline Ready</span>
+          </div>
+
+          <button class="sidebar-theme-btn" id="sidebarLogoutBtn" title="Log out" style="color:var(--danger, #ef4444); margin-left: auto;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ════════════════════════════
+         MAIN CONTENT
+    ════════════════════════════ -->
+    <div class="app-main" id="appMain">
+
+      <!-- ══════════════════════════════════════════════════
+           NAVBAR
+           ⚠ RULE: Only buttons go here. NO modals inside navbar.
+      ══════════════════════════════════════════════════ -->
+      <nav class="navbar" id="navbar">
+
+        <button class="navbar-toggle" id="navbarToggle">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="navbar-breadcrumb hidden-mobile">
+          <span>Finova</span>
+          <span class="separator">
+            <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i>
+          </span>
+          <span class="current" id="navbarPageTitle">Dashboard</span>
+        </div>
+
+        <div class="navbar-spacer"></div>
+
+        <div class="navbar-search hidden-tablet">
+          <i class="fa-solid fa-magnifying-glass navbar-search-icon"></i>
+          <input
+            class="navbar-search-input"
+            type="text"
+            id="navbarSearch"
+            placeholder="Search transactions…"
+          />
+        </div>
+
+        <div class="navbar-actions">
+
+          <button class="btn btn-outline btn-sm" onclick="openReceiptModal()">
+            <i class="fa-solid fa-receipt"></i>
+            <span class="hidden-mobile">Upload Receipt</span>
+          </button>
+
+          <button class="btn btn-primary btn-sm hidden-mobile" id="btnQuickAdd">
+            <i class="fa-solid fa-plus"></i>
+            <span class="hidden-mobile">Add Expense</span>
+          </button>
+
+          <button class="navbar-icon-btn" id="btnTheme" title="Toggle dark mode">
+            <i class="fa-solid fa-moon" id="themeIcon"></i>
+          </button>
+
+          <!-- Indicators Moved to Sidebar -->
+
+          <div style="position:relative;">
+            <button class="navbar-icon-btn" id="btnNotifications">
+              <i class="fa-solid fa-bell"></i>
+              <span class="notif-dot" id="notifDot" style="display:none;"></span>
+            </button>
+            <div class="notif-dropdown" id="notifDropdown">
+              <div class="notif-dropdown-header">
+                <h3>Notifications</h3>
+                <button class="btn btn-ghost btn-xs" id="btnMarkAllRead">Mark all read</button>
+              </div>
+              <div class="notif-dropdown-list" id="notifList">
+                <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="navbar-divider"></div>
+
+          <div class="navbar-avatar" id="navbarAvatar" title="Account">?</div>
+
+        </div>
+
+      </nav>
+      <!-- ── END NAVBAR ── -->
+
+      <!-- ── PAGE VIEWS ── -->
+      <main class="page-content" id="pageContent">
+
+        <!-- Dashboard -->
+        <section class="page-view active" id="page-dashboard">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="dashGreeting">Good morning!</h1>
+              <p class="page-subtitle">Here's your financial overview for <span id="dashMonth">this month</span>.</p>
+            </div>
+            <button class="btn btn-primary" id="btnDashAddExpense">
+              <i class="fa-solid fa-plus"></i> Add Expense
+            </button>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-card income">
+              <div class="summary-card-header">
+                <span class="summary-card-label">Total Income</span>
+                <div class="summary-card-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+              </div>
+              <div class="summary-card-amount" id="cardIncome">₱0.00</div>
+              <div class="summary-card-delta neutral" id="cardIncomeDelta"><i class="fa-solid fa-minus"></i> No data yet</div>
+            </div>
+            <div class="summary-card expense">
+              <div class="summary-card-header">
+                <span class="summary-card-label">Total Expenses</span>
+                <div class="summary-card-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+              </div>
+              <div class="summary-card-amount" id="cardExpenses">₱0.00</div>
+              <div class="summary-card-delta neutral" id="cardExpensesDelta"><i class="fa-solid fa-minus"></i> No data yet</div>
+            </div>
+            <div class="summary-card balance">
+              <div class="summary-card-header">
+                <span class="summary-card-label">Net Balance</span>
+                <div class="summary-card-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+              </div>
+              <div class="summary-card-amount" id="cardBalance">₱0.00</div>
+              <div class="summary-card-delta neutral" id="cardBalanceDelta"><i class="fa-solid fa-minus"></i> No transactions yet</div>
+            </div>
+            <div class="summary-card savings">
+              <div class="summary-card-header">
+                <span class="summary-card-label">Savings Rate</span>
+                <div class="summary-card-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+              </div>
+              <div class="summary-card-amount" id="cardSavingsRate">0%</div>
+              <div class="summary-card-delta neutral" id="cardSavingsDelta"><i class="fa-solid fa-minus"></i> No data yet</div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title">Monthly Overview</span>
+                  <button class="dash-card-action" onclick="navigateTo('analytics')">View All →</button>
+                </div>
+                <div class="dash-card-body">
+                  <div class="chart-placeholder" id="chartMonthly">
+                    <i class="fa-solid fa-chart-bar"></i>
+                    <p>Charts coming on Day 19</p>
+                  </div>
+                </div>
+              </div>
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title">Recent Transactions</span>
+                  <button class="dash-card-action" onclick="navigateTo('expenses')">View All →</button>
+                </div>
+                <div id="recentTransactions"></div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+              <!-- Advanced AI Insights -->
+              <div class="dash-card ai-insights-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title"><i class="fa-solid fa-sparkles" style="color:var(--accent); margin-right:4px;"></i> AI Insights</span>
+                  <button class="btn btn-ghost btn-xs" id="btnRefreshInsights" onclick="window.refreshAIInsights()" title="Refresh Insights">
+                    <i class="fa-solid fa-rotate-right"></i>
+                  </button>
+                </div>
+                <div id="aiInsightsContent">
+                  <div class="loading-state" style="padding:var(--space-4); margin:0;">
+                    <i class="fa-solid fa-spinner fa-spin" style="margin-bottom:8px;"></i>
+                    <p style="font-size:12px; margin:0;">Analyzing spending patterns...</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title">Budget Overview</span>
+                  <button class="dash-card-action" onclick="navigateTo('budgets')">Manage →</button>
+                </div>
+                <div class="budget-list" id="dashBudgetList"></div>
+              </div>
+              <div class="dash-card">
+                <div class="dash-card-header">
+                  <span class="dash-card-title">Savings Goals</span>
+                  <button class="dash-card-action" onclick="navigateTo('savings')">View All →</button>
+                </div>
+                <div class="budget-list" id="dashSavingsList"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Expenses -->
+        <section class="page-view" id="page-expenses">
+          <div class="page-header">
+            <div><h1 class="page-title">Expenses</h1><p class="page-subtitle">Track and manage your spending.</p></div>
+            <button class="btn btn-primary" id="btnAddExpense"><i class="fa-solid fa-plus"></i> Add Expense</button>
+          </div>
+          
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="expListMonthFilter"><i class="fa-solid fa-calendar-days"></i> Month</label>
+              <input type="month" id="expListMonthFilter" class="form-input" />
+            </div>
+            <div class="filter-group">
+              <label for="expListCategoryFilter"><i class="fa-solid fa-tag"></i> Category</label>
+              <select id="expListCategoryFilter" class="form-select">
+                <option value="">All Categories</option>
+                <!-- populated by JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="list-container" id="expenseListContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading expenses...</div>
+          </div>
+        </section>
+
+        <!-- Income -->
+        <section class="page-view" id="page-income">
+          <div class="page-header">
+            <div><h1 class="page-title">Income</h1><p class="page-subtitle">Track all your income sources.</p></div>
+            <button class="btn btn-success" id="btnAddIncome"><i class="fa-solid fa-plus"></i> Add Income</button>
+          </div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="incListMonthFilter"><i class="fa-solid fa-calendar-days"></i> Month</label>
+              <input type="month" id="incListMonthFilter" class="form-input" />
+            </div>
+            <div class="filter-group">
+              <label for="incListSourceFilter"><i class="fa-solid fa-briefcase"></i> Source</label>
+              <select id="incListSourceFilter" class="form-select">
+                <option value="">All Sources</option>
+                <!-- populated by JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="list-container" id="incomeListContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading income...</div>
+          </div>
+        </section>
+
+
+
+        <!-- Budgets -->
+        <section class="page-view" id="page-budgets">
+          <div class="page-header">
+            <div><h1 class="page-title">Budgets</h1><p class="page-subtitle">Set and manage your spending limits.</p></div>
+            <button class="btn btn-success" id="btnAddBudget" onclick="window.openBudgetModal()"><i class="fa-solid fa-plus"></i> Add Budget</button>
+          </div>
+          
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="budgetMonthYearPicker"><i class="fa-solid fa-calendar-days"></i> Month</label>
+              <input type="month" id="budgetMonthYearPicker" class="form-input filter-month-picker" />
+            </div>
+          </div>
+
+          <div class="budget-items-grid" id="budgetItemsContainer">
+            <!-- Budget cards populate here -->
+            <div class="list-empty">Loading budgets...</div>
+          </div>
+        </section>
+
+        <!-- Savings -->
+        <section class="page-view" id="page-savings">
+          <div class="page-header">
+            <div><h1 class="page-title">Savings Goals</h1><p class="page-subtitle">Set targets and track your progress.</p></div>
+            <button class="btn btn-success" id="btnAddSavings" onclick="window.openSavingsModal()"><i class="fa-solid fa-plus"></i> New Goal</button>
+          </div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="savingsStatusFilter"><i class="fa-solid fa-bullseye"></i> Status</label>
+              <select id="savingsStatusFilter" class="form-select">
+                <option value="all">All Goals</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="savings-grid" id="savingsListContainer">
+            <!-- Populated via JS -->
+            <div class="list-empty">Loading savings goals...</div>
+          </div>
+        </section>
+
+        <!-- Recurring -->
+        <section class="page-view" id="page-recurring">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Recurring Expenses</h1>
+              <p class="page-subtitle">Manage your subscriptions and recurring bills.</p>
+            </div>
+            <button class="btn btn-success" id="btnAddRecurring" onclick="document.getElementById('btnQuickAdd')?.click()">
+              <i class="fa-solid fa-plus"></i> Add Recurring
+            </button>
+          </div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="recurringFreqFilter"><i class="fa-solid fa-repeat"></i> Frequency</label>
+              <select id="recurringFreqFilter" class="form-select">
+                <option value="all">All Frequencies</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+          </div>
+          <div id="recurringListContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading subscriptions…</div>
+          </div>
+        </section>
+
+        <!-- Analytics -->
+        <section class="page-view" id="page-analytics">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Analytics</h1>
+              <p class="page-subtitle">Charts and spending insights.</p>
+            </div>
+          </div>
+          <div id="analyticsChartsContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading charts…</div>
+          </div>
+        </section>
+
+        <!-- Calendar View (Day 22) -->
+        <section class="page-view" id="page-calendar">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Calendar View</h1>
+              <p class="page-subtitle">Track your daily spending patterns.</p>
+            </div>
+          </div>
+          <div id="calendarValidationBanner" class="alert info" style="margin-bottom: var(--space-4); display: none;">
+            <!-- Postgres vs Firestore validation status goes here -->
+          </div>
+          <div id="calendarPageContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading calendar…</div>
+          </div>
+        </section>
+
+        <!-- Export / Reports -->
+        <section class="page-view" id="page-export">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Reports & Export</h1>
+              <p class="page-subtitle">View summaries and download your financial data.</p>
+            </div>
+          </div>
+          <div id="exportPageContainer">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</div>
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section class="page-view" id="page-settings">
+          <div class="page-header">
+            <div><h1 class="page-title">Settings</h1><p class="page-subtitle">Manage your account and preferences.</p></div>
+          </div>
+          <!-- Base Currency -->
+          <div class="settings-section" style="margin-bottom:var(--space-5);">
+            <div class="settings-section-header">
+              <div>
+                <h2 class="settings-section-title"><i class="fa-solid fa-coins"></i> Base Currency</h2>
+                <p class="settings-section-desc">All amounts will be converted to this currency for display. Exchange rates update hourly.</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap;">
+              <select class="form-select" id="settingsBaseCurrency" style="max-width:280px;">
+                <option value="PHP">🇵🇭 PHP — Philippine Peso (₱)</option>
+                <option value="USD">🇺🇸 USD — US Dollar ($)</option>
+                <option value="EUR">🇪🇺 EUR — Euro (€)</option>
+                <option value="GBP">🇬🇧 GBP — British Pound (£)</option>
+                <option value="JPY">🇯🇵 JPY — Japanese Yen (¥)</option>
+                <option value="SGD">🇸🇬 SGD — Singapore Dollar (S$)</option>
+                <option value="AUD">🇦🇺 AUD — Australian Dollar (A$)</option>
+                <option value="CAD">🇨🇦 CAD — Canadian Dollar (C$)</option>
+                <option value="KRW">🇰🇷 KRW — Korean Won (₩)</option>
+                <option value="INR">🇮🇳 INR — Indian Rupee (₹)</option>
+              </select>
+              <button class="btn btn-primary btn-sm" id="btnSaveBaseCurrency">
+                <i class="fa-solid fa-check"></i> <span>Save</span>
+              </button>
+              <span class="settings-save-status" id="currencySaveStatus"></span>
+            </div>
+          </div>
+
+          <!-- Sync Data -->
+          <div class="settings-section" style="margin-bottom:var(--space-5);">
+            <div class="settings-section-header">
+              <div>
+                <h2 class="settings-section-title"><i class="fa-solid fa-cloud-arrow-up"></i> Data Sync</h2>
+                <p class="settings-section-desc">Manually trigger synchronization with the cloud. Will show errors if offline.</p>
+              </div>
+            </div>
+            <div style="display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm" id="btnManualSync">
+                <i class="fa-solid fa-rotate"></i> <span>Sync Now</span>
+              </button>
+              <button class="btn btn-ghost btn-sm" id="btnManualSyncRetry" style="display: none; color: var(--danger);">
+                <i class="fa-solid fa-arrow-rotate-right"></i> <span>Retry</span>
+              </button>
+              <span class="settings-save-status" id="manualSyncStatus"></span>
+            </div>
+          </div>
+
+          <!-- Category Management -->
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <div>
+                <h2 class="settings-section-title"><i class="fa-solid fa-tag"></i> Expense Categories</h2>
+                <p class="settings-section-desc">Create, rename, and delete custom categories with icons and colors.</p>
+              </div>
+              <button class="btn btn-primary btn-sm" id="btnNewCategory">
+                <i class="fa-solid fa-plus"></i> <span>New Category</span>
+              </button>
+            </div>
+
+            <!-- Add / Edit Form (hidden by default) -->
+            <div class="cat-form-section" id="catFormSection">
+              <div class="cat-form-header">
+                <h3 id="catFormTitle">New Category</h3>
+                <button class="modal-close cat-form-close"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="catNameInput">Name <span class="required">*</span></label>
+                <input class="form-input" type="text" id="catNameInput" placeholder="e.g., Utilities, Pets, Gaming" maxlength="30" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Icon <span class="required">*</span></label>
+                <div class="icon-picker-grid" id="catIconPicker"></div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Color <span class="required">*</span></label>
+                <div class="color-picker-grid" id="catColorPicker"></div>
+              </div>
+
+              <div class="form-error-banner" id="catError" style="display:none;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span id="catErrorText"></span>
+              </div>
+
+              <div class="cat-form-actions">
+                <button class="btn btn-ghost" id="btnCancelCategory">Cancel</button>
+                <button class="btn btn-primary" id="btnSaveCategory">
+                  <i class="fa-solid fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+
+            <!-- Category List -->
+            <div class="cat-mgmt-list" id="categoryList">
+              <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading categories...</div>
+            </div>
+          </div>
+
+          <!-- Logout -->
+          <div class="settings-section" style="margin-top:var(--space-6);">
+            <button class="btn btn-danger" id="btnLogout">
+              <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </button>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Mobile Bottom Nav -->
+      <nav class="bottom-nav" id="bottomNav">
+        <a class="bottom-nav-item active" data-page="dashboard" href="#dashboard">
+          <i class="fa-solid fa-gauge-high"></i><span>Home</span>
+        </a>
+        <a class="bottom-nav-item" data-page="expenses" href="#expenses">
+          <i class="fa-solid fa-arrow-trend-down"></i><span>Expenses</span>
+        </a>
+        <a class="bottom-nav-item bottom-nav-add" id="bottomNavAdd" href="#">
+          <i class="fa-solid fa-plus"></i>
+        </a>
+        <a class="bottom-nav-item" data-page="budgets" href="#budgets">
+          <i class="fa-solid fa-chart-pie"></i><span>Budgets</span>
+        </a>
+        <a class="bottom-nav-item" data-page="settings" href="#settings">
+          <i class="fa-solid fa-gear"></i><span>Settings</span>
+        </a>
+      </nav>
+
+    </div>
+    <!-- END app-main -->
+
+  </div>
+  <!-- END app-shell -->
+
+
+  <!-- ══════════════════════════════════════════════════════
+       MODALS — always at the very bottom, outside app-shell
+       ⚠ NEVER place modals inside navbar, sidebar, or main
+  ══════════════════════════════════════════════════════ -->
+
+  <!-- ── ADD EXPENSE MODAL ── -->
+  <div class="modal-overlay" id="modalAddExpense">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalExpenseTitle">
+
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalExpenseTitle">
+          <i class="fa-solid fa-arrow-trend-down" style="color:var(--danger);"></i>
+          Add Expense
+        </h2>
+        <button class="modal-close" id="btnCloseExpenseModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Quick Fill Section (Day 23+) -->
+        <div class="quick-fill-section" id="quickFillSection">
+          <div class="quick-fill-tabs">
+            <button class="quick-fill-tab active" id="tabRecent" onclick="window.switchQuickFillTab('recent')">
+              <i class="fa-solid fa-clock-rotate-left"></i> Recent
+            </button>
+            <button class="quick-fill-tab" id="tabTemplates" onclick="window.switchQuickFillTab('templates')">
+              <i class="fa-solid fa-bookmark"></i> Templates
+            </button>
+          </div>
+          <div class="quick-fill-strip" id="quickFillList">
+            <div class="quick-fill-empty">Loading…</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="expAmount">Amount <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-prefix currency" id="expCurrencySymbol">₱</span>
+            <input
+              class="form-input form-input-amount has-prefix"
+              type="number" id="expAmount"
+              placeholder="0.00" min="0" step="0.01" required
+            />
+            <select class="input-action-select" id="expCurrency">
+              <option value="PHP">PHP</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="JPY">JPY</option>
+              <option value="SGD">SGD</option>
+              <option value="AUD">AUD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category <span class="required">*</span></label>
+          <div class="category-grid" id="expCategoryGrid"></div>
+          <input type="hidden" id="expCategory" required/>
+        </div>
+
+        <div class="form-row" style="gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="expDate">Date <span class="required">*</span></label>
+            <input class="form-input" type="date" id="expDate" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="expNote">Note <span class="optional">(optional)</span></label>
+            <input class="form-input" type="text" id="expNote" placeholder="What was this for?" maxlength="120"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-toggle">
+            <div class="form-toggle-track">
+              <input class="form-toggle-input" type="checkbox" id="expRecurring"/>
+              <div class="form-toggle-thumb"></div>
+            </div>
+            <span class="form-toggle-label">Recurring expense</span>
+          </label>
+        </div>
+
+        <div class="form-group" id="expRecurringGroup" style="display:none;">
+          <label class="form-label" for="expFrequency">Frequency</label>
+          <select class="form-select" id="expFrequency">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+
+        <div class="form-error-banner" id="expError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="expErrorText"></span>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnSaveAsTemplate" title="Save current form as a reusable template" style="margin-right:auto;">
+          <i class="fa-solid fa-bookmark"></i> <span>Save as Template</span>
+        </button>
+        <button class="btn btn-ghost" id="btnCancelExpense">Cancel</button>
+        <button class="btn btn-danger" id="btnSaveExpense">
+          <i class="fa-solid fa-plus"></i> <span>Save Expense</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── ADD / EDIT BUDGET MODAL ── -->
+  <div class="modal-overlay" id="budgetModalBackdrop">
+    <div class="modal" id="budgetModalContainer" role="dialog" aria-modal="true">
+
+      <div class="modal-header">
+        <h2 class="modal-title" id="budgetModalTitle">
+          <i class="fa-solid fa-chart-pie" style="color:var(--accent);"></i>
+          Add Budget
+        </h2>
+        <button class="modal-close" id="btnCloseBudgetModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="form-label" for="budCategory">Category <span class="required">*</span></label>
+          <select class="form-select" id="budCategory" required>
+            <option value="" disabled selected>Select category...</option>
+            <!-- Categories populated by JS -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="budAmount">Monthly Limit <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-prefix currency" id="budCurrencySymbol">₱</span>
+            <input
+              class="form-input form-input-amount has-prefix"
+              type="number" id="budAmount"
+              placeholder="0.00" min="1" step="0.01" required
+            />
+          </div>
+          <div class="settings-section-desc">Budgets are automatically converted and compared against your base currency.</div>
+        </div>
+
+        <div class="form-row" style="gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="budMonth">Month</label>
+            <select class="form-select" id="budMonth"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="budYear">Year</label>
+            <select class="form-select" id="budYear"></select>
+          </div>
+        </div>
+
+        <div class="form-error-banner" id="budError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="budErrorText"></span>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelBudget">Cancel</button>
+        <button class="btn btn-primary" id="btnSaveBudget">
+          <i class="fa-solid fa-check"></i> <span id="btnSaveBudgetText">Save Budget</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── UPLOAD RECEIPT MODAL (3-step AI flow) ── -->
+  <div class="modal-overlay" id="receiptModalBackdrop" style="display:none;">
+    <div class="modal modal-receipt" role="dialog" aria-modal="true">
+
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fa-solid fa-receipt" style="color:var(--accent);"></i>
+          Upload Receipt
+        </h2>
+        <button class="modal-close" onclick="closeReceiptModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- STEP 1: Upload -->
+        <div id="stepUpload" style="display:flex; flex-direction:column; gap:var(--space-4);">
+          <div class="receipt-ai-badge">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>AI-powered — automatically extracts date &amp; amount</span>
+          </div>
+          <div class="file-upload-zone" id="receiptDropZone">
+            <input type="file" id="receiptFileInput"
+              accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+              style="display:none;"/>
+            <div class="file-upload-idle">
+              <div class="file-upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+              <div class="file-upload-text">
+                <span class="file-upload-title">Drop your receipt here</span>
+                <span class="file-upload-sub">or
+                  <button class="file-upload-browse" type="button" id="btnBrowseReceipt">browse files</button>
+                </span>
+                <span class="file-upload-hint">JPG, PNG, PDF · max 5MB</span>
+              </div>
+            </div>
+          </div>
+          <div class="receipt-preview" id="receiptPreview" style="display:none;">
+            <img id="receiptPreviewImg" src="" alt="Receipt preview" style="display:none;"/>
+            <div class="receipt-preview-info">
+              <i class="fa-solid fa-file-image" style="color:var(--accent); font-size:20px;"></i>
+              <div>
+                <div class="receipt-preview-name" id="receiptPreviewName"></div>
+                <div class="receipt-preview-size" id="receiptPreviewSize"></div>
+              </div>
+              <button class="file-upload-remove" type="button" id="btnRemoveReceipt">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-error-banner" id="receiptError" style="display:none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="receiptErrorMsg"></span>
+          </div>
+        </div>
+
+        <!-- STEP 2: Scanning -->
+        <div id="stepScanning" style="display:none; flex-direction:column; align-items:center; gap:var(--space-5); padding:var(--space-8) 0;">
+          <div class="receipt-scan-animation">
+            <div class="receipt-scan-icon"><i class="fa-solid fa-receipt"></i></div>
+            <div class="receipt-scan-beam"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:var(--text-base); font-weight:var(--weight-semibold); color:var(--text-primary); margin-bottom:6px;">
+              Scanning your receipt…
+            </div>
+            <div style="font-size:var(--text-sm); color:var(--text-muted);">
+              AI is extracting date, amount, and merchant
+            </div>
+          </div>
+          <div class="receipt-scan-steps">
+            <div class="scan-step active" id="scanStep1"><i class="fa-solid fa-check-circle"></i> Reading image</div>
+            <div class="scan-step" id="scanStep2"><i class="fa-solid fa-spinner fa-spin"></i> Extracting data</div>
+            <div class="scan-step" id="scanStep3"><i class="fa-regular fa-circle"></i> Preparing results</div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Review -->
+        <div id="stepReview" style="display:none; flex-direction:column; gap:var(--space-4);">
+          <div class="review-card">
+            <div class="review-card-header">
+              <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent);"></i>
+              <span>Extracted from receipt</span>
+              <span class="review-confidence" id="reviewConfidence">High confidence</span>
+            </div>
+            <div class="review-fields">
+              <div class="review-field">
+                <span class="review-field-label"><i class="fa-solid fa-store"></i> Merchant</span>
+                <span class="review-field-value" id="reviewMerchant">—</span>
+              </div>
+              <div class="review-field highlight">
+                <span class="review-field-label"><i class="fa-solid fa-peso-sign"></i> Total Amount</span>
+                <span class="review-field-value review-amount" id="reviewAmount">—</span>
+              </div>
+              <div class="review-field">
+                <span class="review-field-label"><i class="fa-solid fa-calendar"></i> Date</span>
+                <span class="review-field-value" id="reviewDate">—</span>
+              </div>
+              <div class="review-field">
+                <span class="review-field-label"><i class="fa-solid fa-coins"></i> Currency</span>
+                <span class="review-field-value" id="reviewCurrency">—</span>
+              </div>
+              <div class="review-field">
+                <span class="review-field-label"><i class="fa-solid fa-tag"></i> Category</span>
+                <span class="review-field-value" id="reviewCategory">—</span>
+              </div>
+            </div>
+            <div class="review-items-section">
+              <div class="review-field-label" style="margin-bottom:8px;">
+                <i class="fa-solid fa-list"></i> Items detected
+              </div>
+              <div class="review-items" id="reviewItems"></div>
+            </div>
+          </div>
+          <div class="receipt-info-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>These details will pre-fill the expense form. You can edit them before saving.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelReceipt" onclick="closeReceiptModal()">Cancel</button>
+        <button class="btn btn-primary" id="btnScanReceipt" onclick="scanReceipt()" disabled>
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Scan Receipt
+        </button>
+        <button class="btn btn-primary" id="btnConfirmReceipt" onclick="confirmReceiptAndAddExpense()" style="display:none;">
+          <i class="fa-solid fa-check"></i> Looks good — Add Expense
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── ADD / EDIT INCOME MODAL ── -->
+  <div class="modal-overlay" id="modalAddIncome">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalIncomeTitle">
+
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalIncomeTitle">
+          <i class="fa-solid fa-arrow-trend-up" style="color:var(--success);"></i>
+          Add Income
+        </h2>
+        <button class="modal-close" id="btnCloseIncomeModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="form-label" for="incAmount">Amount <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-prefix currency" id="incCurrencySymbol">₱</span>
+            <input
+              class="form-input form-input-amount has-prefix"
+              type="number" id="incAmount"
+              placeholder="0.00" min="0" step="0.01" required
+            />
+            <select class="input-action-select" id="incCurrency">
+              <option value="PHP">PHP</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="JPY">JPY</option>
+              <option value="SGD">SGD</option>
+              <option value="AUD">AUD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Source <span class="required">*</span></label>
+          <div class="category-grid" id="incSourceGrid"></div>
+          <input type="hidden" id="incSource" required/>
+        </div>
+
+        <div class="form-row" style="gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="incDate">Date <span class="required">*</span></label>
+            <input class="form-input" type="date" id="incDate" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="incNote">Note <span class="optional">(optional)</span></label>
+            <input class="form-input" type="text" id="incNote" placeholder="e.g., March salary, Upwork project" maxlength="120"/>
+          </div>
+        </div>
+
+        <div class="form-error-banner" id="incError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="incErrorText"></span>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelIncome">Cancel</button>
+        <button class="btn btn-success" id="btnSaveIncome">
+          <i class="fa-solid fa-plus"></i> <span>Save Income</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+  
+  <!-- ── ADD / EDIT SAVINGS GOAL MODAL ── -->
+  <div class="modal-overlay" id="modalSavings">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalSavingsTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalSavingsTitle">
+          <i class="fa-solid fa-piggy-bank" style="color:var(--accent);"></i>
+          New Savings Goal
+        </h2>
+        <button class="modal-close" id="btnCloseSavingsModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="savingsName">Goal Name <span class="required">*</span></label>
+          <input class="form-input" type="text" id="savingsName" placeholder="e.g., Emergency Fund, Vacation" required/>
+        </div>
+
+        <div class="form-row" style="gap:12px;">
+          <div class="form-group">
+            <label class="form-label" for="savingsTarget">Target Amount <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix">₱</span>
+              <input class="form-input has-prefix" type="number" id="savingsTarget" placeholder="0.00" min="0" step="0.01" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="savingsCurrent">Initial Saved <span class="optional">(optional)</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix">₱</span>
+              <input class="form-input has-prefix" type="number" id="savingsCurrent" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="savingsDeadline">Deadline <span class="optional">(optional)</span></label>
+          <input class="form-input" type="date" id="savingsDeadline"/>
+        </div>
+
+        <div class="form-error-banner" id="savingsError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="savingsErrorText"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelSavings">Cancel</button>
+        <button class="btn btn-primary" id="btnSaveSavings">
+          <i class="fa-solid fa-save"></i> <span>Save Goal</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADD CONTRIBUTION MODAL ── -->
+  <div class="modal-overlay" id="modalAddContribution">
+    <div class="modal modal-sm" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fa-solid fa-plus-circle" style="color:var(--success);"></i>
+          Add Contribution
+        </h2>
+        <button class="modal-close" id="btnCloseContribModal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); margin-bottom:var(--space-4);">
+          Adding money to <strong id="contribGoalName">...</strong>.
+        </p>
+        
+        <input type="hidden" id="contribGoalId"/>
+
+        <div class="form-group">
+          <label class="form-label" for="contribAmount">Amount to Add <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-prefix">₱</span>
+            <input class="form-input has-prefix" type="number" id="contribAmount" placeholder="0.00" min="0.01" step="0.01" required/>
+          </div>
+        </div>
+
+        <div class="form-error-banner" id="contribError" style="display:none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="contribErrorText"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="btnCancelContrib">Cancel</button>
+        <button class="btn btn-success" id="btnSaveContrib">
+          <i class="fa-solid fa-check"></i> Add Funds
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Name Modal -->
+  <div class="modal-overlay" id="templateNameOverlay">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fa-solid fa-bookmark" style="color:var(--accent);"></i>
+          Name Your Template
+        </h2>
+        <button class="modal-close" onclick="window.cancelTemplateName()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="templateNameInput">Template Name <span class="required">*</span></label>
+          <input class="form-input" type="text" id="templateNameInput" placeholder="e.g. Daily Lunch" maxlength="50" required/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="window.cancelTemplateName()">Cancel</button>
+        <button class="btn btn-primary" id="btnConfirmTemplateName">
+          <i class="fa-solid fa-check"></i> Save Template
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Detail Modal (Day 23) -->
+  <div class="modal-overlay" id="dayDetailOverlay">
+    <div class="modal" style="max-width:420px; padding:0;">
+      <div class="modal-header" style="padding:var(--space-4); border-bottom:1px solid var(--border);">
+        <h2 class="modal-title" id="dayDetailTitle">Transactions</h2>
+        <button class="modal-close" onclick="window.closeDayDetail()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:var(--space-4); max-height:60vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:var(--space-3) 0; margin-bottom:var(--space-3); border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary); font-size:var(--text-sm);">Daily Total</span>
+          <span id="dayDetailTotal" style="font-size:var(--text-xl); font-weight:var(--weight-bold); color:var(--accent);">₱0.00</span>
+        </div>
+        <div id="dayDetailList">
+          <!-- Transactions populated via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════
+       AI CHAT ASSISTANT
+  ════════════════════════════ -->
+  <button class="ai-chat-fab" id="aiChatFab" title="Chat with AI" onclick="window.toggleAIChat()">
+    <i class="fa-solid fa-sparkles"></i>
+  </button>
+
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <div class="ai-chat-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
+        <div>
+          <div style="font-weight:var(--weight-bold); font-size:14px; color:var(--text-primary);">Finova AI</div>
+          <div class="ai-status-indicator" id="aiStatusIndicator">
+            <div class="ai-status-dot"></div>
+            <span id="aiStatusText">Online</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="window.toggleAIChat()">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    <div class="ai-chat-messages" id="aiChatMessages">
+      <div class="chat-message ai">
+        <div class="msg-bubble">Hello! I'm your Finova financial assistant. Ask me anything about your current budget or spending habits!</div>
+      </div>
+      <!-- Messages populate here -->
+    </div>
+    <div class="ai-chat-input-area">
+      <form id="aiChatForm" style="display:flex; gap:8px; width:100%;">
+        <input type="text" id="aiChatInput" class="form-input" placeholder="Type your message..." autocomplete="off" required>
+        <button type="submit" class="btn btn-primary" id="aiChatSubmit">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/supabase-config.js"></script>
+  <script type="module" src="js/db.js"></script>
+  <script type="module" src="js/sync.js"></script>
+  <script type="module" src="js/confirm.js"></script>
+  <script type="module" src="js/categories.js"></script>
+  <script type="module" src="js/currency.js"></script>
+  <script type="module" src="js/expenses.js"></script>
+  <script type="module" src="js/expense-list.js"></script>
+  <script type="module" src="js/income.js"></script>
+  <script type="module" src="js/income-list.js"></script>
+  <script type="module" src="js/settings.js"></script>
+  <script type="module" src="js/receipt.js"></script>
+  <script type="module" src="js/notifications.js"></script>
+  <script type="module" src="js/budgets.js"></script>
+  <script type="module" src="js/budgets-list.js"></script>
+  <script type="module" src="js/savings.js"></script>
+  <script type="module" src="js/savings-list.js"></script>
+  <script type="module" src="js/recurring-list.js"></script>
+  <script type="module" src="js/charts.js"></script>
+  <script type="module" src="js/reports-export.js"></script>
+  <script type="module" src="js/calendar.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+  <script type="module" src="js/chat.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/push-notifications.js"></script>
+  <script type="module" src="js/pwa.js"></script>
+</body>
+</html>

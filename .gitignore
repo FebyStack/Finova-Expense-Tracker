@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+
+# Firebase service account key
+serviceAccountKey.json
+
+# Logs
+logs/
+*.log
+
+# Uploads (user files)
+uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Sensitive Native Config
+public/js/capacitor-config.js
+
+# Capacitor / Mobile Build Assets
+# These folders contain built assets that may contain environment-specific config
+android/app/src/main/assets/public/
+ios/App/App/public/
+
+# Native Platform Folders (Optional: Keep if you want to track native project structure, 
+# but ignore the built assets above)
+# android/
+# ios/
